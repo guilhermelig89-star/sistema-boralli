@@ -20,6 +20,7 @@ const filtrosIniciais = {
 
 function AgendaPage() {
   const [filtros, setFiltros] = useState(filtrosIniciais);
+  const [abaAtual, setAbaAtual] = useState("agenda");
   const { clientesAtivos } = useClientes();
   const { servicosAtivos } = useServicos();
   const {
@@ -118,45 +119,68 @@ function AgendaPage() {
 
   return (
     <div>
-      <div className="topo-clientes">
+      <div className="topo-clientes topo-agenda">
         <div>
           <h1>Agendamentos</h1>
-          <p>Cadastre horários, exceções e atendimentos respeitando a duração de cada serviço.</p>
+          <p>Cadastre atendimentos respeitando a duração de cada serviço e as regras configuradas.</p>
+        </div>
+
+        <div className="abas-agenda" role="tablist" aria-label="Seções de agendamentos">
+          <button
+            type="button"
+            className={abaAtual === "agenda" ? "ativo" : ""}
+            onClick={() => setAbaAtual("agenda")}
+          >
+            Agenda
+          </button>
+          <button
+            type="button"
+            className={abaAtual === "configuracoes" ? "ativo" : ""}
+            onClick={() => setAbaAtual("configuracoes")}
+          >
+            Configurações
+          </button>
         </div>
       </div>
 
       <div className="cliente-layout">
-        <AgendaResumo agendamentos={agendamentos} />
+        {abaAtual === "agenda" && (
+          <>
+            <AgendaResumo agendamentos={agendamentos} />
 
-        <AgendaConfiguracao
-          horarios={horarios}
-          excecoes={excecoes}
-          carregando={carregandoConfiguracao}
-          erro={erroConfiguracao}
-          onSalvarHorario={salvarHorarioAgenda}
-          onSalvarExcecao={salvarExcecaoAgenda}
-        />
+            <AgendamentoForm
+              clientes={clientesAtivos}
+              servicos={servicosAtivos}
+              pacotesAtivos={pacotesAtivos}
+              calcularSaldoPacote={calcularSaldoPacote}
+              pacoteEstaAcabando={pacoteEstaAcabando}
+              onSalvar={salvarFormulario}
+            />
 
-        <AgendamentoForm
-          clientes={clientesAtivos}
-          servicos={servicosAtivos}
-          pacotesAtivos={pacotesAtivos}
-          calcularSaldoPacote={calcularSaldoPacote}
-          pacoteEstaAcabando={pacoteEstaAcabando}
-          onSalvar={salvarFormulario}
-        />
+            <div className="lista-clientes">
+              <h2>Lista de agendamentos</h2>
+              <AgendaFiltros filtros={filtros} onAlterar={alterarFiltro} />
+              {erro && <p>{erro}</p>}
+              <AgendamentosTable
+                agendamentos={agendamentosFiltrados}
+                carregando={carregando}
+                onFinalizar={finalizar}
+                onCancelar={cancelar}
+              />
+            </div>
+          </>
+        )}
 
-        <div className="lista-clientes">
-          <h2>Lista de agendamentos</h2>
-          <AgendaFiltros filtros={filtros} onAlterar={alterarFiltro} />
-          {erro && <p>{erro}</p>}
-          <AgendamentosTable
-            agendamentos={agendamentosFiltrados}
-            carregando={carregando}
-            onFinalizar={finalizar}
-            onCancelar={cancelar}
+        {abaAtual === "configuracoes" && (
+          <AgendaConfiguracao
+            horarios={horarios}
+            excecoes={excecoes}
+            carregando={carregandoConfiguracao}
+            erro={erroConfiguracao}
+            onSalvarHorario={salvarHorarioAgenda}
+            onSalvarExcecao={salvarExcecaoAgenda}
           />
-        </div>
+        )}
       </div>
     </div>
   );

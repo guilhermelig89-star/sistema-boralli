@@ -19,8 +19,8 @@ export function useServicos() {
         setCarregando(false);
       },
       (erroFirebase) => {
-        console.error("Erro ao sincronizar servicos", erroFirebase);
-        setErro("Nao foi possivel carregar os servicos.");
+        console.error("Erro ao sincronizar serviços", erroFirebase);
+        setErro("Não foi possível carregar os serviços.");
         setCarregando(false);
       }
     );

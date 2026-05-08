@@ -7,7 +7,9 @@ import {
 import {
   criarPacoteCliente,
   calcularSaldoPacote,
+  calcularSaldoServicoPacote,
   pacoteEstaAcabando,
+  pacoteTemSaldoParaServico,
 } from "../services/pacotesService";
 
 export function usePacotesClientes() {
@@ -60,6 +62,8 @@ export function usePacotesClientes() {
     erro,
     salvarPacote,
     calcularSaldoPacote,
+    calcularSaldoServicoPacote,
     pacoteEstaAcabando,
+    pacoteTemSaldoParaServico,
   };
 }

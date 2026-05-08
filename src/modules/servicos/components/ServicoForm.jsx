@@ -2,9 +2,10 @@ import { useState } from "react";
 
 const servicoInicial = {
   nome: "",
-  tipo: "avulso",
+  categoria: "",
   valor: "",
   duracaoMinutos: "60",
+  observacoes: "",
 };
 
 function montarFormularioServico(servico) {
@@ -12,9 +13,10 @@ function montarFormularioServico(servico) {
 
   return {
     nome: servico.nome || "",
-    tipo: servico.tipo || "avulso",
+    categoria: servico.categoria || "",
     valor: servico.valor || "",
     duracaoMinutos: servico.duracaoMinutos || "60",
+    observacoes: servico.observacoes || "",
   };
 }
 
@@ -48,13 +50,14 @@ function ServicoForm({ servico, onSalvar, onCancelar }) {
         onChange={(e) => alterarCampo("nome", e.target.value)}
       />
 
-      <select value={formulario.tipo} onChange={(e) => alterarCampo("tipo", e.target.value)}>
-        <option value="avulso">Avulso</option>
-        <option value="combo">Combo</option>
-      </select>
+      <input
+        placeholder="Categoria"
+        value={formulario.categoria}
+        onChange={(e) => alterarCampo("categoria", e.target.value)}
+      />
 
       <input
-        placeholder="Valor"
+        placeholder="Valor avulso"
         type="number"
         autoComplete="off"
         value={formulario.valor}
@@ -66,6 +69,12 @@ function ServicoForm({ servico, onSalvar, onCancelar }) {
         type="number"
         value={formulario.duracaoMinutos}
         onChange={(e) => alterarCampo("duracaoMinutos", e.target.value)}
+      />
+
+      <textarea
+        placeholder="Observações"
+        value={formulario.observacoes}
+        onChange={(e) => alterarCampo("observacoes", e.target.value)}
       />
 
       <button type="submit">{servico ? "Atualizar serviço" : "Salvar serviço"}</button>

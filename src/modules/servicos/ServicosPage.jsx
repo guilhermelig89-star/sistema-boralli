@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import "./servicos.css";
 import ComboForm from "./components/ComboForm";
 import CombosTable from "./components/CombosTable";
 import ServicoForm from "./components/ServicoForm";

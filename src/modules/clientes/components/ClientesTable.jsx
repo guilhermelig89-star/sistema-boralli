@@ -6,7 +6,7 @@ function ClientesTable({ clientes, carregando, onEditar, onDesativar }) {
         <span>Telefone</span>
         <span>Bairro</span>
         <span>Cidade</span>
-        <span>Acoes</span>
+        <span>Ações</span>
       </div>
 
       {carregando && (

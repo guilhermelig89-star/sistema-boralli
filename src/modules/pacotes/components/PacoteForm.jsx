@@ -2,16 +2,15 @@ import { useMemo, useState } from "react";
 
 const pacoteInicial = {
   clienteId: "",
-  servicoId: "",
+  comboId: "",
   nome: "",
-  quantidadeTotal: "4",
   alertaSaldoMinimo: "1",
   valorPago: "",
   formaPagamento: "",
   observacoes: "",
 };
 
-function PacoteForm({ clientes, servicos, onSalvar }) {
+function PacoteForm({ clientes, combos, onSalvar }) {
   const [formulario, setFormulario] = useState(pacoteInicial);
 
   const clienteSelecionado = useMemo(
@@ -19,27 +18,27 @@ function PacoteForm({ clientes, servicos, onSalvar }) {
     [clientes, formulario.clienteId]
   );
 
-  const servicoSelecionado = useMemo(
-    () => servicos.find((servico) => servico.id === formulario.servicoId),
-    [servicos, formulario.servicoId]
+  const comboSelecionado = useMemo(
+    () => combos.find((combo) => combo.id === formulario.comboId),
+    [combos, formulario.comboId]
   );
 
   function alterarCampo(campo, valor) {
     setFormulario((atual) => {
-      if (campo !== "servicoId") {
+      if (campo !== "comboId") {
         return {
           ...atual,
           [campo]: valor,
         };
       }
 
-      const novoServico = servicos.find((servico) => servico.id === valor);
+      const novoCombo = combos.find((combo) => combo.id === valor);
 
       return {
         ...atual,
-        servicoId: valor,
-        nome: atual.nome || novoServico?.nome || "",
-        valorPago: atual.valorPago || novoServico?.valor || "",
+        comboId: valor,
+        nome: novoCombo?.nome || "",
+        valorPago: novoCombo?.valor ?? "",
       };
     });
   }
@@ -50,7 +49,8 @@ function PacoteForm({ clientes, servicos, onSalvar }) {
     await onSalvar({
       ...formulario,
       clienteNome: clienteSelecionado?.nome || "",
-      servicoNome: servicoSelecionado?.nome || "",
+      comboNome: comboSelecionado?.nome || "",
+      itens: comboSelecionado?.itens || [],
     });
 
     setFormulario(pacoteInicial);
@@ -58,7 +58,7 @@ function PacoteForm({ clientes, servicos, onSalvar }) {
 
   return (
     <form className="form-cliente" onSubmit={salvar}>
-      <h2>Novo pacote do cliente</h2>
+      <h2>Vender pacote para cliente</h2>
 
       <select
         value={formulario.clienteId}
@@ -73,13 +73,13 @@ function PacoteForm({ clientes, servicos, onSalvar }) {
       </select>
 
       <select
-        value={formulario.servicoId}
-        onChange={(e) => alterarCampo("servicoId", e.target.value)}
+        value={formulario.comboId}
+        onChange={(e) => alterarCampo("comboId", e.target.value)}
       >
-        <option value="">Selecione o serviço/combo</option>
-        {servicos.map((servico) => (
-          <option key={servico.id} value={servico.id}>
-            {servico.nome} {servico.tipo === "combo" ? "(combo)" : ""}
+        <option value="">Selecione o combo</option>
+        {combos.map((combo) => (
+          <option key={combo.id} value={combo.id}>
+            {combo.nome}
           </option>
         ))}
       </select>
@@ -88,14 +88,6 @@ function PacoteForm({ clientes, servicos, onSalvar }) {
         placeholder="Nome do pacote"
         value={formulario.nome}
         onChange={(e) => alterarCampo("nome", e.target.value)}
-      />
-
-      <input
-        placeholder="Quantidade total"
-        type="number"
-        min="1"
-        value={formulario.quantidadeTotal}
-        onChange={(e) => alterarCampo("quantidadeTotal", e.target.value)}
       />
 
       <input
@@ -119,6 +111,16 @@ function PacoteForm({ clientes, servicos, onSalvar }) {
         value={formulario.formaPagamento}
         onChange={(e) => alterarCampo("formaPagamento", e.target.value)}
       />
+
+      {comboSelecionado && (
+        <div className="resumo-combo">
+          {(comboSelecionado.itens || []).map((item) => (
+            <span key={item.servicoId}>
+              {item.quantidade}x {item.servicoNome}
+            </span>
+          ))}
+        </div>
+      )}
 
       <textarea
         placeholder="Observações"

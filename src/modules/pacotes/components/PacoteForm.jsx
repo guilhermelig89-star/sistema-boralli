@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const pacoteInicial = {
   clienteId: "",
@@ -24,21 +24,24 @@ function PacoteForm({ clientes, servicos, onSalvar }) {
     [servicos, formulario.servicoId]
   );
 
-  useEffect(() => {
-    if (!servicoSelecionado) return;
-
-    setFormulario((atual) => ({
-      ...atual,
-      nome: atual.nome || servicoSelecionado.nome || "",
-      valorPago: atual.valorPago || servicoSelecionado.valor || "",
-    }));
-  }, [servicoSelecionado]);
-
   function alterarCampo(campo, valor) {
-    setFormulario((atual) => ({
-      ...atual,
-      [campo]: valor,
-    }));
+    setFormulario((atual) => {
+      if (campo !== "servicoId") {
+        return {
+          ...atual,
+          [campo]: valor,
+        };
+      }
+
+      const novoServico = servicos.find((servico) => servico.id === valor);
+
+      return {
+        ...atual,
+        servicoId: valor,
+        nome: atual.nome || novoServico?.nome || "",
+        valorPago: atual.valorPago || novoServico?.valor || "",
+      };
+    });
   }
 
   async function salvar(e) {

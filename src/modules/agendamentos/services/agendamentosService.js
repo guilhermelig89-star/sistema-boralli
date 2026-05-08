@@ -1,5 +1,6 @@
 import {
   criarAgendamentoRegistro,
+  cancelarAgendamentoRegistro,
   finalizarAgendamentoRegistro,
 } from "../repositories/agendamentosRepository";
 
@@ -28,7 +29,17 @@ export function montarAgendamento(dados) {
   };
 }
 
-export async function criarAgendamento(dados) {
+export function validarConflitoHorario(agendamento, agendamentosExistentes) {
+  return agendamentosExistentes.some(
+    (item) =>
+      item.status !== "cancelado" &&
+      item.status !== "finalizado" &&
+      item.data === agendamento.data &&
+      item.hora === agendamento.hora
+  );
+}
+
+export async function criarAgendamento(dados, agendamentosExistentes = []) {
   const agendamento = montarAgendamento(dados);
 
   if (!agendamento.clienteId) {
@@ -43,9 +54,17 @@ export async function criarAgendamento(dados) {
     throw new Error("Informe data e horário do agendamento.");
   }
 
+  if (validarConflitoHorario(agendamento, agendamentosExistentes)) {
+    throw new Error("Já existe um agendamento ativo neste horário.");
+  }
+
   return criarAgendamentoRegistro(agendamento);
 }
 
 export function finalizarAgendamento(id) {
   return finalizarAgendamentoRegistro(id);
+}
+
+export function cancelarAgendamento(id) {
+  return cancelarAgendamentoRegistro(id);
 }

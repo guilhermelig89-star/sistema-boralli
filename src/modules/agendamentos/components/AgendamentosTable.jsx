@@ -1,4 +1,16 @@
-function AgendamentosTable({ agendamentos, carregando, onFinalizar }) {
+function statusClasse(status) {
+  if (status === "finalizado") return "badge-tipo badge-servico";
+  if (status === "cancelado") return "badge-tipo badge-alerta";
+  return "badge-tipo badge-combo";
+}
+
+function statusTexto(status) {
+  if (status === "finalizado") return "Finalizado";
+  if (status === "cancelado") return "Cancelado";
+  return "Agendado";
+}
+
+function AgendamentosTable({ agendamentos, carregando, onFinalizar, onCancelar }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-agendamento cabecalho">
@@ -22,38 +34,54 @@ function AgendamentosTable({ agendamentos, carregando, onFinalizar }) {
       )}
 
       {!carregando &&
-        agendamentos.map((agendamento) => (
-          <div className="linha-agendamento" key={agendamento.id}>
-            <strong>
-              {agendamento.data} {agendamento.hora}
-            </strong>
-            <span>{agendamento.clienteNome}</span>
-            <span>{agendamento.servicoNome}</span>
-            <span>
-              {agendamento.pacoteClienteId
-                ? `Pacote: ${agendamento.pacoteNome}`
-                : `Avulso - ${Number(agendamento.valor || 0).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}`}
-            </span>
-            <div className="acoes-cliente">
-              {agendamento.status === "finalizado" ? (
-                <span className="badge-tipo badge-servico">Finalizado</span>
-              ) : (
-                <button
-                  className="botao-editar"
-                  onClick={() => {
-                    const confirmar = confirm("Finalizar este atendimento?");
-                    if (confirmar) onFinalizar(agendamento.id);
-                  }}
-                >
-                  Finalizar
-                </button>
-              )}
+        agendamentos.map((agendamento) => {
+          const encerrado = agendamento.status === "finalizado" || agendamento.status === "cancelado";
+
+          return (
+            <div className="linha-agendamento" key={agendamento.id}>
+              <strong>
+                {agendamento.data} {agendamento.hora}
+              </strong>
+              <span>{agendamento.clienteNome}</span>
+              <span>{agendamento.servicoNome}</span>
+              <span>
+                {agendamento.pacoteClienteId
+                  ? `Pacote: ${agendamento.pacoteNome}`
+                  : `Avulso - ${Number(agendamento.valor || 0).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}`}
+              </span>
+              <div className="acoes-cliente">
+                <span className={statusClasse(agendamento.status)}>{statusTexto(agendamento.status)}</span>
+
+                {!encerrado && (
+                  <>
+                    <button
+                      className="botao-editar"
+                      onClick={() => {
+                        const confirmar = confirm("Finalizar este atendimento?");
+                        if (confirmar) onFinalizar(agendamento.id);
+                      }}
+                    >
+                      Finalizar
+                    </button>
+
+                    <button
+                      className="botao-desativar"
+                      onClick={() => {
+                        const confirmar = confirm("Cancelar este agendamento?");
+                        if (confirmar) onCancelar(agendamento.id);
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
     </div>
   );
 }

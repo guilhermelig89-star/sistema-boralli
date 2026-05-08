@@ -12,7 +12,7 @@ function App() {
       case "clientes":
         return <ClientesPage />;
       case "servicos":
-  return <ServicosPage />;
+        return <ServicosPage />;
       case "agenda":
         return <h1>Agenda</h1>;
       case "atendimento":
@@ -27,7 +27,9 @@ function App() {
                 <p>Resumo geral para acompanhar agenda, clientes e atendimentos.</p>
               </div>
 
-              <button className="botao-principal">Novo agendamento</button>
+              <button className="botao-principal" onClick={() => setTelaAtual("agenda")}>
+                Novo agendamento
+              </button>
             </div>
 
             <div className="card-grid">
@@ -64,9 +66,9 @@ function App() {
 
               <div className="bloco">
                 <h2>Ações rápidas</h2>
-                <button>Adicionar cliente</button>
-                <button>Cadastrar serviço</button>
-                <button>Abrir agenda</button>
+                <button onClick={() => setTelaAtual("clientes")}>Adicionar cliente</button>
+                <button onClick={() => setTelaAtual("servicos")}>Cadastrar serviço</button>
+                <button onClick={() => setTelaAtual("agenda")}>Abrir agenda</button>
               </div>
             </div>
           </section>

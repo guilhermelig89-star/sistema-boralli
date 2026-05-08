@@ -220,7 +220,9 @@ body {
 .form-cliente input,
 .form-cliente select,
 .form-cliente textarea,
-.pesquisa-clientes {
+.pesquisa-clientes,
+.filtros-agenda input,
+.filtros-agenda select {
   width: 100%;
   border: 1px solid #d8c7b7;
   border-radius: 12px;
@@ -239,7 +241,9 @@ body {
 .form-cliente input:focus,
 .form-cliente select:focus,
 .form-cliente textarea:focus,
-.pesquisa-clientes:focus {
+.pesquisa-clientes:focus,
+.filtros-agenda input:focus,
+.filtros-agenda select:focus {
   border-color: #d7b56d;
 }
 
@@ -272,6 +276,22 @@ body {
 
 .pesquisa-clientes {
   margin-bottom: 18px;
+}
+
+.filtros-agenda {
+  display: grid;
+  grid-template-columns: 180px 160px minmax(220px, 1fr) auto;
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+
+.filtros-agenda button {
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #faf7f2;
+  color: #3b2b25;
+  padding: 12px 14px;
+  font-weight: 700;
 }
 
 .tabela-clientes {
@@ -413,7 +433,8 @@ body {
   }
 
   .dashboard-header,
-  .painel-duplo {
+  .painel-duplo,
+  .filtros-agenda {
     grid-template-columns: 1fr;
   }
 

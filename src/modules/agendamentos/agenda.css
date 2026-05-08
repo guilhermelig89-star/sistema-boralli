@@ -31,7 +31,7 @@
 
 .config-agenda {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 24px;
   align-items: start;
 }
@@ -41,12 +41,22 @@
   overflow: hidden;
 }
 
+.texto-ajuda-config {
+  margin: 0 0 14px;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
 .form-config-agenda {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   align-items: center;
   margin: 14px 0 18px;
+}
+
+.form-config-clara {
+  align-items: stretch;
 }
 
 .form-config-agenda input,
@@ -63,13 +73,19 @@
   outline: none;
 }
 
+.form-config-agenda input:disabled,
+.form-config-agenda select:disabled {
+  background: #f2ece5;
+  color: #a49587;
+}
+
 .form-config-agenda input:focus,
 .form-config-agenda select:focus {
   border-color: #d7b56d;
 }
 
 .form-config-agenda input[placeholder] {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 .form-config-agenda button {
@@ -83,6 +99,45 @@
   font-weight: 700;
 }
 
+.campo-config {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.campo-config span,
+.grupo-config strong {
+  color: #6a4a38;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.campo-config-largo,
+.grupo-config {
+  grid-column: 1 / -1;
+}
+
+.grupo-config {
+  border: 1px solid #efe5d8;
+  border-radius: 14px;
+  background: #faf7f2;
+  padding: 14px;
+}
+
+.linha-campos-config {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.titulo-grupo-config {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .check-linha {
   display: inline-flex;
   align-items: center;
@@ -92,6 +147,21 @@
   font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+.check-config {
+  border: 1px solid #efe5d8;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 12px;
+}
+
+.check-config.compacta {
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  white-space: nowrap;
 }
 
 .check-linha input {
@@ -148,7 +218,13 @@
   }
 
   .config-agenda,
-  .form-config-agenda {
+  .form-config-agenda,
+  .linha-campos-config {
     grid-template-columns: 1fr;
+  }
+
+  .titulo-grupo-config {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

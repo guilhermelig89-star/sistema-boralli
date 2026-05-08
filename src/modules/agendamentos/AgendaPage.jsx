@@ -26,7 +26,6 @@ function AgendaPage() {
   const {
     pacotesAtivos,
     calcularSaldoServicoPacote,
-    pacoteEstaAcabando,
     pacoteTemSaldoParaServico,
   } = usePacotesClientes();
   const {
@@ -153,8 +152,10 @@ function AgendaPage() {
               clientes={clientesAtivos}
               servicos={servicosAtivos}
               pacotesAtivos={pacotesAtivos}
+              agendamentos={agendamentos}
+              horarios={horarios}
+              excecoes={excecoes}
               calcularSaldoServicoPacote={calcularSaldoServicoPacote}
-              pacoteEstaAcabando={pacoteEstaAcabando}
               pacoteTemSaldoParaServico={pacoteTemSaldoParaServico}
               onSalvar={salvarFormulario}
             />

@@ -29,7 +29,7 @@ function ClientesPage() {
       await salvarCliente(dados, clienteEditando?.id);
       setClienteEditando(null);
     } catch (erroSalvar) {
-      alert(erroSalvar.message || "Nao foi possivel salvar o cliente.");
+      alert(erroSalvar.message || "Não foi possível salvar o cliente.");
     }
   }
 
@@ -37,7 +37,7 @@ function ClientesPage() {
     try {
       await removerCliente(id);
     } catch (erroDesativar) {
-      alert(erroDesativar.message || "Nao foi possivel desativar o cliente.");
+      alert(erroDesativar.message || "Não foi possível desativar o cliente.");
     }
   }
 

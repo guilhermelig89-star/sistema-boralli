@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { observarAgendamentos } from "../repositories/agendamentosRepository";
 import {
+  cancelarAgendamento,
   criarAgendamento,
   finalizarAgendamento,
 } from "../services/agendamentosService";
@@ -28,18 +29,23 @@ export function useAgendamentos() {
   }, []);
 
   const agendamentosAbertos = useMemo(
-    () => agendamentos.filter((item) => item.status !== "finalizado"),
+    () => agendamentos.filter((item) => item.status !== "finalizado" && item.status !== "cancelado"),
     [agendamentos]
   );
 
   async function salvarAgendamento(dados) {
     setErro(null);
-    return criarAgendamento(dados);
+    return criarAgendamento(dados, agendamentos);
   }
 
   async function finalizarAtendimento(id) {
     setErro(null);
     return finalizarAgendamento(id);
+  }
+
+  async function cancelarAtendimento(id) {
+    setErro(null);
+    return cancelarAgendamento(id);
   }
 
   return {
@@ -49,5 +55,6 @@ export function useAgendamentos() {
     erro,
     salvarAgendamento,
     finalizarAtendimento,
+    cancelarAtendimento,
   };
 }

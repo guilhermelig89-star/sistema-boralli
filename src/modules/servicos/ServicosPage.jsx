@@ -52,6 +52,7 @@ function ServicosPage() {
 
       <div className="cliente-layout">
         <ServicoForm
+          key={servicoEditando?.id || "novo-servico"}
           servico={servicoEditando}
           onSalvar={salvarFormulario}
           onCancelar={() => setServicoEditando(null)}

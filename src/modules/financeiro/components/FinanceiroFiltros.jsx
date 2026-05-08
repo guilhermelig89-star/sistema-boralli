@@ -23,9 +23,11 @@ function FinanceiroFiltros({ filtros, clientes, onAlterar }) {
       </select>
 
       <select value={filtros.origem} onChange={(e) => onAlterar("origem", e.target.value)}>
-        <option value="">Todas as origens</option>
+        <option value="sistema">Somente do sistema</option>
         <option value="venda_pacote">Venda de pacote</option>
         <option value="atendimento_avulso">Atendimento avulso</option>
+        <option value="outros">Outros/manuais</option>
+        <option value="todos">Tudo</option>
       </select>
 
       <select value={filtros.status} onChange={(e) => onAlterar("status", e.target.value)}>

@@ -15,9 +15,11 @@ function numero(valor, padrao = 0) {
 export function montarServico(dados) {
   return {
     nome: texto(dados.nome),
-    tipo: dados.tipo === "combo" ? "combo" : "avulso",
+    categoria: texto(dados.categoria, "Geral"),
+    tipo: "avulso",
     valor: numero(dados.valor, 0),
     duracaoMinutos: numero(dados.duracaoMinutos, 60) || 60,
+    observacoes: texto(dados.observacoes),
     ativo: true,
   };
 }

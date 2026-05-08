@@ -120,8 +120,8 @@ function AgendaPage() {
     <div>
       <div className="topo-clientes">
         <div>
-          <h1>Agenda</h1>
-          <p>Agende atendimentos respeitando duração do serviço, expediente e exceções.</p>
+          <h1>Agendamentos</h1>
+          <p>Cadastre horários, exceções e atendimentos respeitando a duração de cada serviço.</p>
         </div>
       </div>
 
@@ -147,7 +147,7 @@ function AgendaPage() {
         />
 
         <div className="lista-clientes">
-          <h2>Agendamentos</h2>
+          <h2>Lista de agendamentos</h2>
           <AgendaFiltros filtros={filtros} onAlterar={alterarFiltro} />
           {erro && <p>{erro}</p>}
           <AgendamentosTable

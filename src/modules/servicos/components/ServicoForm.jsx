@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const servicoInicial = {
   nome: "",
@@ -7,22 +7,19 @@ const servicoInicial = {
   duracaoMinutos: "60",
 };
 
+function montarFormularioServico(servico) {
+  if (!servico) return servicoInicial;
+
+  return {
+    nome: servico.nome || "",
+    tipo: servico.tipo || "avulso",
+    valor: servico.valor || "",
+    duracaoMinutos: servico.duracaoMinutos || "60",
+  };
+}
+
 function ServicoForm({ servico, onSalvar, onCancelar }) {
-  const [formulario, setFormulario] = useState(servicoInicial);
-
-  useEffect(() => {
-    if (!servico) {
-      setFormulario(servicoInicial);
-      return;
-    }
-
-    setFormulario({
-      nome: servico.nome || "",
-      tipo: servico.tipo || "avulso",
-      valor: servico.valor || "",
-      duracaoMinutos: servico.duracaoMinutos || "60",
-    });
-  }, [servico]);
+  const [formulario, setFormulario] = useState(() => montarFormularioServico(servico));
 
   function alterarCampo(campo, valor) {
     setFormulario((atual) => ({

@@ -14,6 +14,7 @@ import { db } from "../../../shared/firebase/firebaseConfig";
 const agendamentosRef = collection(db, "agendamentos");
 const pacotesRef = collection(db, "pacotesClientes");
 const historicoRef = collection(db, "pacotesHistorico");
+const movimentosFinanceirosRef = collection(db, "movimentosFinanceiros");
 
 function mapDocumento(documento) {
   return {
@@ -110,6 +111,23 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
       transaction.set(historicoDoc, {
         ...consumoPacote,
         tipo: "consumo_atendimento_finalizado",
+        criadoEm: serverTimestamp(),
+      });
+    } else if (Number(agendamento.valor || 0) > 0) {
+      const movimentoDoc = doc(movimentosFinanceirosRef);
+
+      transaction.set(movimentoDoc, {
+        tipo: "receita",
+        origem: "atendimento_avulso",
+        agendamentoId,
+        clienteId: agendamento.clienteId,
+        clienteNome: agendamento.clienteNome,
+        servicoId: agendamento.servicoId,
+        servicoNome: agendamento.servicoNome,
+        descricao: `Atendimento avulso - ${agendamento.servicoNome}`,
+        valor: Number(agendamento.valor || 0),
+        formaPagamento: agendamento.formaPagamento || "avulso",
+        status: "confirmado",
         criadoEm: serverTimestamp(),
       });
     }

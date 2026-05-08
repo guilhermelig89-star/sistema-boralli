@@ -73,7 +73,7 @@ function App() {
                 <button onClick={() => setTelaAtual("clientes")}>Adicionar cliente</button>
                 <button onClick={() => setTelaAtual("servicos")}>Cadastrar serviço</button>
                 <button onClick={() => setTelaAtual("pacotes")}>Vender pacote</button>
-                <button onClick={() => setTelaAtual("agenda")}>Abrir agenda</button>
+                <button onClick={() => setTelaAtual("agenda")}>Abrir agendamentos</button>
               </div>
             </div>
           </section>

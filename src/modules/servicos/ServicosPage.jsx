@@ -29,7 +29,7 @@ function ServicosPage() {
       await salvarServico(dados, servicoEditando?.id);
       setServicoEditando(null);
     } catch (erroSalvar) {
-      alert(erroSalvar.message || "Nao foi possivel salvar o servico.");
+      alert(erroSalvar.message || "Não foi possível salvar o serviço.");
     }
   }
 
@@ -37,7 +37,7 @@ function ServicosPage() {
     try {
       await removerServico(id);
     } catch (erroDesativar) {
-      alert(erroDesativar.message || "Nao foi possivel desativar o servico.");
+      alert(erroDesativar.message || "Não foi possível desativar o serviço.");
     }
   }
 
@@ -45,8 +45,8 @@ function ServicosPage() {
     <div>
       <div className="topo-clientes">
         <div>
-          <h1>Servicos</h1>
-          <p>Cadastre os servicos usados na agenda e no atendimento.</p>
+          <h1>Serviços</h1>
+          <p>Cadastre os serviços usados na agenda e no atendimento.</p>
         </div>
       </div>
 
@@ -60,12 +60,12 @@ function ServicosPage() {
         <div className="lista-clientes">
           <input
             className="pesquisa-clientes"
-            placeholder="Pesquisar servico..."
+            placeholder="Pesquisar serviço..."
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
           />
 
-          <h2>Servicos cadastrados</h2>
+          <h2>Serviços cadastrados</h2>
           {erro && <p>{erro}</p>}
 
           <ServicosTable

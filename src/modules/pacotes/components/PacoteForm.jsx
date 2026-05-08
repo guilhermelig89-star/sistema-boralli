@@ -63,64 +63,83 @@ function PacoteForm({ clientes, combos, onSalvar }) {
   }
 
   return (
-    <form className="form-cliente" onSubmit={salvar}>
-      <h2>Vender pacote para cliente</h2>
+    <form className="form-cliente form-pacote" onSubmit={salvar}>
+      <div className="titulo-form-pacote">
+        <h2>Nova venda de pacote</h2>
+        <p>Escolha a cliente, selecione o combo vendido e confirme o pagamento recebido.</p>
+      </div>
 
-      <select
-        value={formulario.clienteId}
-        onChange={(e) => alterarCampo("clienteId", e.target.value)}
-      >
-        <option value="">Selecione o cliente</option>
-        {clientes.map((cliente) => (
-          <option key={cliente.id} value={cliente.id}>
-            {cliente.nome}
-          </option>
-        ))}
-      </select>
+      <label className="campo-pacote">
+        <span>Cliente</span>
+        <select
+          value={formulario.clienteId}
+          onChange={(e) => alterarCampo("clienteId", e.target.value)}
+        >
+          <option value="">Selecione o cliente</option>
+          {clientes.map((cliente) => (
+            <option key={cliente.id} value={cliente.id}>
+              {cliente.nome}
+            </option>
+          ))}
+        </select>
+      </label>
 
-      <select
-        value={formulario.comboId}
-        onChange={(e) => alterarCampo("comboId", e.target.value)}
-      >
-        <option value="">Selecione o combo que será vendido</option>
-        {combos.map((combo) => (
-          <option key={combo.id} value={combo.id}>
-            {combo.nome} - {descreverItensCombo(combo)}
-          </option>
-        ))}
-      </select>
+      <label className="campo-pacote campo-pacote-destaque">
+        <span>Combo vendido</span>
+        <select
+          value={formulario.comboId}
+          onChange={(e) => alterarCampo("comboId", e.target.value)}
+        >
+          <option value="">Selecione o combo</option>
+          {combos.map((combo) => (
+            <option key={combo.id} value={combo.id}>
+              {combo.nome} - {descreverItensCombo(combo)}
+            </option>
+          ))}
+        </select>
+      </label>
 
-      <input
-        placeholder="Nome do pacote da cliente"
-        value={formulario.nome}
-        onChange={(e) => alterarCampo("nome", e.target.value)}
-      />
+      <label className="campo-pacote">
+        <span>Nome do pacote da cliente</span>
+        <input
+          placeholder="Ex: Pacote 4 mãos"
+          value={formulario.nome}
+          onChange={(e) => alterarCampo("nome", e.target.value)}
+        />
+      </label>
 
-      <input
-        placeholder="Avisar quando restar"
-        type="number"
-        min="1"
-        value={formulario.alertaSaldoMinimo}
-        onChange={(e) => alterarCampo("alertaSaldoMinimo", e.target.value)}
-      />
+      <label className="campo-pacote">
+        <span>Avisar quando restar</span>
+        <input
+          type="number"
+          min="1"
+          value={formulario.alertaSaldoMinimo}
+          onChange={(e) => alterarCampo("alertaSaldoMinimo", e.target.value)}
+        />
+      </label>
 
-      <input
-        placeholder="Valor pago pela cliente"
-        type="number"
-        min="0"
-        value={formulario.valorPago}
-        onChange={(e) => alterarCampo("valorPago", e.target.value)}
-      />
+      <label className="campo-pacote">
+        <span>Valor pago pela cliente</span>
+        <input
+          type="number"
+          min="0"
+          value={formulario.valorPago}
+          onChange={(e) => alterarCampo("valorPago", e.target.value)}
+        />
+      </label>
 
-      <input
-        placeholder="Forma de pagamento"
-        value={formulario.formaPagamento}
-        onChange={(e) => alterarCampo("formaPagamento", e.target.value)}
-      />
+      <label className="campo-pacote">
+        <span>Forma de pagamento</span>
+        <input
+          placeholder="Pix, dinheiro, cartão..."
+          value={formulario.formaPagamento}
+          onChange={(e) => alterarCampo("formaPagamento", e.target.value)}
+        />
+      </label>
 
       {comboSelecionado && (
-        <div className="resumo-combo">
-          <strong>Combo selecionado: {comboSelecionado.nome}</strong>
+        <div className="resumo-combo resumo-venda-pacote">
+          <strong>Resumo do combo: {comboSelecionado.nome}</strong>
           {(comboSelecionado.itens || []).map((item) => (
             <span key={item.servicoId}>
               {item.quantidade}x {item.servicoNome}
@@ -136,13 +155,16 @@ function PacoteForm({ clientes, combos, onSalvar }) {
         </div>
       )}
 
-      <textarea
-        placeholder="Observações"
-        value={formulario.observacoes}
-        onChange={(e) => alterarCampo("observacoes", e.target.value)}
-      />
+      <label className="campo-pacote campo-pacote-observacoes">
+        <span>Observações</span>
+        <textarea
+          placeholder="Informações extras sobre a venda"
+          value={formulario.observacoes}
+          onChange={(e) => alterarCampo("observacoes", e.target.value)}
+        />
+      </label>
 
-      <button type="submit">Salvar pacote</button>
+      <button type="submit">Salvar pacote vendido</button>
     </form>
   );
 }

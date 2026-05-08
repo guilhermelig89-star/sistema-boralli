@@ -1,0 +1,20 @@
+.resumo-combo {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #faf7f2;
+  padding: 12px;
+}
+
+.resumo-combo span {
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  background: #fff;
+  color: #3b2b25;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}

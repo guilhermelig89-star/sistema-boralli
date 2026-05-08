@@ -20,7 +20,7 @@ export function useClientes() {
       },
       (erroFirebase) => {
         console.error("Erro ao sincronizar clientes", erroFirebase);
-        setErro("Nao foi possivel carregar os clientes.");
+        setErro("Não foi possível carregar os clientes.");
         setCarregando(false);
       }
     );

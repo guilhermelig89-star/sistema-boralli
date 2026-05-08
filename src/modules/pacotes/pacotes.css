@@ -1,3 +1,40 @@
+.form-pacote {
+  align-items: stretch;
+}
+
+.titulo-form-pacote,
+.campo-pacote-observacoes {
+  grid-column: 1 / -1;
+}
+
+.titulo-form-pacote h2 {
+  margin: 0 0 6px;
+}
+
+.titulo-form-pacote p,
+.texto-ajuda-pacotes,
+.cabecalho-bloco-pacotes p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.campo-pacote {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.campo-pacote span {
+  color: #6a4a38;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.campo-pacote-destaque {
+  grid-column: span 2;
+}
+
 .resumo-combo {
   grid-column: 1 / -1;
   display: flex;
@@ -9,6 +46,11 @@
   padding: 12px;
 }
 
+.resumo-combo strong {
+  width: 100%;
+  color: #2b2420;
+}
+
 .resumo-combo span {
   border: 1px solid #eadfce;
   border-radius: 999px;
@@ -17,4 +59,51 @@
   padding: 8px 10px;
   font-size: 12px;
   font-weight: 700;
+}
+
+.resumo-venda-pacote {
+  background: #fffaf0;
+}
+
+.bloco-pacotes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cabecalho-bloco-pacotes {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabecalho-bloco-pacotes h2 {
+  margin: 0 0 6px;
+}
+
+.filtro-pacotes {
+  width: min(320px, 100%);
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b2420;
+  padding: 14px;
+  font-size: 14px;
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  .campo-pacote-destaque {
+    grid-column: 1 / -1;
+  }
+
+  .cabecalho-bloco-pacotes {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filtro-pacotes {
+    width: 100%;
+  }
 }

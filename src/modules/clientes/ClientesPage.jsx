@@ -52,6 +52,7 @@ function ClientesPage() {
 
       <div className="cliente-layout">
         <ClienteForm
+          key={clienteEditando?.id || "novo-cliente"}
           cliente={clienteEditando}
           onSalvar={salvarFormulario}
           onCancelar={() => setClienteEditando(null)}

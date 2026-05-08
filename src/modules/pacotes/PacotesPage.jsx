@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
 import { useCombos } from "../servicos/hooks/useCombos";
+import "./pacotes.css";
 import HistoricoPacotes from "./components/HistoricoPacotes";
 import PacoteForm from "./components/PacoteForm";
 import PacotesTable from "./components/PacotesTable";

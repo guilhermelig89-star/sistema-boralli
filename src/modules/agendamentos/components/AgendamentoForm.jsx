@@ -16,7 +16,6 @@ function AgendamentoForm({
   servicos,
   pacotesAtivos,
   calcularSaldoServicoPacote,
-  pacoteEstaAcabando,
   pacoteTemSaldoParaServico,
   onSalvar,
 }) {
@@ -46,6 +45,14 @@ function AgendamentoForm({
     () => pacotesDisponiveis.find((pacote) => pacote.id === formulario.pacoteClienteId),
     [pacotesDisponiveis, formulario.pacoteClienteId]
   );
+
+  const saldoServicoSelecionado = pacoteSelecionado
+    ? calcularSaldoServicoPacote(pacoteSelecionado, formulario.servicoId)
+    : 0;
+  const pacoteServicoEstaAcabando =
+    pacoteSelecionado &&
+    saldoServicoSelecionado > 0 &&
+    saldoServicoSelecionado <= Number(pacoteSelecionado.alertaSaldoMinimo || 1);
 
   function alterarCampo(campo, valor) {
     setFormulario((atual) => ({
@@ -135,8 +142,8 @@ function AgendamentoForm({
 
       {pacoteSelecionado && (
         <div className="aviso-pacote">
-          <strong>Saldo para este serviço: {calcularSaldoServicoPacote(pacoteSelecionado, formulario.servicoId)}</strong>
-          {pacoteEstaAcabando(pacoteSelecionado) && <span>Este pacote está acabando.</span>}
+          <strong>Saldo para este serviço: {saldoServicoSelecionado}</strong>
+          {pacoteServicoEstaAcabando && <span>Este saldo está acabando.</span>}
         </div>
       )}
 

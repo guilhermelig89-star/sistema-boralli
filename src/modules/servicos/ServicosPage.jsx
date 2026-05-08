@@ -11,6 +11,7 @@ import { useServicos } from "./hooks/useServicos";
 function ServicosPage() {
   const [pesquisa, setPesquisa] = useState("");
   const [servicoEditando, setServicoEditando] = useState(null);
+  const [comboEditando, setComboEditando] = useState(null);
   const [abaAtual, setAbaAtual] = useState("servicos");
 
   const {
@@ -48,7 +49,8 @@ function ServicosPage() {
 
   async function salvarFormularioCombo(dados) {
     try {
-      await salvarCombo(dados);
+      await salvarCombo(dados, comboEditando?.id);
+      setComboEditando(null);
     } catch (erroSalvar) {
       alert(erroSalvar.message || "Não foi possível salvar o combo.");
     }
@@ -65,6 +67,9 @@ function ServicosPage() {
   async function desativarCombo(id) {
     try {
       await removerCombo(id);
+      if (comboEditando?.id === id) {
+        setComboEditando(null);
+      }
     } catch (erroDesativar) {
       alert(erroDesativar.message || "Não foi possível desativar o combo.");
     }
@@ -129,7 +134,13 @@ function ServicosPage() {
 
         {abaAtual === "combos" && (
           <>
-            <ComboForm servicos={servicosAtivos} onSalvar={salvarFormularioCombo} />
+            <ComboForm
+              key={comboEditando?.id || "novo-combo"}
+              combo={comboEditando}
+              servicos={servicosAtivos}
+              onSalvar={salvarFormularioCombo}
+              onCancelar={() => setComboEditando(null)}
+            />
 
             <div className="lista-clientes">
               <h2>Combos cadastrados</h2>
@@ -137,6 +148,7 @@ function ServicosPage() {
               <CombosTable
                 combos={combosAtivos}
                 carregando={carregandoCombos}
+                onEditar={setComboEditando}
                 onDesativar={desativarCombo}
               />
             </div>

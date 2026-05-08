@@ -1,4 +1,4 @@
-function CombosTable({ combos, carregando, onDesativar }) {
+function CombosTable({ combos, carregando, onEditar, onDesativar }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-combo cabecalho">
@@ -38,6 +38,10 @@ function CombosTable({ combos, carregando, onDesativar }) {
             </span>
             <span className="badge-tipo badge-combo">{combo.ativo === false ? "Inativo" : "Ativo"}</span>
             <div className="acoes-cliente">
+              <button className="botao-editar" onClick={() => onEditar(combo)}>
+                Editar
+              </button>
+
               <button
                 className="botao-desativar"
                 onClick={() => {

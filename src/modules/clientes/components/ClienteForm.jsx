@@ -105,7 +105,7 @@ function ClienteForm({ cliente, onSalvar, onCancelar }) {
         onChange={(e) => alterarCampo("rua", e.target.value)}
       />
       <input
-        placeholder="Numero"
+        placeholder="Número"
         value={formulario.numero}
         onChange={(e) => alterarCampo("numero", e.target.value)}
       />
@@ -125,13 +125,13 @@ function ClienteForm({ cliente, onSalvar, onCancelar }) {
         onChange={(e) => alterarCampo("complemento", e.target.value)}
       />
       <input
-        placeholder="Referencia"
+        placeholder="Referência"
         value={formulario.referencia}
         onChange={(e) => alterarCampo("referencia", e.target.value)}
       />
 
       <textarea
-        placeholder="Observacoes"
+        placeholder="Observações"
         value={formulario.observacoes}
         onChange={(e) => alterarCampo("observacoes", e.target.value)}
       />
@@ -140,7 +140,7 @@ function ClienteForm({ cliente, onSalvar, onCancelar }) {
 
       {cliente && (
         <button type="button" className="botao-cancelar" onClick={onCancelar}>
-          Cancelar edicao
+          Cancelar edição
         </button>
       )}
     </form>

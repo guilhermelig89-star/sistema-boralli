@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 
+import { gerarHorariosDisponiveis } from "../services/agendamentosService";
+
 const agendamentoInicial = {
   clienteId: "",
   servicoId: "",
@@ -15,6 +17,9 @@ function AgendamentoForm({
   clientes,
   servicos,
   pacotesAtivos,
+  agendamentos,
+  horarios,
+  excecoes,
   calcularSaldoServicoPacote,
   pacoteTemSaldoParaServico,
   onSalvar,
@@ -29,6 +34,17 @@ function AgendamentoForm({
   const servicoSelecionado = useMemo(
     () => servicos.find((servico) => servico.id === formulario.servicoId),
     [servicos, formulario.servicoId]
+  );
+
+  const horariosDisponiveis = useMemo(
+    () =>
+      gerarHorariosDisponiveis({
+        data: formulario.data,
+        duracaoMinutos: servicoSelecionado?.duracaoMinutos || 60,
+        configuracaoAgenda: { horarios, excecoes },
+        agendamentosExistentes: agendamentos,
+      }),
+    [formulario.data, servicoSelecionado?.duracaoMinutos, horarios, excecoes, agendamentos]
   );
 
   const pacotesDisponiveis = useMemo(
@@ -59,6 +75,7 @@ function AgendamentoForm({
       ...atual,
       [campo]: valor,
       ...(campo === "clienteId" || campo === "servicoId" ? { pacoteClienteId: "" } : {}),
+      ...(campo === "servicoId" || campo === "data" ? { hora: "" } : {}),
     }));
   }
 
@@ -117,11 +134,24 @@ function AgendamentoForm({
         onChange={(e) => alterarCampo("data", e.target.value)}
       />
 
-      <input
-        type="time"
+      <select
         value={formulario.hora}
         onChange={(e) => alterarCampo("hora", e.target.value)}
-      />
+        disabled={!formulario.data || !formulario.servicoId || horariosDisponiveis.length === 0}
+      >
+        <option value="">
+          {!formulario.data || !formulario.servicoId
+            ? "Selecione data e serviço"
+            : horariosDisponiveis.length === 0
+              ? "Nenhum horário disponível"
+              : "Selecione o horário"}
+        </option>
+        {horariosDisponiveis.map((hora) => (
+          <option key={hora} value={hora}>
+            {hora}
+          </option>
+        ))}
+      </select>
 
       {!formulario.pacoteClienteId && (
         <input
@@ -136,7 +166,7 @@ function AgendamentoForm({
       {servicoSelecionado && (
         <div className="aviso-pacote">
           <strong>Duração do serviço: {servicoSelecionado.duracaoMinutos || 60} min</strong>
-          <span>O horário precisa caber dentro do expediente cadastrado.</span>
+          <span>Somente horários livres dentro do expediente aparecem para seleção.</span>
         </div>
       )}
 

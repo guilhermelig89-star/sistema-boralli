@@ -5,21 +5,21 @@ function PacotesTable({ pacotes, carregando, pacoteEstaAcabando }) {
     <div className="tabela-clientes">
       <div className="linha-pacote cabecalho">
         <span>Cliente</span>
-        <span>Pacote</span>
-        <span>Itens</span>
-        <span>Uso</span>
+        <span>Pacote vendido</span>
+        <span>Serviços incluídos</span>
+        <span>Uso do pacote</span>
         <span>Status</span>
       </div>
 
       {carregando && (
         <div className="linha-pacote">
-          <span>Carregando pacotes...</span>
+          <span>Carregando pacotes vendidos...</span>
         </div>
       )}
 
       {!carregando && pacotes.length === 0 && (
         <div className="linha-pacote">
-          <span>Nenhum pacote encontrado.</span>
+          <span>Nenhum pacote vendido encontrado.</span>
         </div>
       )}
 
@@ -34,7 +34,7 @@ function PacotesTable({ pacotes, carregando, pacoteEstaAcabando }) {
               <span>{pacote.servicoNome}</span>
               <span>{obterResumoItensPacote(pacote)}</span>
               <span className={acabando ? "badge-tipo badge-alerta" : "badge-tipo badge-servico"}>
-                {acabando ? "Acabando" : pacote.status || "ativo"}
+                {acabando ? "Saldo baixo" : pacote.status || "ativo"}
               </span>
             </div>
           );

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import { gerarHorariosDisponiveis } from "../services/agendamentosService";
+import { sugerirHorariosInteligentes } from "../services/agendamentosService";
 
 const agendamentoInicial = {
   clienteId: "",
@@ -36,9 +36,9 @@ function AgendamentoForm({
     [servicos, formulario.servicoId]
   );
 
-  const horariosDisponiveis = useMemo(
+  const sugestoesHorario = useMemo(
     () =>
-      gerarHorariosDisponiveis({
+      sugerirHorariosInteligentes({
         data: formulario.data,
         duracaoMinutos: servicoSelecionado?.duracaoMinutos || 60,
         configuracaoAgenda: { horarios, excecoes },
@@ -69,6 +69,8 @@ function AgendamentoForm({
     pacoteSelecionado &&
     saldoServicoSelecionado > 0 &&
     saldoServicoSelecionado <= Number(pacoteSelecionado.alertaSaldoMinimo || 1);
+  const podeSugerirHorario = Boolean(formulario.data && formulario.servicoId);
+  const temHorarioDisponivel = sugestoesHorario.recomendados.length > 0 || sugestoesHorario.outros.length > 0;
 
   function alterarCampo(campo, valor) {
     setFormulario((atual) => ({
@@ -77,6 +79,10 @@ function AgendamentoForm({
       ...(campo === "clienteId" || campo === "servicoId" ? { pacoteClienteId: "" } : {}),
       ...(campo === "servicoId" || campo === "data" ? { hora: "" } : {}),
     }));
+  }
+
+  function escolherHorario(hora) {
+    alterarCampo("hora", hora);
   }
 
   async function salvar(e) {
@@ -134,24 +140,66 @@ function AgendamentoForm({
         onChange={(e) => alterarCampo("data", e.target.value)}
       />
 
-      <select
-        value={formulario.hora}
-        onChange={(e) => alterarCampo("hora", e.target.value)}
-        disabled={!formulario.data || !formulario.servicoId || horariosDisponiveis.length === 0}
-      >
-        <option value="">
-          {!formulario.data || !formulario.servicoId
-            ? "Selecione data e serviço"
-            : horariosDisponiveis.length === 0
-              ? "Nenhum horário disponível"
-              : "Selecione o horário"}
-        </option>
-        {horariosDisponiveis.map((hora) => (
-          <option key={hora} value={hora}>
-            {hora}
-          </option>
-        ))}
-      </select>
+      <div className="sugestoes-horario">
+        <div className="topo-sugestoes-horario">
+          <strong>Sugestões de horário</strong>
+          {formulario.hora && <span>Selecionado: {formulario.hora}</span>}
+        </div>
+
+        {!podeSugerirHorario && (
+          <p>Selecione o serviço e a data para ver os horários disponíveis.</p>
+        )}
+
+        {podeSugerirHorario && !temHorarioDisponivel && (
+          <p>Nenhum horário disponível para esse serviço nesta data.</p>
+        )}
+
+        {sugestoesHorario.recomendados.length > 0 && (
+          <div className="grupo-sugestoes-horario">
+            <span>Melhores encaixes</span>
+            <div className="botoes-horario">
+              {sugestoesHorario.recomendados.map((sugestao) => (
+                <button
+                  type="button"
+                  key={sugestao.hora}
+                  className={formulario.hora === sugestao.hora ? "botao-horario ativo" : "botao-horario"}
+                  onClick={() => escolherHorario(sugestao.hora)}
+                >
+                  <strong>{sugestao.hora}</strong>
+                  <small>{sugestao.motivo}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {sugestoesHorario.outros.length > 0 && (
+          <div className="grupo-sugestoes-horario">
+            <span>Outros horários livres</span>
+            <div className="botoes-horario compactos">
+              {sugestoesHorario.outros.map((sugestao) => (
+                <button
+                  type="button"
+                  key={sugestao.hora}
+                  className={formulario.hora === sugestao.hora ? "botao-horario ativo" : "botao-horario"}
+                  onClick={() => escolherHorario(sugestao.hora)}
+                >
+                  <strong>{sugestao.hora}</strong>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <label className="horario-manual">
+          <span>Ou informar horário manualmente</span>
+          <input
+            type="time"
+            value={formulario.hora}
+            onChange={(e) => alterarCampo("hora", e.target.value)}
+          />
+        </label>
+      </div>
 
       {!formulario.pacoteClienteId && (
         <input
@@ -166,7 +214,7 @@ function AgendamentoForm({
       {servicoSelecionado && (
         <div className="aviso-pacote">
           <strong>Duração do serviço: {servicoSelecionado.duracaoMinutos || 60} min</strong>
-          <span>Somente horários livres dentro do expediente aparecem para seleção.</span>
+          <span>As sugestões evitam buracos e o horário manual também passa pelas travas da agenda.</span>
         </div>
       )}
 

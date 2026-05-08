@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const clienteInicial = {
   nome: "",
@@ -13,28 +13,25 @@ const clienteInicial = {
   observacoes: "",
 };
 
+function montarFormularioCliente(cliente) {
+  if (!cliente) return clienteInicial;
+
+  return {
+    nome: cliente.nome || "",
+    telefone: cliente.telefone || "",
+    cep: cliente.cep || "",
+    rua: cliente.rua || "",
+    numero: cliente.numero || "",
+    bairro: cliente.bairro || "",
+    cidade: cliente.cidade || "Ibitinga",
+    complemento: cliente.complemento || "",
+    referencia: cliente.referencia || "",
+    observacoes: cliente.observacoes || "",
+  };
+}
+
 function ClienteForm({ cliente, onSalvar, onCancelar }) {
-  const [formulario, setFormulario] = useState(clienteInicial);
-
-  useEffect(() => {
-    if (!cliente) {
-      setFormulario(clienteInicial);
-      return;
-    }
-
-    setFormulario({
-      nome: cliente.nome || "",
-      telefone: cliente.telefone || "",
-      cep: cliente.cep || "",
-      rua: cliente.rua || "",
-      numero: cliente.numero || "",
-      bairro: cliente.bairro || "",
-      cidade: cliente.cidade || "Ibitinga",
-      complemento: cliente.complemento || "",
-      referencia: cliente.referencia || "",
-      observacoes: cliente.observacoes || "",
-    });
-  }, [cliente]);
+  const [formulario, setFormulario] = useState(() => montarFormularioCliente(cliente));
 
   function alterarCampo(campo, valor) {
     setFormulario((atual) => ({

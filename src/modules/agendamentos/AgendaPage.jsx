@@ -3,10 +3,12 @@ import { useMemo, useState } from "react";
 import { useClientes } from "../clientes/hooks/useClientes";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
 import { useServicos } from "../servicos/hooks/useServicos";
+import AgendaConfiguracao from "./components/AgendaConfiguracao";
 import AgendaFiltros from "./components/AgendaFiltros";
 import AgendaResumo from "./components/AgendaResumo";
 import AgendamentoForm from "./components/AgendamentoForm";
 import AgendamentosTable from "./components/AgendamentosTable";
+import { useAgendaConfiguracao } from "./hooks/useAgendaConfiguracao";
 import { useAgendamentos } from "./hooks/useAgendamentos";
 
 const filtrosIniciais = {
@@ -24,6 +26,14 @@ function AgendaPage() {
     calcularSaldoPacote,
     pacoteEstaAcabando,
   } = usePacotesClientes();
+  const {
+    horarios,
+    excecoes,
+    carregandoConfiguracao,
+    erroConfiguracao,
+    salvarHorario,
+    salvarExcecao,
+  } = useAgendaConfiguracao();
   const {
     agendamentos,
     carregando,
@@ -67,9 +77,25 @@ function AgendaPage() {
 
   async function salvarFormulario(dados) {
     try {
-      await salvarAgendamento(dados);
+      await salvarAgendamento(dados, { horarios, excecoes });
     } catch (erroSalvar) {
       alert(erroSalvar.message || "Não foi possível salvar o agendamento.");
+    }
+  }
+
+  async function salvarHorarioAgenda(dados) {
+    try {
+      await salvarHorario(dados);
+    } catch (erroSalvar) {
+      alert(erroSalvar.message || "Não foi possível salvar o horário.");
+    }
+  }
+
+  async function salvarExcecaoAgenda(dados) {
+    try {
+      await salvarExcecao(dados);
+    } catch (erroSalvar) {
+      alert(erroSalvar.message || "Não foi possível salvar a exceção.");
     }
   }
 
@@ -94,12 +120,21 @@ function AgendaPage() {
       <div className="topo-clientes">
         <div>
           <h1>Agenda</h1>
-          <p>Agende atendimentos e consuma pacotes somente ao finalizar.</p>
+          <p>Agende atendimentos respeitando duração do serviço, expediente e exceções.</p>
         </div>
       </div>
 
       <div className="cliente-layout">
         <AgendaResumo agendamentos={agendamentos} />
+
+        <AgendaConfiguracao
+          horarios={horarios}
+          excecoes={excecoes}
+          carregando={carregandoConfiguracao}
+          erro={erroConfiguracao}
+          onSalvarHorario={salvarHorarioAgenda}
+          onSalvarExcecao={salvarExcecaoAgenda}
+        />
 
         <AgendamentoForm
           clientes={clientesAtivos}

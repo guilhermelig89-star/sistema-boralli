@@ -4,7 +4,7 @@ function Menu({ telaAtual, setTelaAtual }) {
     { id: "clientes", nome: "Clientes" },
     { id: "servicos", nome: "Serviços" },
     { id: "pacotes", nome: "Pacotes" },
-    { id: "agenda", nome: "Agenda" },
+    { id: "agenda", nome: "Agendamentos" },
     { id: "atendimento", nome: "Atendimento" },
   ];
 

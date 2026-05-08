@@ -3,6 +3,7 @@ import { useState } from "react";
 import Layout from "./components/Layout";
 import AgendaPage from "./modules/agendamentos/AgendaPage";
 import ClientesPage from "./modules/clientes/ClientesPage";
+import FinanceiroPage from "./modules/financeiro/FinanceiroPage";
 import PacotesPage from "./modules/pacotes/PacotesPage";
 import ServicosPage from "./modules/servicos/ServicosPage";
 
@@ -19,6 +20,8 @@ function App() {
         return <PacotesPage />;
       case "agenda":
         return <AgendaPage />;
+      case "financeiro":
+        return <FinanceiroPage />;
       case "atendimento":
         return <h1>Atendimento</h1>;
       default:
@@ -74,6 +77,7 @@ function App() {
                 <button onClick={() => setTelaAtual("servicos")}>Cadastrar serviço</button>
                 <button onClick={() => setTelaAtual("pacotes")}>Vender pacote</button>
                 <button onClick={() => setTelaAtual("agenda")}>Abrir agendamentos</button>
+                <button onClick={() => setTelaAtual("financeiro")}>Abrir financeiro</button>
               </div>
             </div>
           </section>

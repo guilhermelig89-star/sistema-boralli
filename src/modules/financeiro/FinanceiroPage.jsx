@@ -11,7 +11,7 @@ const filtrosIniciais = {
   dataInicio: "",
   dataFim: "",
   clienteId: "",
-  origem: "",
+  origem: "sistema",
   status: "confirmado",
   pesquisa: "",
 };

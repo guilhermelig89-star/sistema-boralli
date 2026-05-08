@@ -9,8 +9,21 @@ const comboInicial = {
   itens: [],
 };
 
-function ComboForm({ servicos, onSalvar }) {
-  const [formulario, setFormulario] = useState(comboInicial);
+function montarFormularioCombo(combo) {
+  if (!combo) return comboInicial;
+
+  return {
+    nome: combo.nome || "",
+    valor: combo.valor || "",
+    servicoId: "",
+    quantidade: "1",
+    observacoes: combo.observacoes || "",
+    itens: Array.isArray(combo.itens) ? combo.itens : [],
+  };
+}
+
+function ComboForm({ combo, servicos, onSalvar, onCancelar }) {
+  const [formulario, setFormulario] = useState(() => montarFormularioCombo(combo));
 
   const servicoSelecionado = useMemo(
     () => servicos.find((servico) => servico.id === formulario.servicoId),
@@ -68,12 +81,15 @@ function ComboForm({ servicos, onSalvar }) {
   async function salvar(e) {
     e.preventDefault();
     await onSalvar(formulario);
-    setFormulario(comboInicial);
+
+    if (!combo) {
+      setFormulario(comboInicial);
+    }
   }
 
   return (
     <form className="form-cliente" onSubmit={salvar}>
-      <h2>Novo combo</h2>
+      <h2>{combo ? "Editar combo" : "Novo combo"}</h2>
 
       <input
         placeholder="Nome do combo"
@@ -130,7 +146,13 @@ function ComboForm({ servicos, onSalvar }) {
         onChange={(e) => alterarCampo("observacoes", e.target.value)}
       />
 
-      <button type="submit">Salvar combo</button>
+      <button type="submit">{combo ? "Atualizar combo" : "Salvar combo"}</button>
+
+      {combo && (
+        <button type="button" className="botao-cancelar" onClick={onCancelar}>
+          Cancelar edição
+        </button>
+      )}
     </form>
   );
 }

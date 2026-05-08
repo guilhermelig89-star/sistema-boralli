@@ -11,7 +11,15 @@ const agendamentoInicial = {
   observacoes: "",
 };
 
-function AgendamentoForm({ clientes, servicos, pacotesAtivos, calcularSaldoPacote, pacoteEstaAcabando, onSalvar }) {
+function AgendamentoForm({
+  clientes,
+  servicos,
+  pacotesAtivos,
+  calcularSaldoServicoPacote,
+  pacoteEstaAcabando,
+  pacoteTemSaldoParaServico,
+  onSalvar,
+}) {
   const [formulario, setFormulario] = useState(agendamentoInicial);
 
   const clienteSelecionado = useMemo(
@@ -29,10 +37,9 @@ function AgendamentoForm({ clientes, servicos, pacotesAtivos, calcularSaldoPacot
       pacotesAtivos.filter(
         (pacote) =>
           pacote.clienteId === formulario.clienteId &&
-          pacote.servicoId === formulario.servicoId &&
-          calcularSaldoPacote(pacote) > 0
+          pacoteTemSaldoParaServico(pacote, formulario.servicoId)
       ),
-    [pacotesAtivos, formulario.clienteId, formulario.servicoId, calcularSaldoPacote]
+    [pacotesAtivos, formulario.clienteId, formulario.servicoId, pacoteTemSaldoParaServico]
   );
 
   const pacoteSelecionado = useMemo(
@@ -92,7 +99,7 @@ function AgendamentoForm({ clientes, servicos, pacotesAtivos, calcularSaldoPacot
         <option value="">Pagamento avulso</option>
         {pacotesDisponiveis.map((pacote) => (
           <option key={pacote.id} value={pacote.id}>
-            {pacote.nome} - saldo {calcularSaldoPacote(pacote)}
+            {pacote.nome} - saldo {calcularSaldoServicoPacote(pacote, formulario.servicoId)}
           </option>
         ))}
       </select>
@@ -128,7 +135,7 @@ function AgendamentoForm({ clientes, servicos, pacotesAtivos, calcularSaldoPacot
 
       {pacoteSelecionado && (
         <div className="aviso-pacote">
-          <strong>Saldo do pacote: {calcularSaldoPacote(pacoteSelecionado)}</strong>
+          <strong>Saldo para este serviço: {calcularSaldoServicoPacote(pacoteSelecionado, formulario.servicoId)}</strong>
           {pacoteEstaAcabando(pacoteSelecionado) && <span>Este pacote está acabando.</span>}
         </div>
       )}

@@ -13,9 +13,9 @@ const pacoteInicial = {
 const formasPagamento = [
   "Pix",
   "Dinheiro",
-  "Cartao de debito",
-  "Cartao de credito",
-  "Transferencia",
+  "Cartão de débito",
+  "Cartão de crédito",
+  "Transferência",
   "Outro",
 ];
 

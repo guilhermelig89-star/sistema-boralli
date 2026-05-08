@@ -53,7 +53,7 @@ function App() {
               </div>
 
               <div className="card">
-                <span>Pacotes ativos</span>
+                <span>Pacotes de clientes</span>
                 <strong>0</strong>
                 <p>Combos comprados por clientes</p>
               </div>

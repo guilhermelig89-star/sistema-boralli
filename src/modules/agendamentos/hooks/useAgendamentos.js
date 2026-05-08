@@ -33,9 +33,9 @@ export function useAgendamentos() {
     [agendamentos]
   );
 
-  async function salvarAgendamento(dados) {
+  async function salvarAgendamento(dados, configuracaoAgenda) {
     setErro(null);
-    return criarAgendamento(dados, agendamentos);
+    return criarAgendamento(dados, agendamentos, configuracaoAgenda);
   }
 
   async function finalizarAtendimento(id) {

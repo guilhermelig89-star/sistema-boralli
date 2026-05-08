@@ -69,6 +69,68 @@ function resolverJanelaAtendimento(data, configuracaoAgenda) {
   };
 }
 
+function obterOcupacoesDoDia(data, agendamentosExistentes) {
+  return agendamentosExistentes
+    .filter((item) => item.data === data && item.status !== "cancelado" && item.status !== "finalizado")
+    .map((item) => {
+      const inicio = horaParaMinutos(item.hora);
+      const fim = inicio === null ? null : inicio + numero(item.servicoDuracaoMinutos, 60);
+      return { inicio, fim, tipo: "agendamento" };
+    })
+    .filter((item) => item.inicio !== null && item.fim !== null);
+}
+
+function obterBloqueiosDoDia(janela, ocupacoes) {
+  const bloqueios = [...ocupacoes];
+  const intervaloInicio = horaParaMinutos(janela.intervaloInicio);
+  const intervaloFim = horaParaMinutos(janela.intervaloFim);
+
+  if (janela.intervaloAtivo && intervaloInicio !== null && intervaloFim !== null) {
+    bloqueios.push({ inicio: intervaloInicio, fim: intervaloFim, tipo: "intervalo" });
+  }
+
+  return bloqueios.sort((a, b) => a.inicio - b.inicio);
+}
+
+function avaliarEncaixe(inicio, fim, janela, bloqueios) {
+  const inicioJanela = horaParaMinutos(janela.inicio);
+  const fimJanela = horaParaMinutos(janela.fim);
+  const bloqueioAntes = [...bloqueios].reverse().find((item) => item.fim <= inicio);
+  const bloqueioDepois = bloqueios.find((item) => item.inicio >= fim);
+  const encostaAntes = inicio === inicioJanela || bloqueioAntes?.fim === inicio;
+  const encostaDepois = fim === fimJanela || bloqueioDepois?.inicio === fim;
+  let score = 0;
+  let motivo = "Disponível";
+
+  if (encostaAntes && encostaDepois) {
+    return { score: 100, motivo: "Preenche uma lacuna" };
+  }
+
+  if (encostaAntes) {
+    score += 40;
+    motivo = bloqueioAntes?.tipo === "intervalo" ? "Depois do intervalo" : "Depois de atendimento";
+    if (inicio === inicioJanela) motivo = "Primeiro horário do expediente";
+  }
+
+  if (encostaDepois) {
+    score += 35;
+    motivo = bloqueioDepois?.tipo === "intervalo" ? "Antes do intervalo" : "Antes de atendimento";
+    if (fim === fimJanela) motivo = "Último encaixe do expediente";
+  }
+
+  if (!encostaAntes && bloqueioAntes) {
+    const lacunaAntes = inicio - bloqueioAntes.fim;
+    if (lacunaAntes > 0 && lacunaAntes < 30) score -= 15;
+  }
+
+  if (!encostaDepois && bloqueioDepois) {
+    const lacunaDepois = bloqueioDepois.inicio - fim;
+    if (lacunaDepois > 0 && lacunaDepois < 30) score -= 15;
+  }
+
+  return { score, motivo };
+}
+
 export function montarAgendamento(dados) {
   return {
     clienteId: dados.clienteId,
@@ -104,39 +166,68 @@ export function gerarHorariosDisponiveis({
 
   const inicioJanela = horaParaMinutos(janela.inicio);
   const fimJanela = horaParaMinutos(janela.fim);
-  const intervaloInicio = horaParaMinutos(janela.intervaloInicio);
-  const intervaloFim = horaParaMinutos(janela.intervaloFim);
 
   if (inicioJanela === null || fimJanela === null || inicioJanela >= fimJanela) return [];
 
-  const ocupados = agendamentosExistentes
-    .filter((item) => item.data === data && item.status !== "cancelado" && item.status !== "finalizado")
-    .map((item) => {
-      const inicio = horaParaMinutos(item.hora);
-      const fim = inicio === null ? null : inicio + numero(item.servicoDuracaoMinutos, 60);
-      return { inicio, fim };
-    })
-    .filter((item) => item.inicio !== null && item.fim !== null);
-
+  const ocupacoes = obterOcupacoesDoDia(data, agendamentosExistentes);
+  const bloqueios = obterBloqueiosDoDia(janela, ocupacoes);
   const horarios = [];
 
   for (let inicio = inicioJanela; inicio + duracao <= fimJanela; inicio += intervaloMinutos) {
     const fim = inicio + duracao;
-    const conflitaComIntervalo =
-      janela.intervaloAtivo &&
-      intervaloInicio !== null &&
-      intervaloFim !== null &&
-      horariosConflitam(inicio, fim, intervaloInicio, intervaloFim);
-    const conflitaComAgendamento = ocupados.some((item) =>
-      horariosConflitam(inicio, fim, item.inicio, item.fim)
-    );
+    const conflita = bloqueios.some((item) => horariosConflitam(inicio, fim, item.inicio, item.fim));
 
-    if (!conflitaComIntervalo && !conflitaComAgendamento) {
+    if (!conflita) {
       horarios.push(minutosParaHora(inicio));
     }
   }
 
   return horarios;
+}
+
+export function sugerirHorariosInteligentes({
+  data,
+  duracaoMinutos,
+  configuracaoAgenda = {},
+  agendamentosExistentes = [],
+  intervaloMinutos = 15,
+}) {
+  const configuracao = {
+    horarios: configuracaoAgenda.horarios || [],
+    excecoes: configuracaoAgenda.excecoes || [],
+  };
+  const janela = data ? resolverJanelaAtendimento(data, configuracao) : null;
+  const horarios = gerarHorariosDisponiveis({
+    data,
+    duracaoMinutos,
+    configuracaoAgenda: configuracao,
+    agendamentosExistentes,
+    intervaloMinutos,
+  });
+  const duracao = numero(duracaoMinutos, 60) || 60;
+
+  if (!janela || horarios.length === 0) {
+    return { recomendados: [], outros: [] };
+  }
+
+  const bloqueios = obterBloqueiosDoDia(janela, obterOcupacoesDoDia(data, agendamentosExistentes));
+  const sugestoes = horarios.map((hora) => {
+    const inicio = horaParaMinutos(hora);
+    const fim = inicio + duracao;
+    const avaliacao = avaliarEncaixe(inicio, fim, janela, bloqueios);
+
+    return {
+      hora,
+      motivo: avaliacao.motivo,
+      score: avaliacao.score,
+    };
+  });
+  const ordenadas = [...sugestoes].sort((a, b) => b.score - a.score || a.hora.localeCompare(b.hora));
+  const recomendados = ordenadas.filter((item) => item.score > 0).slice(0, 4);
+  const horasRecomendadas = new Set(recomendados.map((item) => item.hora));
+  const outros = sugestoes.filter((item) => !horasRecomendadas.has(item.hora));
+
+  return { recomendados, outros };
 }
 
 export function validarHorarioDisponivel(agendamento, configuracaoAgenda) {

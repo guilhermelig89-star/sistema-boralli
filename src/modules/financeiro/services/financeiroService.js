@@ -1,3 +1,5 @@
+const ORIGENS_SISTEMA = ["venda_pacote", "atendimento_avulso"];
+
 function numero(valor, padrao = 0) {
   const convertido = Number(valor);
   return Number.isFinite(convertido) ? convertido : padrao;
@@ -21,6 +23,10 @@ function dataParaChave(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
+export function movimentoEhDoSistema(movimento) {
+  return ORIGENS_SISTEMA.includes(movimento.origem);
+}
+
 export function obterDataMovimento(movimento) {
   return movimento.data || dataParaChave(movimento.criadoEm);
 }
@@ -35,7 +41,7 @@ export function formatarMoeda(valor) {
 export function formatarOrigem(origem) {
   if (origem === "venda_pacote") return "Venda de pacote";
   if (origem === "atendimento_avulso") return "Atendimento avulso";
-  return origem || "Movimento manual";
+  return origem || "Outro/manual";
 }
 
 export function formatarStatus(status) {
@@ -43,6 +49,13 @@ export function formatarStatus(status) {
   if (status === "cancelado") return "Cancelado";
   if (status === "pendente") return "Pendente";
   return status || "Confirmado";
+}
+
+function origemCorresponde(movimento, filtroOrigem) {
+  if (!filtroOrigem || filtroOrigem === "sistema") return movimentoEhDoSistema(movimento);
+  if (filtroOrigem === "todos") return true;
+  if (filtroOrigem === "outros") return !movimentoEhDoSistema(movimento);
+  return movimento.origem === filtroOrigem;
 }
 
 export function aplicarFiltrosFinanceiros(movimentos, filtros) {
@@ -53,7 +66,7 @@ export function aplicarFiltrosFinanceiros(movimentos, filtros) {
     const correspondeInicio = !filtros.dataInicio || dataMovimento >= filtros.dataInicio;
     const correspondeFim = !filtros.dataFim || dataMovimento <= filtros.dataFim;
     const correspondeCliente = !filtros.clienteId || movimento.clienteId === filtros.clienteId;
-    const correspondeOrigem = !filtros.origem || movimento.origem === filtros.origem;
+    const correspondeOrigem = origemCorresponde(movimento, filtros.origem);
     const correspondeStatus = !filtros.status || (movimento.status || "confirmado") === filtros.status;
     const correspondePesquisa =
       !termo ||
@@ -112,5 +125,7 @@ export function filtrarMovimentosDoMes(movimentos, dataReferencia = new Date()) 
   const mes = String(dataReferencia.getMonth() + 1).padStart(2, "0");
   const prefixo = `${ano}-${mes}`;
 
-  return movimentos.filter((movimento) => obterDataMovimento(movimento).startsWith(prefixo));
+  return movimentos.filter(
+    (movimento) => movimentoEhDoSistema(movimento) && obterDataMovimento(movimento).startsWith(prefixo)
+  );
 }

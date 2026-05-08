@@ -10,6 +10,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
+import { consumirServicoDoPacote } from "../../pacotes/domain/pacotesDomain";
 import { db } from "../../../shared/firebase/firebaseConfig";
 
 const agendamentosRef = collection(db, "agendamentos");
@@ -88,36 +89,20 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
         throw new Error("Pacote do cliente não encontrado.");
       }
 
-      const pacote = pacoteSnapshot.data();
-      const total = Number(pacote.quantidadeTotal || 0);
-      const utilizadoAtual = Number(pacote.quantidadeUtilizada || 0);
-      const saldoAtual = Number(pacote.saldoRestante ?? total - utilizadoAtual);
-
-      if (saldoAtual <= 0) {
-        throw new Error("Este pacote não possui saldo disponível.");
-      }
-
-      const saldoDepois = saldoAtual - 1;
-      const quantidadeUtilizada = utilizadoAtual + 1;
+      const pacote = {
+        id: pacoteSnapshot.id,
+        ...pacoteSnapshot.data(),
+      };
+      const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
       const historicoDoc = doc(historicoRef);
 
       consumoPacote = {
-        pacoteClienteId: agendamento.pacoteClienteId,
-        pacoteNome: pacote.nome,
-        clienteId: agendamento.clienteId,
-        clienteNome: agendamento.clienteNome,
-        servicoId: agendamento.servicoId,
-        servicoNome: agendamento.servicoNome,
+        ...resultadoConsumo.consumoPacote,
         agendamentoId,
-        quantidadeConsumida: 1,
-        saldoAntes: saldoAtual,
-        saldoDepois,
       };
 
       transaction.update(pacoteRef, {
-        quantidadeUtilizada,
-        saldoRestante: saldoDepois,
-        status: saldoDepois <= 0 ? "esgotado" : "ativo",
+        ...resultadoConsumo.atualizacao,
         atualizadoEm: serverTimestamp(),
       });
 

@@ -1,10 +1,12 @@
-function PacotesTable({ pacotes, carregando, calcularSaldoPacote, pacoteEstaAcabando }) {
+import { obterResumoItensPacote } from "../domain/pacotesDomain";
+
+function PacotesTable({ pacotes, carregando, pacoteEstaAcabando }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-pacote cabecalho">
         <span>Cliente</span>
         <span>Pacote</span>
-        <span>Serviço</span>
+        <span>Itens</span>
         <span>Uso</span>
         <span>Status</span>
       </div>
@@ -23,7 +25,6 @@ function PacotesTable({ pacotes, carregando, calcularSaldoPacote, pacoteEstaAcab
 
       {!carregando &&
         pacotes.map((pacote) => {
-          const saldo = calcularSaldoPacote(pacote);
           const acabando = pacoteEstaAcabando(pacote);
 
           return (
@@ -31,9 +32,7 @@ function PacotesTable({ pacotes, carregando, calcularSaldoPacote, pacoteEstaAcab
               <strong>{pacote.clienteNome}</strong>
               <span>{pacote.nome}</span>
               <span>{pacote.servicoNome}</span>
-              <span>
-                {pacote.quantidadeUtilizada || 0}/{pacote.quantidadeTotal || 0} usado - {saldo} restante
-              </span>
+              <span>{obterResumoItensPacote(pacote)}</span>
               <span className={acabando ? "badge-tipo badge-alerta" : "badge-tipo badge-servico"}>
                 {acabando ? "Acabando" : pacote.status || "ativo"}
               </span>

@@ -29,6 +29,113 @@
   color: #1f1714;
 }
 
+.sugestoes-horario {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #eadfce;
+  border-radius: 16px;
+  background: #faf7f2;
+  padding: 16px;
+}
+
+.topo-sugestoes-horario {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topo-sugestoes-horario strong {
+  color: #2b2420;
+  font-size: 16px;
+}
+
+.topo-sugestoes-horario span,
+.sugestoes-horario p,
+.grupo-sugestoes-horario > span,
+.horario-manual span {
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.sugestoes-horario p {
+  margin: 0;
+}
+
+.grupo-sugestoes-horario {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grupo-sugestoes-horario > span,
+.horario-manual span {
+  font-weight: 800;
+}
+
+.botoes-horario {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.botoes-horario.compactos {
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+}
+
+.botao-horario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 52px;
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b2420;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.botao-horario:hover,
+.botao-horario.ativo {
+  border-color: #d7b56d;
+  background: #ead2a1;
+}
+
+.botao-horario strong {
+  color: #1f1714;
+  font-size: 14px;
+}
+
+.botao-horario small {
+  color: #6a4a38;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.horario-manual {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 220px);
+  gap: 12px;
+  align-items: center;
+  border-top: 1px solid #eadfce;
+  padding-top: 14px;
+}
+
+.horario-manual input {
+  width: 100%;
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b2420;
+  padding: 12px;
+  font-size: 14px;
+  outline: none;
+}
+
 .config-agenda {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -219,11 +326,13 @@
 
   .config-agenda,
   .form-config-agenda,
-  .linha-campos-config {
+  .linha-campos-config,
+  .horario-manual {
     grid-template-columns: 1fr;
   }
 
-  .titulo-grupo-config {
+  .titulo-grupo-config,
+  .topo-sugestoes-horario {
     align-items: flex-start;
     flex-direction: column;
   }

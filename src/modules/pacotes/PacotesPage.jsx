@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
-import { useServicos } from "../servicos/hooks/useServicos";
+import { useCombos } from "../servicos/hooks/useCombos";
 import HistoricoPacotes from "./components/HistoricoPacotes";
 import PacoteForm from "./components/PacoteForm";
 import PacotesTable from "./components/PacotesTable";
@@ -10,7 +10,7 @@ import { usePacotesClientes } from "./hooks/usePacotesClientes";
 function PacotesPage() {
   const [clienteFiltro, setClienteFiltro] = useState("");
   const { clientesAtivos } = useClientes();
-  const { servicosAtivos } = useServicos();
+  const { combosAtivos } = useCombos();
   const {
     pacotes,
     historico,
@@ -44,14 +44,14 @@ function PacotesPage() {
       <div className="topo-clientes">
         <div>
           <h1>Pacotes</h1>
-          <p>Controle pacotes comprados por cliente, saldo e histórico de uso.</p>
+          <p>Venda combos para clientes e controle saldo individual por serviço.</p>
         </div>
       </div>
 
       <div className="cliente-layout">
         <PacoteForm
           clientes={clientesAtivos}
-          servicos={servicosAtivos}
+          combos={combosAtivos}
           onSalvar={salvarFormulario}
         />
 

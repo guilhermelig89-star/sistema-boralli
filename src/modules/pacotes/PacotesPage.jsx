@@ -44,8 +44,8 @@ function PacotesPage() {
     <div>
       <div className="topo-clientes">
         <div>
-          <h1>Pacotes de clientes</h1>
-          <p>Venda um combo pronto para uma cliente e acompanhe o saldo de cada serviço.</p>
+          <h1>Pacotes</h1>
+          <p>Venda pacotes de serviços e acompanhe o saldo disponível de cada cliente.</p>
         </div>
       </div>
 
@@ -60,7 +60,7 @@ function PacotesPage() {
           <div className="cabecalho-bloco-pacotes">
             <div>
               <h2>Pacotes vendidos</h2>
-              <p>Veja os pacotes ativos, o que já foi usado e o saldo restante.</p>
+              <p>Consulte quais pacotes ainda têm saldo e quais estão perto de acabar.</p>
             </div>
 
             <select

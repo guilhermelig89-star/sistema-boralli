@@ -97,6 +97,9 @@ body {
 .topo-clientes p,
 .linha-cliente span,
 .linha-servico span,
+.linha-pacote span,
+.linha-historico span,
+.linha-agendamento span,
 .duracao-servico {
   color: #7b6b5d;
 }
@@ -209,7 +212,8 @@ body {
 }
 
 .form-cliente h2,
-.form-cliente textarea {
+.form-cliente textarea,
+.aviso-pacote {
   grid-column: 1 / -1;
 }
 
@@ -245,6 +249,22 @@ body {
   color: #3b2b25;
 }
 
+.aviso-pacote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #f7c566;
+  border-radius: 12px;
+  background: #fff7e6;
+  color: #7a4d00;
+  padding: 12px 14px;
+}
+
+.aviso-pacote span {
+  font-weight: 700;
+}
+
 .lista-clientes {
   border-radius: 22px;
   padding: 24px;
@@ -262,7 +282,10 @@ body {
 }
 
 .linha-cliente,
-.linha-servico {
+.linha-servico,
+.linha-pacote,
+.linha-historico,
+.linha-agendamento {
   display: grid;
   gap: 12px;
   align-items: center;
@@ -279,31 +302,52 @@ body {
   grid-template-columns: 1.5fr 120px 140px 140px 180px;
 }
 
+.linha-pacote,
+.linha-historico,
+.linha-agendamento {
+  grid-template-columns: 1.1fr 1.2fr 1.1fr 1.2fr 1fr;
+}
+
 .linha-cliente:last-child,
-.linha-servico:last-child {
+.linha-servico:last-child,
+.linha-pacote:last-child,
+.linha-historico:last-child,
+.linha-agendamento:last-child {
   border-bottom: 0;
 }
 
 .linha-cliente:hover,
-.linha-servico:hover {
+.linha-servico:hover,
+.linha-pacote:hover,
+.linha-historico:hover,
+.linha-agendamento:hover {
   background: #faf7f2;
 }
 
 .linha-cliente.cabecalho,
-.linha-servico.cabecalho {
+.linha-servico.cabecalho,
+.linha-pacote.cabecalho,
+.linha-historico.cabecalho,
+.linha-agendamento.cabecalho {
   background: #f6efe7;
   color: #6a4a38;
   font-weight: 800;
 }
 
 .linha-cliente strong,
-.linha-servico strong {
+.linha-servico strong,
+.linha-pacote strong,
+.linha-historico strong,
+.linha-agendamento strong {
   color: #2b2420;
   font-size: 13px;
 }
 
 .linha-cliente span,
-.linha-servico span {
+.linha-servico span,
+.linha-pacote span,
+.linha-historico span,
+.linha-agendamento span {
   font-size: 12px;
 }
 
@@ -348,7 +392,8 @@ body {
   color: #175cd3;
 }
 
-.badge-combo {
+.badge-combo,
+.badge-alerta {
   background: #ffe7d6;
   color: #b54708;
 }
@@ -378,12 +423,18 @@ body {
 
   .form-cliente,
   .linha-cliente,
-  .linha-servico {
+  .linha-servico,
+  .linha-pacote,
+  .linha-historico,
+  .linha-agendamento {
     grid-template-columns: 1fr;
   }
 
   .linha-cliente.cabecalho,
-  .linha-servico.cabecalho {
+  .linha-servico.cabecalho,
+  .linha-pacote.cabecalho,
+  .linha-historico.cabecalho,
+  .linha-agendamento.cabecalho {
     display: none;
   }
 }

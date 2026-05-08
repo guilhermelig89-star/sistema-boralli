@@ -26,7 +26,7 @@ export async function criarServico(dados) {
   const servico = montarServico(dados);
 
   if (!servico.nome) {
-    throw new Error("Informe o nome do servico.");
+    throw new Error("Informe o nome do serviço.");
   }
 
   return criarServicoRegistro(servico);
@@ -36,7 +36,7 @@ export async function editarServico(id, dados) {
   const servico = montarServico(dados);
 
   if (!servico.nome) {
-    throw new Error("Informe o nome do servico.");
+    throw new Error("Informe o nome do serviço.");
   }
 
   return atualizarServicoRegistro(id, servico);

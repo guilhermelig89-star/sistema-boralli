@@ -43,10 +43,10 @@ function ServicoForm({ servico, onSalvar, onCancelar }) {
 
   return (
     <form className="form-cliente" onSubmit={salvar}>
-      <h2>{servico ? "Editar servico" : "Novo servico"}</h2>
+      <h2>{servico ? "Editar serviço" : "Novo serviço"}</h2>
 
       <input
-        placeholder="Nome do servico"
+        placeholder="Nome do serviço"
         value={formulario.nome}
         onChange={(e) => alterarCampo("nome", e.target.value)}
       />
@@ -65,17 +65,17 @@ function ServicoForm({ servico, onSalvar, onCancelar }) {
       />
 
       <input
-        placeholder="Duracao em minutos"
+        placeholder="Duração em minutos"
         type="number"
         value={formulario.duracaoMinutos}
         onChange={(e) => alterarCampo("duracaoMinutos", e.target.value)}
       />
 
-      <button type="submit">{servico ? "Atualizar servico" : "Salvar servico"}</button>
+      <button type="submit">{servico ? "Atualizar serviço" : "Salvar serviço"}</button>
 
       {servico && (
         <button type="button" className="botao-cancelar" onClick={onCancelar}>
-          Cancelar edicao
+          Cancelar edição
         </button>
       )}
     </form>

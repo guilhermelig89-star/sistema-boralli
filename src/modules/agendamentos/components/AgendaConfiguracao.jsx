@@ -64,69 +64,100 @@ function AgendaConfiguracao({ horarios, excecoes, carregando, erro, onSalvarHora
     <div className="config-agenda">
       <div className="lista-clientes">
         <h2>Horários de atendimento</h2>
+        <p className="texto-ajuda-config">Defina o expediente padrão de cada dia da semana.</p>
         {erro && <p>{erro}</p>}
 
-        <form className="form-config-agenda" onSubmit={salvarHorario}>
-          <select value={horario.diaSemana} onChange={(e) => alterarHorario("diaSemana", e.target.value)}>
-            {diasSemana.map((dia) => (
-              <option key={dia.diaSemana} value={dia.diaSemana}>
-                {dia.nome}
-              </option>
-            ))}
-          </select>
+        <form className="form-config-agenda form-config-clara" onSubmit={salvarHorario}>
+          <div className="campo-config campo-config-largo">
+            <span>Dia da semana</span>
+            <select value={horario.diaSemana} onChange={(e) => alterarHorario("diaSemana", e.target.value)}>
+              {diasSemana.map((dia) => (
+                <option key={dia.diaSemana} value={dia.diaSemana}>
+                  {dia.nome}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label className="check-linha">
+          <label className="check-linha check-config">
             <input
               type="checkbox"
               checked={horario.ativo}
               onChange={(e) => alterarHorario("ativo", e.target.checked)}
             />
-            Atende neste dia
+            Atendo neste dia
           </label>
 
-          <input
-            type="time"
-            value={horario.inicio}
-            onChange={(e) => alterarHorario("inicio", e.target.value)}
-            disabled={!horario.ativo}
-          />
+          <div className="grupo-config campo-config-largo">
+            <strong>Expediente</strong>
+            <div className="linha-campos-config">
+              <label className="campo-config">
+                <span>Começa</span>
+                <input
+                  type="time"
+                  value={horario.inicio}
+                  onChange={(e) => alterarHorario("inicio", e.target.value)}
+                  disabled={!horario.ativo}
+                />
+              </label>
 
-          <input
-            type="time"
-            value={horario.fim}
-            onChange={(e) => alterarHorario("fim", e.target.value)}
-            disabled={!horario.ativo}
-          />
+              <label className="campo-config">
+                <span>Termina</span>
+                <input
+                  type="time"
+                  value={horario.fim}
+                  onChange={(e) => alterarHorario("fim", e.target.value)}
+                  disabled={!horario.ativo}
+                />
+              </label>
+            </div>
+          </div>
 
-          <label className="check-linha">
+          <div className="grupo-config campo-config-largo">
+            <div className="titulo-grupo-config">
+              <strong>Intervalo</strong>
+              <label className="check-linha check-config compacta">
+                <input
+                  type="checkbox"
+                  checked={horario.intervaloAtivo}
+                  onChange={(e) => alterarHorario("intervaloAtivo", e.target.checked)}
+                  disabled={!horario.ativo}
+                />
+                Usar intervalo
+              </label>
+            </div>
+
+            <div className="linha-campos-config">
+              <label className="campo-config">
+                <span>Início do intervalo</span>
+                <input
+                  type="time"
+                  value={horario.intervaloInicio}
+                  onChange={(e) => alterarHorario("intervaloInicio", e.target.value)}
+                  disabled={!horario.ativo || !horario.intervaloAtivo}
+                />
+              </label>
+
+              <label className="campo-config">
+                <span>Fim do intervalo</span>
+                <input
+                  type="time"
+                  value={horario.intervaloFim}
+                  onChange={(e) => alterarHorario("intervaloFim", e.target.value)}
+                  disabled={!horario.ativo || !horario.intervaloAtivo}
+                />
+              </label>
+            </div>
+          </div>
+
+          <label className="campo-config campo-config-largo">
+            <span>Observações</span>
             <input
-              type="checkbox"
-              checked={horario.intervaloAtivo}
-              onChange={(e) => alterarHorario("intervaloAtivo", e.target.checked)}
-              disabled={!horario.ativo}
+              placeholder="Ex: atende somente com hora marcada"
+              value={horario.observacoes}
+              onChange={(e) => alterarHorario("observacoes", e.target.value)}
             />
-            Tem intervalo
           </label>
-
-          <input
-            type="time"
-            value={horario.intervaloInicio}
-            onChange={(e) => alterarHorario("intervaloInicio", e.target.value)}
-            disabled={!horario.ativo || !horario.intervaloAtivo}
-          />
-
-          <input
-            type="time"
-            value={horario.intervaloFim}
-            onChange={(e) => alterarHorario("intervaloFim", e.target.value)}
-            disabled={!horario.ativo || !horario.intervaloAtivo}
-          />
-
-          <input
-            placeholder="Observações"
-            value={horario.observacoes}
-            onChange={(e) => alterarHorario("observacoes", e.target.value)}
-          />
 
           <button type="submit">Salvar horário</button>
         </form>
@@ -148,15 +179,19 @@ function AgendaConfiguracao({ horarios, excecoes, carregando, erro, onSalvarHora
 
       <div className="lista-clientes">
         <h2>Exceções de horário</h2>
+        <p className="texto-ajuda-config">Use para feriados, folgas ou dias com horário diferente.</p>
 
-        <form className="form-config-agenda" onSubmit={salvarExcecao}>
-          <input
-            type="date"
-            value={excecao.data}
-            onChange={(e) => alterarExcecao("data", e.target.value)}
-          />
+        <form className="form-config-agenda form-config-clara" onSubmit={salvarExcecao}>
+          <div className="campo-config campo-config-largo">
+            <span>Data da exceção</span>
+            <input
+              type="date"
+              value={excecao.data}
+              onChange={(e) => alterarExcecao("data", e.target.value)}
+            />
+          </div>
 
-          <label className="check-linha">
+          <label className="check-linha check-config">
             <input
               type="checkbox"
               checked={excecao.fechado}
@@ -165,49 +200,76 @@ function AgendaConfiguracao({ horarios, excecoes, carregando, erro, onSalvarHora
             Fechado neste dia
           </label>
 
-          <input
-            type="time"
-            value={excecao.inicio}
-            onChange={(e) => alterarExcecao("inicio", e.target.value)}
-            disabled={excecao.fechado}
-          />
+          <div className="grupo-config campo-config-largo">
+            <strong>Expediente especial</strong>
+            <div className="linha-campos-config">
+              <label className="campo-config">
+                <span>Começa</span>
+                <input
+                  type="time"
+                  value={excecao.inicio}
+                  onChange={(e) => alterarExcecao("inicio", e.target.value)}
+                  disabled={excecao.fechado}
+                />
+              </label>
 
-          <input
-            type="time"
-            value={excecao.fim}
-            onChange={(e) => alterarExcecao("fim", e.target.value)}
-            disabled={excecao.fechado}
-          />
+              <label className="campo-config">
+                <span>Termina</span>
+                <input
+                  type="time"
+                  value={excecao.fim}
+                  onChange={(e) => alterarExcecao("fim", e.target.value)}
+                  disabled={excecao.fechado}
+                />
+              </label>
+            </div>
+          </div>
 
-          <label className="check-linha">
+          <div className="grupo-config campo-config-largo">
+            <div className="titulo-grupo-config">
+              <strong>Intervalo especial</strong>
+              <label className="check-linha check-config compacta">
+                <input
+                  type="checkbox"
+                  checked={excecao.intervaloAtivo}
+                  onChange={(e) => alterarExcecao("intervaloAtivo", e.target.checked)}
+                  disabled={excecao.fechado}
+                />
+                Usar intervalo
+              </label>
+            </div>
+
+            <div className="linha-campos-config">
+              <label className="campo-config">
+                <span>Início do intervalo</span>
+                <input
+                  type="time"
+                  value={excecao.intervaloInicio}
+                  onChange={(e) => alterarExcecao("intervaloInicio", e.target.value)}
+                  disabled={excecao.fechado || !excecao.intervaloAtivo}
+                />
+              </label>
+
+              <label className="campo-config">
+                <span>Fim do intervalo</span>
+                <input
+                  type="time"
+                  value={excecao.intervaloFim}
+                  onChange={(e) => alterarExcecao("intervaloFim", e.target.value)}
+                  disabled={excecao.fechado || !excecao.intervaloAtivo}
+                />
+              </label>
+            </div>
+          </div>
+
+          <label className="campo-config campo-config-largo">
+            <span>Motivo ou observação</span>
             <input
-              type="checkbox"
-              checked={excecao.intervaloAtivo}
-              onChange={(e) => alterarExcecao("intervaloAtivo", e.target.checked)}
-              disabled={excecao.fechado}
+              placeholder="Ex: feriado, curso, atendimento reduzido"
+              value={excecao.observacoes}
+              onChange={(e) => alterarExcecao("observacoes", e.target.value)}
             />
-            Tem intervalo
           </label>
-
-          <input
-            type="time"
-            value={excecao.intervaloInicio}
-            onChange={(e) => alterarExcecao("intervaloInicio", e.target.value)}
-            disabled={excecao.fechado || !excecao.intervaloAtivo}
-          />
-
-          <input
-            type="time"
-            value={excecao.intervaloFim}
-            onChange={(e) => alterarExcecao("intervaloFim", e.target.value)}
-            disabled={excecao.fechado || !excecao.intervaloAtivo}
-          />
-
-          <input
-            placeholder="Motivo/observação"
-            value={excecao.observacoes}
-            onChange={(e) => alterarExcecao("observacoes", e.target.value)}
-          />
 
           <button type="submit">Salvar exceção</button>
         </form>

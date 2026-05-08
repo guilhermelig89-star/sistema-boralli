@@ -55,6 +55,7 @@ function AgendamentoForm({ clientes, servicos, pacotesAtivos, calcularSaldoPacot
       ...formulario,
       clienteNome: clienteSelecionado?.nome || "",
       servicoNome: servicoSelecionado?.nome || "",
+      servicoDuracaoMinutos: servicoSelecionado?.duracaoMinutos || 60,
       pacoteNome: pacoteSelecionado?.nome || "",
       valor: formulario.pacoteClienteId ? 0 : formulario.valor || servicoSelecionado?.valor || 0,
     });
@@ -79,7 +80,7 @@ function AgendamentoForm({ clientes, servicos, pacotesAtivos, calcularSaldoPacot
         <option value="">Selecione o serviço</option>
         {servicos.map((servico) => (
           <option key={servico.id} value={servico.id}>
-            {servico.nome}
+            {servico.nome} - {servico.duracaoMinutos || 60} min
           </option>
         ))}
       </select>
@@ -116,6 +117,13 @@ function AgendamentoForm({ clientes, servicos, pacotesAtivos, calcularSaldoPacot
           value={formulario.valor}
           onChange={(e) => alterarCampo("valor", e.target.value)}
         />
+      )}
+
+      {servicoSelecionado && (
+        <div className="aviso-pacote">
+          <strong>Duração do serviço: {servicoSelecionado.duracaoMinutos || 60} min</strong>
+          <span>O horário precisa caber dentro do expediente cadastrado.</span>
+        </div>
       )}
 
       {pacoteSelecionado && (

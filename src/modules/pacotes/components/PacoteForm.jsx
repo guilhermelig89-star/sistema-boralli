@@ -10,6 +10,15 @@ const pacoteInicial = {
   observacoes: "",
 };
 
+const formasPagamento = [
+  "Pix",
+  "Dinheiro",
+  "Cartao de debito",
+  "Cartao de credito",
+  "Transferencia",
+  "Outro",
+];
+
 function descreverItensCombo(combo) {
   return (combo?.itens || [])
     .map((item) => `${item.quantidade}x ${item.servicoNome}`)
@@ -130,11 +139,17 @@ function PacoteForm({ clientes, combos, onSalvar }) {
 
       <label className="campo-pacote">
         <span>Forma de pagamento</span>
-        <input
-          placeholder="Pix, dinheiro, cartão..."
+        <select
           value={formulario.formaPagamento}
           onChange={(e) => alterarCampo("formaPagamento", e.target.value)}
-        />
+        >
+          <option value="">Selecione a forma de pagamento</option>
+          {formasPagamento.map((formaPagamento) => (
+            <option key={formaPagamento} value={formaPagamento}>
+              {formaPagamento}
+            </option>
+          ))}
+        </select>
       </label>
 
       {comboSelecionado && (

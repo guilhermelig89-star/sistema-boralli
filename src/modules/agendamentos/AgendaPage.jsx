@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useClientes } from "../clientes/hooks/useClientes";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
 import { useServicos } from "../servicos/hooks/useServicos";
+import "./agenda.css";
 import AgendaConfiguracao from "./components/AgendaConfiguracao";
 import AgendaFiltros from "./components/AgendaFiltros";
 import AgendaResumo from "./components/AgendaResumo";

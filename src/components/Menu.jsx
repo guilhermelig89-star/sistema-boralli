@@ -3,6 +3,7 @@ function Menu({ telaAtual, setTelaAtual }) {
     { id: "dashboard", nome: "Painel" },
     { id: "clientes", nome: "Clientes" },
     { id: "servicos", nome: "Serviços" },
+    { id: "pacotes", nome: "Pacotes" },
     { id: "agenda", nome: "Agenda" },
     { id: "atendimento", nome: "Atendimento" },
   ];

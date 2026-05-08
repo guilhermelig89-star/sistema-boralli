@@ -3,7 +3,7 @@ function ServicosTable({ servicos, carregando, onEditar, onDesativar }) {
     <div className="tabela-clientes">
       <div className="linha-servico cabecalho">
         <span>Serviço</span>
-        <span>Tipo</span>
+        <span>Categoria</span>
         <span>Valor</span>
         <span>Duração</span>
         <span>Ações</span>
@@ -25,16 +25,7 @@ function ServicosTable({ servicos, carregando, onEditar, onDesativar }) {
         servicos.map((servico) => (
           <div className="linha-servico" key={servico.id}>
             <strong>{servico.nome}</strong>
-
-            <span
-              className={
-                servico.tipo === "combo"
-                  ? "badge-tipo badge-combo"
-                  : "badge-tipo badge-servico"
-              }
-            >
-              {servico.tipo === "combo" ? "Combo" : "Serviço"}
-            </span>
+            <span>{servico.categoria || "Geral"}</span>
 
             <span className="valor-servico">
               {Number(servico.valor || 0).toLocaleString("pt-BR", {

@@ -44,8 +44,8 @@ function PacotesPage() {
     <div>
       <div className="topo-clientes">
         <div>
-          <h1>Pacotes</h1>
-          <p>Venda combos para clientes e controle saldo individual por serviço.</p>
+          <h1>Pacotes de clientes</h1>
+          <p>Venda um combo pronto para uma cliente e acompanhe o saldo de cada serviço.</p>
         </div>
       </div>
 
@@ -56,21 +56,27 @@ function PacotesPage() {
           onSalvar={salvarFormulario}
         />
 
-        <div className="lista-clientes">
-          <select
-            className="pesquisa-clientes"
-            value={clienteFiltro}
-            onChange={(e) => setClienteFiltro(e.target.value)}
-          >
-            <option value="">Todos os clientes</option>
-            {clientesAtivos.map((cliente) => (
-              <option key={cliente.id} value={cliente.id}>
-                {cliente.nome}
-              </option>
-            ))}
-          </select>
+        <div className="lista-clientes bloco-pacotes">
+          <div className="cabecalho-bloco-pacotes">
+            <div>
+              <h2>Pacotes vendidos</h2>
+              <p>Veja os pacotes ativos, o que já foi usado e o saldo restante.</p>
+            </div>
 
-          <h2>Pacotes dos clientes</h2>
+            <select
+              className="filtro-pacotes"
+              value={clienteFiltro}
+              onChange={(e) => setClienteFiltro(e.target.value)}
+            >
+              <option value="">Todos os clientes</option>
+              {clientesAtivos.map((cliente) => (
+                <option key={cliente.id} value={cliente.id}>
+                  {cliente.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {erro && <p>{erro}</p>}
 
           <PacotesTable

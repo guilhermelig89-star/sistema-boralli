@@ -10,6 +10,12 @@ const pacoteInicial = {
   observacoes: "",
 };
 
+function descreverItensCombo(combo) {
+  return (combo?.itens || [])
+    .map((item) => `${item.quantidade}x ${item.servicoNome}`)
+    .join(" + ");
+}
+
 function PacoteForm({ clientes, combos, onSalvar }) {
   const [formulario, setFormulario] = useState(pacoteInicial);
 
@@ -37,7 +43,7 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       return {
         ...atual,
         comboId: valor,
-        nome: novoCombo?.nome || "",
+        nome: novoCombo ? `Pacote ${novoCombo.nome}` : "",
         valorPago: novoCombo?.valor ?? "",
       };
     });
@@ -76,22 +82,22 @@ function PacoteForm({ clientes, combos, onSalvar }) {
         value={formulario.comboId}
         onChange={(e) => alterarCampo("comboId", e.target.value)}
       >
-        <option value="">Selecione o combo</option>
+        <option value="">Selecione o combo que será vendido</option>
         {combos.map((combo) => (
           <option key={combo.id} value={combo.id}>
-            {combo.nome}
+            {combo.nome} - {descreverItensCombo(combo)}
           </option>
         ))}
       </select>
 
       <input
-        placeholder="Nome do pacote"
+        placeholder="Nome do pacote da cliente"
         value={formulario.nome}
         onChange={(e) => alterarCampo("nome", e.target.value)}
       />
 
       <input
-        placeholder="Alerta de saldo mínimo"
+        placeholder="Avisar quando restar"
         type="number"
         min="1"
         value={formulario.alertaSaldoMinimo}
@@ -99,7 +105,7 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       />
 
       <input
-        placeholder="Valor pago"
+        placeholder="Valor pago pela cliente"
         type="number"
         min="0"
         value={formulario.valorPago}
@@ -114,11 +120,19 @@ function PacoteForm({ clientes, combos, onSalvar }) {
 
       {comboSelecionado && (
         <div className="resumo-combo">
+          <strong>Combo selecionado: {comboSelecionado.nome}</strong>
           {(comboSelecionado.itens || []).map((item) => (
             <span key={item.servicoId}>
               {item.quantidade}x {item.servicoNome}
             </span>
           ))}
+        </div>
+      )}
+
+      {combos.length === 0 && (
+        <div className="aviso-pacote">
+          <strong>Nenhum combo cadastrado.</strong>
+          <span>Cadastre os combos na tela Serviços, aba Combos, antes de vender pacotes.</span>
         </div>
       )}
 

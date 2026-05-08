@@ -2,22 +2,22 @@ function ServicosTable({ servicos, carregando, onEditar, onDesativar }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-servico cabecalho">
-        <span>Servico</span>
+        <span>Serviço</span>
         <span>Tipo</span>
         <span>Valor</span>
-        <span>Duracao</span>
-        <span>Acoes</span>
+        <span>Duração</span>
+        <span>Ações</span>
       </div>
 
       {carregando && (
         <div className="linha-servico">
-          <span>Carregando servicos...</span>
+          <span>Carregando serviços...</span>
         </div>
       )}
 
       {!carregando && servicos.length === 0 && (
         <div className="linha-servico">
-          <span>Nenhum servico encontrado.</span>
+          <span>Nenhum serviço encontrado.</span>
         </div>
       )}
 
@@ -33,7 +33,7 @@ function ServicosTable({ servicos, carregando, onEditar, onDesativar }) {
                   : "badge-tipo badge-servico"
               }
             >
-              {servico.tipo === "combo" ? "Combo" : "Servico"}
+              {servico.tipo === "combo" ? "Combo" : "Serviço"}
             </span>
 
             <span className="valor-servico">
@@ -53,7 +53,7 @@ function ServicosTable({ servicos, carregando, onEditar, onDesativar }) {
               <button
                 className="botao-desativar"
                 onClick={() => {
-                  const confirmar = confirm("Deseja desativar este servico?");
+                  const confirmar = confirm("Deseja desativar este serviço?");
                   if (confirmar) onDesativar(servico.id);
                 }}
               >

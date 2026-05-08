@@ -7,6 +7,7 @@ import {
   onSnapshot,
   runTransaction,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "../../../shared/firebase/firebaseConfig";
@@ -50,6 +51,14 @@ export function criarAgendamentoRegistro(dados) {
   });
 }
 
+export function cancelarAgendamentoRegistro(agendamentoId) {
+  return updateDoc(doc(db, "agendamentos", agendamentoId), {
+    status: "cancelado",
+    canceladoEm: serverTimestamp(),
+    atualizadoEm: serverTimestamp(),
+  });
+}
+
 export function finalizarAgendamentoRegistro(agendamentoId) {
   return runTransaction(db, async (transaction) => {
     const agendamentoRef = doc(db, "agendamentos", agendamentoId);
@@ -63,6 +72,10 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
 
     if (agendamento.status === "finalizado") {
       throw new Error("Este atendimento já foi finalizado.");
+    }
+
+    if (agendamento.status === "cancelado") {
+      throw new Error("Não é possível finalizar um agendamento cancelado.");
     }
 
     let consumoPacote = null;

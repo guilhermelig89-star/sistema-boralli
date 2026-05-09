@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "test": "node --test src/modules/pacotes/domain/pacotesDomain.test.js",
+    "limpar:dados": "node scripts/limparDadosTeste.js",
     "preview": "vite preview"
   },
   "dependencies": {

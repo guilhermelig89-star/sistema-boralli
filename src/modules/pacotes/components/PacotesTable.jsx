@@ -1,7 +1,7 @@
 import { obterResumoItensPacote } from "../domain/pacotesDomain";
 
-function obterStatusPacote(pacote, pacoteEstaAcabando) {
-  if (pacote.status === "esgotado" || pacote.saldoRestante <= 0) {
+function obterStatusPacote(pacote, calcularSaldoPacote, pacoteEstaAcabando) {
+  if (pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0) {
     return { texto: "Finalizado", classe: "badge-tipo badge-finalizado" };
   }
 
@@ -12,7 +12,13 @@ function obterStatusPacote(pacote, pacoteEstaAcabando) {
   return { texto: "Ativo", classe: "badge-tipo badge-servico" };
 }
 
-function PacotesTable({ pacotes, carregando, mensagemVazia, pacoteEstaAcabando }) {
+function PacotesTable({
+  pacotes,
+  carregando,
+  mensagemVazia,
+  calcularSaldoPacote,
+  pacoteEstaAcabando,
+}) {
   return (
     <div className="tabela-clientes">
       <div className="linha-pacote cabecalho">
@@ -37,7 +43,7 @@ function PacotesTable({ pacotes, carregando, mensagemVazia, pacoteEstaAcabando }
 
       {!carregando &&
         pacotes.map((pacote) => {
-          const status = obterStatusPacote(pacote, pacoteEstaAcabando);
+          const status = obterStatusPacote(pacote, calcularSaldoPacote, pacoteEstaAcabando);
 
           return (
             <div className="linha-pacote" key={pacote.id}>

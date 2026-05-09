@@ -6,6 +6,7 @@ import { useSugestoesTempoAtendimento } from "../agendamentos/hooks/useSugestoes
 import { useClientes } from "../clientes/hooks/useClientes";
 import { calcularSaldoItemPacote } from "../pacotes/domain/pacotesDomain";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
+import FechamentoFinanceiroModal from "./components/FechamentoFinanceiroModal";
 import "./atendimento.css";
 
 function obterHoje() {
@@ -102,6 +103,7 @@ function deveMostrarAlertaTempo(resultado) {
 
 function AtendimentoPage() {
   const [alertaTempo, setAlertaTempo] = useState(null);
+  const [atendimentoFechamento, setAtendimentoFechamento] = useState(null);
   const {
     agendamentos,
     carregando,
@@ -143,6 +145,11 @@ function AtendimentoPage() {
     [atendimentosHoje]
   );
 
+  const pacoteFechamento = useMemo(
+    () => (atendimentoFechamento?.pacoteClienteId ? pacotesPorId.get(atendimentoFechamento.pacoteClienteId) || null : null),
+    [atendimentoFechamento, pacotesPorId]
+  );
+
   const resumo = useMemo(
     () => ({
       total: atendimentosHoje.filter((item) => item.status !== "cancelado").length,
@@ -162,24 +169,6 @@ function AtendimentoPage() {
     return pacotesPorId.get(agendamento.pacoteClienteId) || null;
   }
 
-  function montarMensagemFinalizacao(agendamento) {
-    const pacote = obterPacoteAgendamento(agendamento);
-
-    if (!pacote) {
-      return `Finalizar este atendimento e lançar ${formatarMoeda(agendamento.valor)} no financeiro?`;
-    }
-
-    const saldoAtual = calcularSaldoServicoPacote(pacote, agendamento.servicoId);
-    const saldoDepois = Math.max(0, saldoAtual - 1);
-
-    return [
-      `Finalizar e consumir 1 ${agendamento.servicoNome}?`,
-      `Pacote: ${pacote.nome || agendamento.pacoteNome}`,
-      `Saldo atual: ${saldoAtual}`,
-      `Saldo após finalizar: ${saldoDepois}`,
-    ].join("\n");
-  }
-
   async function iniciar(agendamento) {
     try {
       await iniciarAtendimento(agendamento.id);
@@ -188,16 +177,21 @@ function AtendimentoPage() {
     }
   }
 
-  async function finalizar(agendamento) {
+  function finalizar(agendamento) {
     if (agendamento.status !== "em_atendimento") {
       alert("Inicie o atendimento antes de finalizar para calcular o tempo real corretamente.");
       return;
     }
 
-    if (!confirm(montarMensagemFinalizacao(agendamento))) return;
+    setAtendimentoFechamento(agendamento);
+  }
+
+  async function confirmarFechamento(fechamentoFinanceiro) {
+    if (!atendimentoFechamento) return;
 
     try {
-      const resultado = await finalizarAtendimento(agendamento.id);
+      const resultado = await finalizarAtendimento(atendimentoFechamento.id, fechamentoFinanceiro);
+      setAtendimentoFechamento(null);
       if (deveMostrarAlertaTempo(resultado)) {
         setAlertaTempo(resultado);
       }
@@ -461,6 +455,13 @@ function AtendimentoPage() {
           {!carregando && proximosAtendimentos.map(renderizarCardAtendimento)}
         </section>
       </div>
+
+      <FechamentoFinanceiroModal
+        agendamento={atendimentoFechamento}
+        pacote={pacoteFechamento}
+        onFechar={() => setAtendimentoFechamento(null)}
+        onConfirmar={confirmarFechamento}
+      />
 
       <AlertaTempoAtendimento
         alerta={alertaTempo}

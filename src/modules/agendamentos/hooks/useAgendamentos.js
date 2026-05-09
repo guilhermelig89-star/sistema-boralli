@@ -5,6 +5,7 @@ import {
   cancelarAgendamento,
   criarAgendamento,
   finalizarAgendamento,
+  iniciarAgendamento,
 } from "../services/agendamentosService";
 
 export function useAgendamentos() {
@@ -38,6 +39,11 @@ export function useAgendamentos() {
     return criarAgendamento(dados, agendamentos, configuracaoAgenda);
   }
 
+  async function iniciarAtendimento(id) {
+    setErro(null);
+    return iniciarAgendamento(id);
+  }
+
   async function finalizarAtendimento(id) {
     setErro(null);
     return finalizarAgendamento(id);
@@ -54,6 +60,7 @@ export function useAgendamentos() {
     carregando,
     erro,
     salvarAgendamento,
+    iniciarAtendimento,
     finalizarAtendimento,
     cancelarAtendimento,
   };

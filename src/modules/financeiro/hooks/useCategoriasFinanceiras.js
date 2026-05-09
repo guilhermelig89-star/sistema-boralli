@@ -37,17 +37,12 @@ function criarCategoriasPadrao() {
 
 function unirCategoriasPadrao(categoriasFirebase) {
   const categoriasAtivas = categoriasFirebase.filter((categoria) => categoria.ativo !== false && categoria.tipo === "despesa");
-  const mapa = new Map();
+  const chavesPadrao = new Set(categoriasPadraoDespesa.map(chaveNome));
+  const categoriasCustomizadas = categoriasAtivas
+    .filter((categoria) => !chavesPadrao.has(chaveNome(categoria.nome)))
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
-  criarCategoriasPadrao().forEach((categoria) => {
-    mapa.set(chaveNome(categoria.nome), categoria);
-  });
-
-  categoriasAtivas.forEach((categoria) => {
-    mapa.set(chaveNome(categoria.nome), categoria);
-  });
-
-  return Array.from(mapa.values()).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  return [...criarCategoriasPadrao(), ...categoriasCustomizadas];
 }
 
 export function useCategoriasFinanceiras() {

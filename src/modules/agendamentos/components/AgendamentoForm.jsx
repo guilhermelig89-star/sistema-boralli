@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { sugerirHorariosInteligentes } from "../services/agendamentosService";
+import { calcularSugestaoDuracao } from "../services/tempoAtendimentoService";
 
 const agendamentoInicial = {
   clienteId: "",
@@ -20,6 +21,7 @@ function AgendamentoForm({
   agendamentos,
   horarios,
   excecoes,
+  sugestoesTempo,
   calcularSaldoServicoPacote,
   pacoteTemSaldoParaServico,
   onSalvar,
@@ -36,15 +38,26 @@ function AgendamentoForm({
     [servicos, formulario.servicoId]
   );
 
+  const sugestaoDuracao = useMemo(
+    () =>
+      calcularSugestaoDuracao({
+        clienteId: formulario.clienteId,
+        servico: servicoSelecionado,
+        agendamentos,
+        sugestoesTempo,
+      }),
+    [agendamentos, formulario.clienteId, servicoSelecionado, sugestoesTempo]
+  );
+
   const sugestoesHorario = useMemo(
     () =>
       sugerirHorariosInteligentes({
         data: formulario.data,
-        duracaoMinutos: servicoSelecionado?.duracaoMinutos || 60,
+        duracaoMinutos: sugestaoDuracao.duracaoMinutos,
         configuracaoAgenda: { horarios, excecoes },
         agendamentosExistentes: agendamentos,
       }),
-    [formulario.data, servicoSelecionado?.duracaoMinutos, horarios, excecoes, agendamentos]
+    [formulario.data, sugestaoDuracao.duracaoMinutos, horarios, excecoes, agendamentos]
   );
 
   const pacotesDisponiveis = useMemo(
@@ -92,7 +105,11 @@ function AgendamentoForm({
       ...formulario,
       clienteNome: clienteSelecionado?.nome || "",
       servicoNome: servicoSelecionado?.nome || "",
-      servicoDuracaoMinutos: servicoSelecionado?.duracaoMinutos || 60,
+      servicoDuracaoMinutos: sugestaoDuracao.duracaoMinutos,
+      tempoPrevistoMinutos: sugestaoDuracao.duracaoMinutos,
+      tempoSugeridoOrigem: sugestaoDuracao.origem,
+      tempoSugeridoMensagem: sugestaoDuracao.mensagem,
+      tempoSugeridoQuantidadeBase: sugestaoDuracao.quantidadeBase,
       pacoteNome: pacoteSelecionado?.nome || "",
       valor: formulario.pacoteClienteId ? 0 : formulario.valor || servicoSelecionado?.valor || 0,
     });
@@ -117,7 +134,7 @@ function AgendamentoForm({
         <option value="">Selecione o serviço</option>
         {servicos.map((servico) => (
           <option key={servico.id} value={servico.id}>
-            {servico.nome} - {servico.duracaoMinutos || 60} min
+            {servico.nome} - {servico.duracaoMinutos || 60} min padrão
           </option>
         ))}
       </select>
@@ -139,6 +156,16 @@ function AgendamentoForm({
         value={formulario.data}
         onChange={(e) => alterarCampo("data", e.target.value)}
       />
+
+      {servicoSelecionado && (
+        <div className="sugestao-tempo-agendamento">
+          <div>
+            <span>Duração inteligente</span>
+            <strong>{sugestaoDuracao.duracaoMinutos} min</strong>
+          </div>
+          <p>{sugestaoDuracao.mensagem}</p>
+        </div>
+      )}
 
       <div className="sugestoes-horario">
         <div className="topo-sugestoes-horario">
@@ -209,13 +236,6 @@ function AgendamentoForm({
           value={formulario.valor}
           onChange={(e) => alterarCampo("valor", e.target.value)}
         />
-      )}
-
-      {servicoSelecionado && (
-        <div className="aviso-pacote">
-          <strong>Duração do serviço: {servicoSelecionado.duracaoMinutos || 60} min</strong>
-          <span>As sugestões evitam buracos e o horário manual também passa pelas travas da agenda.</span>
-        </div>
       )}
 
       {pacoteSelecionado && (

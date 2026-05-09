@@ -11,12 +11,14 @@ import {
 } from "firebase/firestore";
 
 import { consumirServicoDoPacote } from "../../pacotes/domain/pacotesDomain";
+import { calcularTempoFinalizacao } from "../services/tempoAtendimentoService";
 import { db } from "../../../shared/firebase/firebaseConfig";
 
 const agendamentosRef = collection(db, "agendamentos");
 const pacotesRef = collection(db, "pacotesClientes");
 const historicoRef = collection(db, "pacotesHistorico");
 const movimentosFinanceirosRef = collection(db, "movimentosFinanceiros");
+const temposAtendimentoHistoricoRef = collection(db, "temposAtendimentoHistorico");
 
 function mapDocumento(documento) {
   return {
@@ -71,8 +73,11 @@ export function iniciarAgendamentoRegistro(agendamentoId) {
       throw new Error("Não é possível iniciar um agendamento cancelado.");
     }
 
+    const iniciadoAgora = new Date().toISOString();
+
     transaction.update(agendamentoRef, {
       status: "em_atendimento",
+      atendimentoIniciadoEm: iniciadoAgora,
       iniciadoEm: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
     });
@@ -106,6 +111,7 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
       throw new Error("Não é possível finalizar um agendamento cancelado.");
     }
 
+    const resumoTempo = calcularTempoFinalizacao(agendamento);
     let consumoPacote = null;
 
     if (agendamento.pacoteClienteId) {
@@ -157,12 +163,38 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
       });
     }
 
+    if (resumoTempo.tempoRealCalculado) {
+      const historicoTempoDoc = doc(temposAtendimentoHistoricoRef);
+
+      transaction.set(historicoTempoDoc, {
+        agendamentoId,
+        clienteId: agendamento.clienteId,
+        clienteNome: agendamento.clienteNome,
+        servicoId: agendamento.servicoId,
+        servicoNome: agendamento.servicoNome,
+        data: agendamento.data,
+        hora: agendamento.hora,
+        ...resumoTempo,
+        criadoEm: serverTimestamp(),
+      });
+    }
+
     transaction.update(agendamentoRef, {
       status: "finalizado",
       pacoteConsumido: Boolean(consumoPacote),
       consumoPacote,
+      ...resumoTempo,
       finalizadoEm: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
     });
+
+    return {
+      agendamentoId,
+      clienteId: agendamento.clienteId,
+      clienteNome: agendamento.clienteNome,
+      servicoId: agendamento.servicoId,
+      servicoNome: agendamento.servicoNome,
+      ...resumoTempo,
+    };
   });
 }

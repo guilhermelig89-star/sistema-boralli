@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { sugerirHorariosInteligentes } from "../services/agendamentosService";
 import { calcularSugestaoDuracao } from "../services/tempoAtendimentoService";
+import "./tempoAtendimento.css";
 
 const agendamentoInicial = {
   clienteId: "",

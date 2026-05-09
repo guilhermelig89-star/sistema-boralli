@@ -25,9 +25,24 @@ function statusTexto(status) {
   return "Pendente";
 }
 
+function calcularDescontoPeloFinal(valorOriginal, valorFinal) {
+  const original = Number(valorOriginal || 0);
+  const final = Number(valorFinal || 0);
+  if (!Number.isFinite(original) || !Number.isFinite(final)) return 0;
+  return Math.max(0, original - Math.min(original, final));
+}
+
+function calcularFinalPeloDesconto(valorOriginal, desconto) {
+  const original = Number(valorOriginal || 0);
+  const descontoNumerico = Number(desconto || 0);
+  if (!Number.isFinite(original) || !Number.isFinite(descontoNumerico)) return original;
+  return Math.max(0, original - Math.min(original, descontoNumerico));
+}
+
 function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar }) {
   const valorBase = pacote ? 0 : Number(agendamento?.valor || 0);
   const [descontoValor, setDescontoValor] = useState(0);
+  const [valorFinalCobrado, setValorFinalCobrado] = useState(valorBase);
   const [motivoDesconto, setMotivoDesconto] = useState("");
   const [pagamentos, setPagamentos] = useState(() => criarPagamentoInicial(valorBase, pacote));
   const [observacoesFinanceiras, setObservacoesFinanceiras] = useState("");
@@ -38,12 +53,23 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
       calcularFechamentoFinanceiro({
         valorOriginal: valorBase,
         descontoValor,
+        valorFinalManual: valorFinalCobrado,
         pagamentos,
       }),
-    [descontoValor, pagamentos, valorBase]
+    [descontoValor, pagamentos, valorBase, valorFinalCobrado]
   );
 
   if (!agendamento) return null;
+
+  function alterarDesconto(valor) {
+    setDescontoValor(valor);
+    setValorFinalCobrado(calcularFinalPeloDesconto(valorBase, valor));
+  }
+
+  function alterarValorFinal(valor) {
+    setValorFinalCobrado(valor);
+    setDescontoValor(calcularDescontoPeloFinal(valorBase, valor));
+  }
 
   function alterarPagamento(indice, campo, valor) {
     setPagamentos((atuais) =>
@@ -69,6 +95,7 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
         prepararFechamentoFinanceiro({
           valorOriginal: valorBase,
           descontoValor,
+          valorFinalManual: valorFinalCobrado,
           motivoDesconto,
           pagamentos,
           observacoesFinanceiras,
@@ -109,7 +136,18 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
               type="number"
               min="0"
               value={descontoValor}
-              onChange={(e) => setDescontoValor(e.target.value)}
+              onChange={(e) => alterarDesconto(e.target.value)}
+              disabled={pacote}
+            />
+          </label>
+
+          <label>
+            <span>Valor final cobrado</span>
+            <input
+              type="number"
+              min="0"
+              value={valorFinalCobrado}
+              onChange={(e) => alterarValorFinal(e.target.value)}
               disabled={pacote}
             />
           </label>

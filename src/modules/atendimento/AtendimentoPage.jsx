@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import { useAgendamentos } from "../agendamentos/hooks/useAgendamentos";
+import { calcularSaldoItemPacote } from "../pacotes/domain/pacotesDomain";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
 import "./atendimento.css";
 
@@ -53,6 +54,24 @@ function pagamentoTexto(agendamento) {
   return `Avulso - ${formatarMoeda(agendamento.valor)}`;
 }
 
+function obterItensVisiveisPacote(pacote = {}) {
+  if (Array.isArray(pacote.itens) && pacote.itens.length > 0) {
+    return pacote.itens;
+  }
+
+  if (!pacote.servicoId) return [];
+
+  return [
+    {
+      servicoId: pacote.servicoId,
+      servicoNome: pacote.servicoNome,
+      quantidadeTotal: pacote.quantidadeTotal || 0,
+      quantidadeUtilizada: pacote.quantidadeUtilizada || 0,
+      saldoRestante: pacote.saldoRestante,
+    },
+  ];
+}
+
 function AtendimentoPage() {
   const {
     agendamentos,
@@ -62,7 +81,7 @@ function AtendimentoPage() {
     finalizarAtendimento,
     cancelarAtendimento,
   } = useAgendamentos();
-  const { pacotes, calcularSaldoServicoPacote } = usePacotesClientes();
+  const { pacotes, calcularSaldoPacote, calcularSaldoServicoPacote } = usePacotesClientes();
   const hoje = obterHoje();
 
   const pacotesPorId = useMemo(
@@ -95,13 +114,34 @@ function AtendimentoPage() {
     [atendimentosHoje, atendimentosEmAndamento, proximosAtendimentos]
   );
 
-  function obterSaldoPacote(agendamento) {
+  function obterPacoteAgendamento(agendamento) {
     if (!agendamento.pacoteClienteId) return null;
+    return pacotesPorId.get(agendamento.pacoteClienteId) || null;
+  }
 
-    const pacote = pacotesPorId.get(agendamento.pacoteClienteId);
+  function obterSaldoPacote(agendamento) {
+    const pacote = obterPacoteAgendamento(agendamento);
     if (!pacote) return null;
 
     return calcularSaldoServicoPacote(pacote, agendamento.servicoId);
+  }
+
+  function montarMensagemFinalizacao(agendamento) {
+    const pacote = obterPacoteAgendamento(agendamento);
+
+    if (!pacote) {
+      return `Finalizar este atendimento e lançar ${formatarMoeda(agendamento.valor)} no financeiro?`;
+    }
+
+    const saldoAtual = calcularSaldoServicoPacote(pacote, agendamento.servicoId);
+    const saldoDepois = Math.max(0, saldoAtual - 1);
+
+    return [
+      `Finalizar e consumir 1 ${agendamento.servicoNome}?`,
+      `Pacote: ${pacote.nome || agendamento.pacoteNome}`,
+      `Saldo atual: ${saldoAtual}`,
+      `Saldo após finalizar: ${saldoDepois}`,
+    ].join("\n");
   }
 
   async function iniciar(agendamento) {
@@ -113,11 +153,7 @@ function AtendimentoPage() {
   }
 
   async function finalizar(agendamento) {
-    const mensagem = agendamento.pacoteClienteId
-      ? "Finalizar este atendimento e consumir 1 saldo do pacote?"
-      : "Finalizar este atendimento e lançar o valor no financeiro?";
-
-    if (!confirm(mensagem)) return;
+    if (!confirm(montarMensagemFinalizacao(agendamento))) return;
 
     try {
       await finalizarAtendimento(agendamento.id);
@@ -136,8 +172,66 @@ function AtendimentoPage() {
     }
   }
 
+  function renderizarResumoPacote(agendamento, pacote) {
+    if (!agendamento.pacoteClienteId) return null;
+
+    if (!pacote) {
+      return (
+        <div className="pacote-atendimento pacote-atendimento-alerta">
+          <strong>Pacote da cliente</strong>
+          <p>Pacote vinculado ao agendamento não encontrado.</p>
+        </div>
+      );
+    }
+
+    const saldoServico = calcularSaldoServicoPacote(pacote, agendamento.servicoId);
+    const saldoTotal = calcularSaldoPacote(pacote);
+    const saldoDepois = Math.max(0, saldoServico - 1);
+    const itens = obterItensVisiveisPacote(pacote);
+    const estaAcabando = saldoServico <= Number(pacote.alertaSaldoMinimo || 1);
+
+    return (
+      <div className="pacote-atendimento">
+        <div className="topo-pacote-atendimento">
+          <div>
+            <strong>Pacote da cliente</strong>
+            <p>{pacote.nome || agendamento.pacoteNome}</p>
+          </div>
+          <span className={estaAcabando ? "badge-tipo badge-alerta" : "badge-tipo badge-servico"}>
+            {estaAcabando ? "Saldo baixo" : `${saldoTotal} no total`}
+          </span>
+        </div>
+
+        <div className="consumo-atendimento">
+          <span>Vai consumir</span>
+          <strong>1 {agendamento.servicoNome}</strong>
+          <small>
+            Saldo deste serviço: {saldoServico} para {saldoDepois}
+          </small>
+        </div>
+
+        <div className="itens-pacote-atendimento">
+          {itens.map((item) => {
+            const saldoItem = calcularSaldoItemPacote(item);
+            const total = Number(item.quantidadeTotal || item.quantidade || 0);
+            const utilizado = Number(item.quantidadeUtilizada || 0);
+            const itemAtual = item.servicoId === agendamento.servicoId;
+
+            return (
+              <div className={itemAtual ? "item-pacote-atual" : ""} key={item.servicoId}>
+                <span>{item.servicoNome}</span>
+                <strong>{saldoItem} restante</strong>
+                <small>{utilizado}/{total} usado</small>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   function renderizarCardAtendimento(agendamento) {
-    const saldoPacote = obterSaldoPacote(agendamento);
+    const pacote = obterPacoteAgendamento(agendamento);
     const encerrado = agendamento.status === "finalizado" || agendamento.status === "cancelado";
     const emAtendimento = agendamento.status === "em_atendimento";
 
@@ -159,9 +253,10 @@ function AtendimentoPage() {
 
           <div className="detalhes-atendimento">
             <span>{pagamentoTexto(agendamento)}</span>
-            {saldoPacote !== null && <span>Saldo antes de finalizar: {saldoPacote}</span>}
             {agendamento.observacoes && <span>Obs: {agendamento.observacoes}</span>}
           </div>
+
+          {renderizarResumoPacote(agendamento, pacote)}
 
           {!encerrado && (
             <div className="acoes-atendimento">

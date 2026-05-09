@@ -123,6 +123,74 @@ function DashboardPage({ onNavigate }) {
     [pacotesAtivos, pacoteEstaAcabando]
   );
 
+  const finalizadosPeriodo = useMemo(
+    () => agendaPeriodo.filter((agendamento) => agendamento.status === "finalizado").length,
+    [agendaPeriodo]
+  );
+
+  const receitaAvulsaPrevista = useMemo(
+    () =>
+      proximosAtendimentos.reduce((total, agendamento) => {
+        if (agendamento.pacoteClienteId) return total;
+        return total + Number(agendamento.valor || 0);
+      }, 0),
+    [proximosAtendimentos]
+  );
+
+  const proximoAtendimento = proximosAtendimentos[0];
+  const percentualConclusao = agendaPeriodo.length > 0 ? Math.round((finalizadosPeriodo / agendaPeriodo.length) * 100) : 0;
+
+  const radarInteligente = useMemo(() => {
+    const itens = [];
+
+    if (proximoAtendimento) {
+      itens.push({
+        titulo: "Próximo atendimento",
+        texto: `${proximoAtendimento.hora} - ${proximoAtendimento.clienteNome} para ${proximoAtendimento.servicoNome}.`,
+        acao: "Abrir atendimento",
+        destino: "atendimento",
+      });
+    }
+
+    if (pacotesBaixos.length > 0) {
+      itens.push({
+        titulo: "Pacotes perto de acabar",
+        texto: `${pacotesBaixos.length} cliente(s) com saldo baixo. Bom momento para oferecer renovação.`,
+        acao: "Ver pacotes",
+        destino: "pacotes",
+      });
+    }
+
+    if (receitaAvulsaPrevista > 0) {
+      itens.push({
+        titulo: "Previsão avulsa",
+        texto: `${formatarMoeda(receitaAvulsaPrevista)} em atendimentos avulsos ainda pendentes.`,
+        acao: "Ver agenda",
+        destino: "agenda",
+      });
+    }
+
+    if (agendaPeriodo.length === 0) {
+      itens.push({
+        titulo: "Agenda livre",
+        texto: "Nenhum horário marcado no período. Você pode encaixar novos atendimentos.",
+        acao: "Agendar horário",
+        destino: "agenda",
+      });
+    }
+
+    if (itens.length === 0) {
+      itens.push({
+        titulo: "Operação tranquila",
+        texto: "Nenhuma pendência importante encontrada para este período.",
+        acao: "Ver atendimento",
+        destino: "atendimento",
+      });
+    }
+
+    return itens;
+  }, [agendaPeriodo.length, pacotesBaixos.length, proximoAtendimento, receitaAvulsaPrevista]);
+
   function definirPeriodoHoje() {
     setPeriodo({ inicio: hoje, fim: hoje });
   }
@@ -177,29 +245,76 @@ function DashboardPage({ onNavigate }) {
         </div>
       </div>
 
-      <div className="card-grid">
-        <div className="card card-dashboard">
+      <div className="dashboard-inteligente">
+        <div className="painel-operacao-dashboard">
+          <span className="rotulo-operacao-dashboard">Agora</span>
+          <h2>{proximoAtendimento ? `${proximoAtendimento.hora} - ${proximoAtendimento.clienteNome}` : "Nenhum atendimento pendente"}</h2>
+          <p>
+            {proximoAtendimento
+              ? `${proximoAtendimento.servicoNome} | ${pagamentoTexto(proximoAtendimento)}`
+              : "Use o painel para acompanhar o dia e encontrar oportunidades de encaixe."}
+          </p>
+
+          <div className="metricas-operacao-dashboard">
+            <div>
+              <strong>{proximosAtendimentos.length}</strong>
+              <span>em aberto</span>
+            </div>
+            <div>
+              <strong>{finalizadosPeriodo}</strong>
+              <span>finalizados</span>
+            </div>
+            <div>
+              <strong>{percentualConclusao}%</strong>
+              <span>conclusão</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="radar-dashboard">
+          <div className="radar-topo-dashboard">
+            <div>
+              <span className="rotulo-operacao-dashboard">Radar inteligente</span>
+              <h2>Prioridades do período</h2>
+            </div>
+            <span className="contador-radar-dashboard">{radarInteligente.length}</span>
+          </div>
+
+          <div className="lista-radar-dashboard">
+            {radarInteligente.slice(0, 3).map((item) => (
+              <button className="item-radar-dashboard" key={item.titulo} onClick={() => onNavigate(item.destino)}>
+                <strong>{item.titulo}</strong>
+                <span>{item.texto}</span>
+                <em>{item.acao}</em>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card-grid cards-kpi-dashboard">
+        <div className="card card-dashboard card-kpi-dashboard">
           <span>Clientes ativos</span>
           <strong>{clientesAtivos.length}</strong>
           <p>Clientes disponíveis para agendar</p>
         </div>
 
-        <div className="card card-dashboard">
+        <div className="card card-dashboard card-kpi-dashboard">
           <span>{painelDoDia ? "Agenda do dia" : "Agenda do período"}</span>
           <strong>{agendaPeriodo.length}</strong>
           <p>{proximosAtendimentos.length} ainda em aberto</p>
         </div>
 
-        <div className="card card-dashboard">
+        <div className="card card-dashboard card-kpi-dashboard">
           <span>Pacotes ativos</span>
           <strong>{pacotesAtivos.length}</strong>
           <p>{pacotesBaixos.length} com saldo baixo</p>
         </div>
 
-        <div className="card card-dashboard">
+        <div className="card card-dashboard card-kpi-dashboard card-kpi-receita-dashboard">
           <span>Receitas do período</span>
           <strong>{formatarMoeda(totaisFiltro.receitas)}</strong>
-          <p>Pacotes e atendimentos avulsos</p>
+          <p>{formatarMoeda(receitaAvulsaPrevista)} avulso previsto</p>
         </div>
       </div>
 
@@ -208,7 +323,7 @@ function DashboardPage({ onNavigate }) {
           <div className="cabecalho-bloco-dashboard">
             <div>
               <h2>{painelDoDia ? "Atendimentos do dia" : "Atendimentos do período"}</h2>
-              <p>Agenda organizada por data e horário.</p>
+              <p>Agenda organizada por data, horário e tipo de pagamento.</p>
             </div>
             <button className="botao-acao-secundario" onClick={() => onNavigate("atendimento")}>Ver atendimento</button>
           </div>
@@ -241,11 +356,26 @@ function DashboardPage({ onNavigate }) {
           </div>
 
           <div className="acoes-rapidas-dashboard">
-            <button onClick={() => onNavigate("clientes")}>Adicionar cliente</button>
-            <button onClick={() => onNavigate("servicos")}>Cadastrar serviço</button>
-            <button onClick={() => onNavigate("pacotes")}>Vender pacote</button>
-            <button onClick={() => onNavigate("agenda")}>Agendar horário</button>
-            <button onClick={() => onNavigate("financeiro")}>Ver financeiro</button>
+            <button onClick={() => onNavigate("clientes")}>
+              <strong>Adicionar cliente</strong>
+              <span>Novo cadastro para agendar depois.</span>
+            </button>
+            <button onClick={() => onNavigate("servicos")}>
+              <strong>Cadastrar serviço</strong>
+              <span>Atualize preços, duração e combos.</span>
+            </button>
+            <button onClick={() => onNavigate("pacotes")}>
+              <strong>Vender pacote</strong>
+              <span>Registre créditos consumíveis da cliente.</span>
+            </button>
+            <button onClick={() => onNavigate("agenda")}>
+              <strong>Agendar horário</strong>
+              <span>Veja encaixes e horários disponíveis.</span>
+            </button>
+            <button onClick={() => onNavigate("financeiro")}>
+              <strong>Ver financeiro</strong>
+              <span>Acompanhe receitas, despesas e DRE.</span>
+            </button>
           </div>
         </div>
       </div>

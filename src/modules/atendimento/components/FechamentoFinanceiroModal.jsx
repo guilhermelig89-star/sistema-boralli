@@ -61,12 +61,28 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
 
   if (!agendamento) return null;
 
+  function sincronizarPagamentoIntegral(novoValorFinal, valorFinalAnterior) {
+    setPagamentos((atuais) => {
+      if (atuais.length !== 1 || atuais[0].forma === "Fiado/Pendente") return atuais;
+
+      const valorAtual = Number(atuais[0].valor || 0);
+      const valorAnterior = Number(valorFinalAnterior || 0);
+
+      if (valorAtual !== valorAnterior) return atuais;
+
+      return [{ ...atuais[0], valor: novoValorFinal }];
+    });
+  }
+
   function alterarDesconto(valor) {
+    const novoValorFinal = calcularFinalPeloDesconto(valorBase, valor);
+    sincronizarPagamentoIntegral(novoValorFinal, fechamento.valorFinal);
     setDescontoValor(valor);
-    setValorFinalCobrado(calcularFinalPeloDesconto(valorBase, valor));
+    setValorFinalCobrado(novoValorFinal);
   }
 
   function alterarValorFinal(valor) {
+    sincronizarPagamentoIntegral(valor, fechamento.valorFinal);
     setValorFinalCobrado(valor);
     setDescontoValor(calcularDescontoPeloFinal(valorBase, valor));
   }

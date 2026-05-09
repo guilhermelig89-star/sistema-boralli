@@ -60,8 +60,8 @@ function descreverPeriodo(periodo) {
   if (periodoEhDia(periodo)) return formatarData(periodo.inicio);
   if (periodo.inicio && periodo.fim) return `${formatarData(periodo.inicio)} a ${formatarData(periodo.fim)}`;
   if (periodo.inicio) return `a partir de ${formatarData(periodo.inicio)}`;
-  if (periodo.fim) return `ate ${formatarData(periodo.fim)}`;
-  return "todo o periodo";
+  if (periodo.fim) return `até ${formatarData(periodo.fim)}`;
+  return "todo o período";
 }
 
 function statusTexto(status) {
@@ -144,7 +144,7 @@ function DashboardPage({ onNavigate }) {
           <h1>Painel</h1>
           <p>Resumo de {periodoDescricao} para acompanhar agenda, clientes, pacotes e financeiro.</p>
 
-          <div className="dashboard-filtros-periodo" aria-label="Filtro de periodo do painel">
+          <div className="dashboard-filtros-periodo" aria-label="Filtro de período do painel">
             <label className="campo-periodo-dashboard">
               <span>De</span>
               <input
@@ -155,7 +155,7 @@ function DashboardPage({ onNavigate }) {
             </label>
 
             <label className="campo-periodo-dashboard">
-              <span>Ate</span>
+              <span>Até</span>
               <input
                 type="date"
                 value={periodo.fim}
@@ -166,7 +166,7 @@ function DashboardPage({ onNavigate }) {
             <div className="atalhos-periodo-dashboard">
               <button type="button" onClick={definirPeriodoHoje}>Hoje</button>
               <button type="button" onClick={definirProximosDias}>7 dias</button>
-              <button type="button" onClick={definirMesAtual}>Mes atual</button>
+              <button type="button" onClick={definirMesAtual}>Mês atual</button>
             </div>
           </div>
         </div>
@@ -181,11 +181,11 @@ function DashboardPage({ onNavigate }) {
         <div className="card card-dashboard">
           <span>Clientes ativos</span>
           <strong>{clientesAtivos.length}</strong>
-          <p>Clientes disponiveis para agendar</p>
+          <p>Clientes disponíveis para agendar</p>
         </div>
 
         <div className="card card-dashboard">
-          <span>{painelDoDia ? "Agenda do dia" : "Agenda do periodo"}</span>
+          <span>{painelDoDia ? "Agenda do dia" : "Agenda do período"}</span>
           <strong>{agendaPeriodo.length}</strong>
           <p>{proximosAtendimentos.length} ainda em aberto</p>
         </div>
@@ -197,7 +197,7 @@ function DashboardPage({ onNavigate }) {
         </div>
 
         <div className="card card-dashboard">
-          <span>Receitas do periodo</span>
+          <span>Receitas do período</span>
           <strong>{formatarMoeda(totaisFiltro.receitas)}</strong>
           <p>Pacotes e atendimentos avulsos</p>
         </div>
@@ -207,15 +207,15 @@ function DashboardPage({ onNavigate }) {
         <div className="bloco bloco-dashboard">
           <div className="cabecalho-bloco-dashboard">
             <div>
-              <h2>{painelDoDia ? "Atendimentos do dia" : "Atendimentos do periodo"}</h2>
-              <p>Agenda organizada por data e horario.</p>
+              <h2>{painelDoDia ? "Atendimentos do dia" : "Atendimentos do período"}</h2>
+              <p>Agenda organizada por data e horário.</p>
             </div>
             <button className="botao-acao-secundario" onClick={() => onNavigate("atendimento")}>Ver atendimento</button>
           </div>
 
           <div className="lista-dashboard">
             {proximosAtendimentos.length === 0 && (
-              <div className="item-dashboard-vazio">Nenhum atendimento pendente neste periodo.</div>
+              <div className="item-dashboard-vazio">Nenhum atendimento pendente neste período.</div>
             )}
 
             {proximosAtendimentos.slice(0, 5).map((agendamento) => (
@@ -235,16 +235,16 @@ function DashboardPage({ onNavigate }) {
         <div className="bloco bloco-dashboard">
           <div className="cabecalho-bloco-dashboard">
             <div>
-              <h2>Acoes rapidas</h2>
+              <h2>Ações rápidas</h2>
               <p>Acessos mais usados no dia a dia.</p>
             </div>
           </div>
 
           <div className="acoes-rapidas-dashboard">
             <button onClick={() => onNavigate("clientes")}>Adicionar cliente</button>
-            <button onClick={() => onNavigate("servicos")}>Cadastrar servico</button>
+            <button onClick={() => onNavigate("servicos")}>Cadastrar serviço</button>
             <button onClick={() => onNavigate("pacotes")}>Vender pacote</button>
-            <button onClick={() => onNavigate("agenda")}>Agendar horario</button>
+            <button onClick={() => onNavigate("agenda")}>Agendar horário</button>
             <button onClick={() => onNavigate("financeiro")}>Ver financeiro</button>
           </div>
         </div>
@@ -253,8 +253,8 @@ function DashboardPage({ onNavigate }) {
       <div className="bloco bloco-dashboard bloco-pacotes-dashboard">
         <div className="cabecalho-bloco-dashboard">
           <div>
-            <h2>Pacotes com atencao</h2>
-            <p>Clientes com saldo baixo para acompanhar antes do proximo atendimento.</p>
+            <h2>Pacotes com atenção</h2>
+            <p>Clientes com saldo baixo para acompanhar antes do próximo atendimento.</p>
           </div>
           <button className="botao-acao-secundario" onClick={() => onNavigate("pacotes")}>Ver pacotes</button>
         </div>
@@ -279,10 +279,10 @@ function DashboardPage({ onNavigate }) {
       <div className="bloco bloco-dashboard bloco-servicos-dashboard">
         <div className="cabecalho-bloco-dashboard">
           <div>
-            <h2>Catalogo</h2>
-            <p>{servicosAtivos.length} servicos ativos cadastrados para agenda e pacotes.</p>
+            <h2>Catálogo</h2>
+            <p>{servicosAtivos.length} serviços ativos cadastrados para agenda e pacotes.</p>
           </div>
-          <button className="botao-acao-secundario" onClick={() => onNavigate("servicos")}>Ver servicos</button>
+          <button className="botao-acao-secundario" onClick={() => onNavigate("servicos")}>Ver serviços</button>
         </div>
       </div>
     </section>

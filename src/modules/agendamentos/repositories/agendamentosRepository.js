@@ -27,6 +27,50 @@ function mapDocumento(documento) {
   };
 }
 
+function numero(valor, padrao = 0) {
+  const convertido = Number(valor);
+  return Number.isFinite(convertido) ? convertido : padrao;
+}
+
+function texto(valor, padrao = "") {
+  return String(valor || padrao).trim();
+}
+
+function dataHoje() {
+  const data = new Date();
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+
+  return `${ano}-${mes}-${dia}`;
+}
+
+function normalizarFechamentoFinanceiro(agendamento, fechamentoFinanceiro = {}) {
+  const valorOriginal = numero(fechamentoFinanceiro.valorOriginal, numero(agendamento.valor, 0));
+  const descontoValor = Math.min(valorOriginal, Math.max(0, numero(fechamentoFinanceiro.descontoValor, 0)));
+  const valorFinal = Math.max(0, numero(fechamentoFinanceiro.valorFinal, valorOriginal - descontoValor));
+  const valorRecebido = Math.min(valorFinal, Math.max(0, numero(fechamentoFinanceiro.valorRecebido, 0)));
+  const valorPendente = Math.max(0, numero(fechamentoFinanceiro.valorPendente, valorFinal - valorRecebido));
+  let statusFinanceiro = fechamentoFinanceiro.statusFinanceiro || "pago";
+
+  if (valorPendente > 0 && valorRecebido > 0) statusFinanceiro = "parcial";
+  if (valorPendente > 0 && valorRecebido <= 0) statusFinanceiro = "pendente";
+  if (valorPendente <= 0) statusFinanceiro = "pago";
+
+  return {
+    valorOriginal,
+    descontoValor,
+    motivoDesconto: texto(fechamentoFinanceiro.motivoDesconto),
+    valorFinal,
+    valorRecebido,
+    valorPendente,
+    formaPagamento: texto(fechamentoFinanceiro.formaPagamento, statusFinanceiro === "pendente" ? "Fiado/Pendente" : "Não informado"),
+    pagamentos: Array.isArray(fechamentoFinanceiro.pagamentos) ? fechamentoFinanceiro.pagamentos : [],
+    observacoesFinanceiras: texto(fechamentoFinanceiro.observacoesFinanceiras),
+    statusFinanceiro,
+  };
+}
+
 export function observarAgendamentos(onAgendamentos, onErro) {
   const consulta = query(agendamentosRef, orderBy("data"));
 
@@ -92,7 +136,7 @@ export function cancelarAgendamentoRegistro(agendamentoId) {
   });
 }
 
-export function finalizarAgendamentoRegistro(agendamentoId) {
+export function finalizarAgendamentoRegistro(agendamentoId, fechamentoFinanceiro = {}) {
   return runTransaction(db, async (transaction) => {
     const agendamentoRef = doc(db, "agendamentos", agendamentoId);
     const agendamentoSnapshot = await transaction.get(agendamentoRef);
@@ -112,7 +156,9 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
     }
 
     const resumoTempo = calcularTempoFinalizacao(agendamento);
+    const fechamento = normalizarFechamentoFinanceiro(agendamento, fechamentoFinanceiro);
     let consumoPacote = null;
+    let movimentoFinanceiroId = "";
 
     if (agendamento.pacoteClienteId) {
       const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
@@ -144,8 +190,9 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
         tipo: "consumo_atendimento_finalizado",
         criadoEm: serverTimestamp(),
       });
-    } else if (Number(agendamento.valor || 0) > 0) {
+    } else {
       const movimentoDoc = doc(movimentosFinanceirosRef);
+      movimentoFinanceiroId = movimentoDoc.id;
 
       transaction.set(movimentoDoc, {
         tipo: "receita",
@@ -155,11 +202,22 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
         clienteNome: agendamento.clienteNome,
         servicoId: agendamento.servicoId,
         servicoNome: agendamento.servicoNome,
-        descricao: `Atendimento avulso - ${agendamento.servicoNome}`,
-        valor: Number(agendamento.valor || 0),
-        formaPagamento: agendamento.formaPagamento || "avulso",
-        status: "confirmado",
+        descricao: `Fechamento de atendimento - ${agendamento.servicoNome}`,
+        data: dataHoje(),
+        valor: fechamento.valorRecebido,
+        valorOriginal: fechamento.valorOriginal,
+        descontoValor: fechamento.descontoValor,
+        motivoDesconto: fechamento.motivoDesconto,
+        valorFinal: fechamento.valorFinal,
+        valorRecebido: fechamento.valorRecebido,
+        valorPendente: fechamento.valorPendente,
+        formaPagamento: fechamento.formaPagamento,
+        pagamentos: fechamento.pagamentos,
+        observacoesFinanceiras: fechamento.observacoesFinanceiras,
+        status: fechamento.statusFinanceiro,
+        statusFinanceiro: fechamento.statusFinanceiro,
         criadoEm: serverTimestamp(),
+        atualizadoEm: serverTimestamp(),
       });
     }
 
@@ -183,6 +241,9 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
       status: "finalizado",
       pacoteConsumido: Boolean(consumoPacote),
       consumoPacote,
+      fechamentoFinanceiro: agendamento.pacoteClienteId ? null : fechamento,
+      movimentoFinanceiroId,
+      statusFinanceiro: agendamento.pacoteClienteId ? "pacote" : fechamento.statusFinanceiro,
       ...resumoTempo,
       finalizadoEm: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
@@ -194,6 +255,8 @@ export function finalizarAgendamentoRegistro(agendamentoId) {
       clienteNome: agendamento.clienteNome,
       servicoId: agendamento.servicoId,
       servicoNome: agendamento.servicoNome,
+      fechamentoFinanceiro: agendamento.pacoteClienteId ? null : fechamento,
+      statusFinanceiro: agendamento.pacoteClienteId ? "pacote" : fechamento.statusFinanceiro,
       ...resumoTempo,
     };
   });

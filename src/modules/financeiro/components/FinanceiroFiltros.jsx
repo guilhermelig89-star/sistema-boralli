@@ -38,6 +38,7 @@ function FinanceiroFiltros({ filtros, clientes, onAlterar }) {
           <option value="sistema">Somente receitas do sistema</option>
           <option value="venda_pacote">Venda de pacote</option>
           <option value="atendimento_avulso">Atendimento avulso</option>
+          <option value="recebimento_pendencia">Recebimento de pendência</option>
           <option value="despesa_manual">Despesas</option>
           <option value="outros">Outros/manuais</option>
         </select>

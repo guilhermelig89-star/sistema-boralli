@@ -1,3 +1,5 @@
+import "./tempoAtendimento.css";
+
 function formatarMinutos(valor) {
   return `${Number(valor || 0)} min`;
 }

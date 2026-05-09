@@ -95,6 +95,31 @@
   font-weight: 800;
 }
 
+.abas-historico-cliente {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fff;
+  padding: 5px;
+  gap: 4px;
+}
+
+.abas-historico-cliente button {
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #5a4639;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.abas-historico-cliente button.ativo {
+  background: #d7b56d;
+  color: #1f1714;
+}
+
 .grade-historico-cliente {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -106,6 +131,10 @@
   border-radius: 16px;
   background: #faf7f2;
   padding: 14px;
+}
+
+.bloco-historico-largo {
+  grid-column: 1 / -1;
 }
 
 .bloco-historico-cliente h3 {
@@ -163,6 +192,10 @@
     grid-column: 1 / -1;
     grid-template-columns: 1fr;
   }
+
+  .bloco-historico-largo {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 760px) {
@@ -170,5 +203,11 @@
   .cabecalho-lista-clientes {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .abas-historico-cliente {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
   }
 }

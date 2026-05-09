@@ -10,7 +10,7 @@
 }
 
 .fechamento-modal {
-  width: min(860px, 100%);
+  width: min(900px, 100%);
   border: 1px solid #eadfce;
   border-radius: 22px;
   background: #fff;
@@ -74,7 +74,7 @@
 
 .fechamento-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-top: 18px;
 }

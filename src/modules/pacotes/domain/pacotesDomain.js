@@ -83,9 +83,19 @@ export function obterResumoItensPacote(pacote = {}) {
   return `${pacote.quantidadeUtilizada || 0}/${pacote.quantidadeTotal || 0} usado - ${calcularSaldoPacote(pacote)} restante`;
 }
 
+function montarResumoEconomia(dados = {}) {
+  return {
+    totalAvulso: numero(dados.totalAvulso, 0),
+    economiaValor: numero(dados.economiaValor, 0),
+    economiaPercentual: numero(dados.economiaPercentual, 0),
+    fraseEconomia: texto(dados.fraseEconomia),
+  };
+}
+
 export function montarPacoteCliente(dados = {}) {
   const itens = montarItensPacote(dados);
   const alertaSaldoMinimo = Math.max(1, numero(dados.alertaSaldoMinimo, 1));
+  const resumoEconomia = montarResumoEconomia(dados);
 
   if (itens.length > 0) {
     const quantidadeTotal = itens.reduce((total, item) => total + item.quantidadeTotal, 0);
@@ -109,6 +119,7 @@ export function montarPacoteCliente(dados = {}) {
       valorPago: numero(dados.valorPago, 0),
       formaPagamento: texto(dados.formaPagamento),
       observacoes: texto(dados.observacoes),
+      ...resumoEconomia,
       status: saldoRestante > 0 ? "ativo" : "esgotado",
     };
   }
@@ -128,6 +139,7 @@ export function montarPacoteCliente(dados = {}) {
     valorPago: numero(dados.valorPago, 0),
     formaPagamento: texto(dados.formaPagamento),
     observacoes: texto(dados.observacoes),
+    ...resumoEconomia,
     status: "ativo",
   };
 }

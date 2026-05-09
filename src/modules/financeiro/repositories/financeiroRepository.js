@@ -7,6 +7,7 @@ import {
   onSnapshot,
   serverTimestamp,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 
 import { db } from "../../../shared/firebase/firebaseConfig";
@@ -47,4 +48,23 @@ export async function atualizarMovimentoFinanceiro(id, dados) {
     ...dados,
     atualizadoEm: serverTimestamp(),
   });
+}
+
+export async function registrarRecebimentoPendencia(movimentoId, atualizacaoPendencia, novoRecebimento) {
+  const lote = writeBatch(db);
+  const pendenciaRef = doc(db, "movimentosFinanceiros", movimentoId);
+  const recebimentoRef = doc(movimentosRef);
+  const agora = serverTimestamp();
+
+  lote.update(pendenciaRef, {
+    ...atualizacaoPendencia,
+    atualizadoEm: agora,
+  });
+  lote.set(recebimentoRef, {
+    ...novoRecebimento,
+    criadoEm: agora,
+    atualizadoEm: agora,
+  });
+
+  return lote.commit();
 }

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import { useAgendamentos } from "../agendamentos/hooks/useAgendamentos";
+import { useClientes } from "../clientes/hooks/useClientes";
 import { calcularSaldoItemPacote } from "../pacotes/domain/pacotesDomain";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
 import "./atendimento.css";
@@ -54,6 +55,27 @@ function pagamentoTexto(agendamento) {
   return `Avulso - ${formatarMoeda(agendamento.valor)}`;
 }
 
+function juntarEndereco(partes) {
+  return partes.filter(Boolean).map((parte) => String(parte).trim()).filter(Boolean).join(", ");
+}
+
+function montarEnderecoCliente(cliente) {
+  if (!cliente) return "";
+
+  return juntarEndereco([
+    cliente.rua,
+    cliente.numero,
+    cliente.bairro,
+    cliente.cidade,
+    cliente.cep,
+  ]);
+}
+
+function montarUrlMaps(endereco) {
+  if (!endereco) return "";
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(endereco)}`;
+}
+
 function obterItensVisiveisPacote(pacote = {}) {
   if (Array.isArray(pacote.itens) && pacote.itens.length > 0) {
     return pacote.itens;
@@ -81,8 +103,14 @@ function AtendimentoPage() {
     finalizarAtendimento,
     cancelarAtendimento,
   } = useAgendamentos();
+  const { clientesAtivos } = useClientes();
   const { pacotes, calcularSaldoPacote, calcularSaldoServicoPacote } = usePacotesClientes();
   const hoje = obterHoje();
+
+  const clientesPorId = useMemo(
+    () => new Map(clientesAtivos.map((cliente) => [cliente.id, cliente])),
+    [clientesAtivos]
+  );
 
   const pacotesPorId = useMemo(
     () => new Map(pacotes.map((pacote) => [pacote.id, pacote])),
@@ -113,6 +141,10 @@ function AtendimentoPage() {
     }),
     [atendimentosHoje, atendimentosEmAndamento, proximosAtendimentos]
   );
+
+  function obterClienteAgendamento(agendamento) {
+    return clientesPorId.get(agendamento.clienteId) || null;
+  }
 
   function obterPacoteAgendamento(agendamento) {
     if (!agendamento.pacoteClienteId) return null;
@@ -170,6 +202,28 @@ function AtendimentoPage() {
     } catch (erroCancelar) {
       alert(erroCancelar.message || "Não foi possível cancelar o agendamento.");
     }
+  }
+
+  function renderizarEnderecoAtendimento(cliente) {
+    const endereco = montarEnderecoCliente(cliente);
+    const urlMaps = montarUrlMaps(endereco);
+
+    if (!endereco) {
+      return <span className="endereco-vazio-atendimento">Endereço não cadastrado</span>;
+    }
+
+    return (
+      <div className="endereco-atendimento">
+        <div>
+          <strong>Endereço</strong>
+          <span>{endereco}</span>
+          {cliente?.referencia && <small>Referência: {cliente.referencia}</small>}
+        </div>
+        <a href={urlMaps} target="_blank" rel="noreferrer" className="botao-rota-atendimento">
+          Abrir rota
+        </a>
+      </div>
+    );
   }
 
   function renderizarResumoPacote(agendamento, pacote) {
@@ -231,6 +285,7 @@ function AtendimentoPage() {
   }
 
   function renderizarCardAtendimento(agendamento) {
+    const cliente = obterClienteAgendamento(agendamento);
     const pacote = obterPacoteAgendamento(agendamento);
     const encerrado = agendamento.status === "finalizado" || agendamento.status === "cancelado";
     const emAtendimento = agendamento.status === "em_atendimento";
@@ -256,6 +311,7 @@ function AtendimentoPage() {
             {agendamento.observacoes && <span>Obs: {agendamento.observacoes}</span>}
           </div>
 
+          {renderizarEnderecoAtendimento(cliente)}
           {renderizarResumoPacote(agendamento, pacote)}
 
           {!encerrado && (

@@ -44,9 +44,9 @@ export function useAgendamentos() {
     return iniciarAgendamento(id);
   }
 
-  async function finalizarAtendimento(id) {
+  async function finalizarAtendimento(id, fechamentoFinanceiro) {
     setErro(null);
-    return finalizarAgendamento(id);
+    return finalizarAgendamento(id, fechamentoFinanceiro);
   }
 
   async function cancelarAtendimento(id) {

@@ -1,0 +1,205 @@
+import { useMemo, useState } from "react";
+
+import {
+  calcularFechamentoFinanceiro,
+  FORMAS_PAGAMENTO_FECHAMENTO,
+  prepararFechamentoFinanceiro,
+} from "../services/fechamentoFinanceiroService";
+import "./fechamentoFinanceiro.css";
+
+function formatarMoeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function criarPagamentoInicial(valor, pacote) {
+  if (pacote) return [{ forma: "Fiado/Pendente", valor: 0 }];
+  return [{ forma: "Pix", valor: Number(valor || 0) }];
+}
+
+function statusTexto(status) {
+  if (status === "pago") return "Pago";
+  if (status === "parcial") return "Parcial";
+  return "Pendente";
+}
+
+function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar }) {
+  const valorBase = pacote ? 0 : Number(agendamento?.valor || 0);
+  const [descontoValor, setDescontoValor] = useState(0);
+  const [motivoDesconto, setMotivoDesconto] = useState("");
+  const [pagamentos, setPagamentos] = useState(() => criarPagamentoInicial(valorBase, pacote));
+  const [observacoesFinanceiras, setObservacoesFinanceiras] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
+  const fechamento = useMemo(
+    () =>
+      calcularFechamentoFinanceiro({
+        valorOriginal: valorBase,
+        descontoValor,
+        pagamentos,
+      }),
+    [descontoValor, pagamentos, valorBase]
+  );
+
+  if (!agendamento) return null;
+
+  function alterarPagamento(indice, campo, valor) {
+    setPagamentos((atuais) =>
+      atuais.map((pagamento, pagamentoIndice) =>
+        pagamentoIndice === indice ? { ...pagamento, [campo]: valor } : pagamento
+      )
+    );
+  }
+
+  function adicionarPagamento() {
+    setPagamentos((atuais) => [...atuais, { forma: "Pix", valor: "" }]);
+  }
+
+  function removerPagamento(indice) {
+    setPagamentos((atuais) => atuais.filter((_, pagamentoIndice) => pagamentoIndice !== indice));
+  }
+
+  async function confirmar() {
+    setSalvando(true);
+
+    try {
+      await onConfirmar(
+        prepararFechamentoFinanceiro({
+          valorOriginal: valorBase,
+          descontoValor,
+          motivoDesconto,
+          pagamentos,
+          observacoesFinanceiras,
+        })
+      );
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <div className="fechamento-backdrop" role="presentation">
+      <section className="fechamento-modal" role="dialog" aria-modal="true">
+        <div className="fechamento-topo">
+          <div>
+            <span>Fechamento financeiro</span>
+            <h2>{agendamento.clienteNome}</h2>
+            <p>{agendamento.servicoNome}</p>
+          </div>
+          <button type="button" onClick={onFechar}>Fechar</button>
+        </div>
+
+        {pacote && (
+          <div className="fechamento-aviso-pacote">
+            Atendimento vinculado a pacote. O consumo será registrado, mas não será lançado como recebido agora.
+          </div>
+        )}
+
+        <div className="fechamento-grid">
+          <label>
+            <span>Valor original</span>
+            <input type="number" value={valorBase} disabled />
+          </label>
+
+          <label>
+            <span>Desconto aplicado</span>
+            <input
+              type="number"
+              min="0"
+              value={descontoValor}
+              onChange={(e) => setDescontoValor(e.target.value)}
+              disabled={pacote}
+            />
+          </label>
+
+          <label>
+            <span>Motivo do desconto</span>
+            <input
+              placeholder="Opcional"
+              value={motivoDesconto}
+              onChange={(e) => setMotivoDesconto(e.target.value)}
+              disabled={pacote}
+            />
+          </label>
+        </div>
+
+        <div className="fechamento-resumo">
+          <div>
+            <span>Valor final</span>
+            <strong>{formatarMoeda(fechamento.valorFinal)}</strong>
+          </div>
+          <div>
+            <span>Recebido</span>
+            <strong>{formatarMoeda(fechamento.valorRecebido)}</strong>
+          </div>
+          <div className={fechamento.valorPendente > 0 ? "pendente" : "pago"}>
+            <span>Restante</span>
+            <strong>{formatarMoeda(fechamento.valorPendente)}</strong>
+          </div>
+          <div>
+            <span>Status</span>
+            <strong>{statusTexto(fechamento.statusFinanceiro)}</strong>
+          </div>
+        </div>
+
+        {!pacote && (
+          <div className="fechamento-pagamentos">
+            <div className="fechamento-subtopo">
+              <div>
+                <h3>Pagamentos</h3>
+                <p>Informe uma ou mais formas usadas pela cliente.</p>
+              </div>
+              <button type="button" onClick={adicionarPagamento}>Adicionar forma</button>
+            </div>
+
+            {pagamentos.map((pagamento, indice) => (
+              <div className="linha-pagamento-fechamento" key={`${pagamento.forma}-${indice}`}>
+                <select
+                  value={pagamento.forma}
+                  onChange={(e) => alterarPagamento(indice, "forma", e.target.value)}
+                >
+                  {FORMAS_PAGAMENTO_FECHAMENTO.map((forma) => (
+                    <option key={forma} value={forma}>{forma}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Valor recebido"
+                  value={pagamento.valor}
+                  onChange={(e) => alterarPagamento(indice, "valor", e.target.value)}
+                  disabled={pagamento.forma === "Fiado/Pendente"}
+                />
+                {pagamentos.length > 1 && (
+                  <button type="button" onClick={() => removerPagamento(indice)}>Remover</button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <label className="fechamento-observacoes">
+          <span>Observações financeiras</span>
+          <textarea
+            placeholder="Ex.: cliente ficou de pagar o restante amanhã"
+            value={observacoesFinanceiras}
+            onChange={(e) => setObservacoesFinanceiras(e.target.value)}
+          />
+        </label>
+
+        <div className="fechamento-acoes">
+          <button type="button" className="fechamento-cancelar" onClick={onFechar} disabled={salvando}>
+            Cancelar
+          </button>
+          <button type="button" className="fechamento-confirmar" onClick={confirmar} disabled={salvando}>
+            {salvando ? "Salvando..." : "Finalizar atendimento"}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default FechamentoFinanceiroModal;

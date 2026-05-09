@@ -53,10 +53,29 @@ export function criarAgendamentoRegistro(dados) {
 }
 
 export function iniciarAgendamentoRegistro(agendamentoId) {
-  return updateDoc(doc(db, "agendamentos", agendamentoId), {
-    status: "em_atendimento",
-    iniciadoEm: serverTimestamp(),
-    atualizadoEm: serverTimestamp(),
+  return runTransaction(db, async (transaction) => {
+    const agendamentoRef = doc(db, "agendamentos", agendamentoId);
+    const agendamentoSnapshot = await transaction.get(agendamentoRef);
+
+    if (!agendamentoSnapshot.exists()) {
+      throw new Error("Agendamento não encontrado.");
+    }
+
+    const agendamento = agendamentoSnapshot.data();
+
+    if (agendamento.status === "finalizado") {
+      throw new Error("Este atendimento já foi finalizado.");
+    }
+
+    if (agendamento.status === "cancelado") {
+      throw new Error("Não é possível iniciar um agendamento cancelado.");
+    }
+
+    transaction.update(agendamentoRef, {
+      status: "em_atendimento",
+      iniciadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
+    });
   });
 }
 

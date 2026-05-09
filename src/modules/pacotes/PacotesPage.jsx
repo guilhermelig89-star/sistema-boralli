@@ -8,8 +8,15 @@ import PacoteForm from "./components/PacoteForm";
 import PacotesTable from "./components/PacotesTable";
 import { usePacotesClientes } from "./hooks/usePacotesClientes";
 
+const filtrosPacotes = [
+  { id: "ativos", nome: "Ativos" },
+  { id: "finalizados", nome: "Finalizados" },
+  { id: "todos", nome: "Todos" },
+];
+
 function PacotesPage() {
   const [clienteFiltro, setClienteFiltro] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState("ativos");
   const { clientesAtivos } = useClientes();
   const { combosAtivos } = useCombos();
   const {
@@ -22,15 +29,51 @@ function PacotesPage() {
     pacoteEstaAcabando,
   } = usePacotesClientes();
 
-  const pacotesFiltrados = useMemo(() => {
+  function pacoteEstaFinalizado(pacote) {
+    return pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0;
+  }
+
+  const pacotesPorCliente = useMemo(() => {
     if (!clienteFiltro) return pacotes;
     return pacotes.filter((pacote) => pacote.clienteId === clienteFiltro);
   }, [pacotes, clienteFiltro]);
+
+  const contadoresPacotes = useMemo(() => {
+    return pacotesPorCliente.reduce(
+      (contadores, pacote) => {
+        const finalizado = pacoteEstaFinalizado(pacote);
+
+        return {
+          ativos: contadores.ativos + (finalizado ? 0 : 1),
+          finalizados: contadores.finalizados + (finalizado ? 1 : 0),
+          todos: contadores.todos + 1,
+        };
+      },
+      { ativos: 0, finalizados: 0, todos: 0 }
+    );
+  }, [pacotesPorCliente]);
+
+  const pacotesFiltrados = useMemo(() => {
+    if (statusFiltro === "finalizados") {
+      return pacotesPorCliente.filter((pacote) => pacoteEstaFinalizado(pacote));
+    }
+
+    if (statusFiltro === "todos") {
+      return pacotesPorCliente;
+    }
+
+    return pacotesPorCliente.filter((pacote) => !pacoteEstaFinalizado(pacote));
+  }, [pacotesPorCliente, statusFiltro]);
 
   const historicoFiltrado = useMemo(() => {
     if (!clienteFiltro) return historico;
     return historico.filter((item) => item.clienteId === clienteFiltro);
   }, [historico, clienteFiltro]);
+
+  const mensagemVazia =
+    statusFiltro === "finalizados"
+      ? "Nenhum pacote finalizado encontrado."
+      : "Nenhum pacote ativo encontrado para este filtro.";
 
   async function salvarFormulario(dados) {
     try {
@@ -77,11 +120,26 @@ function PacotesPage() {
             </select>
           </div>
 
+          <div className="abas-pacotes" role="tablist" aria-label="Filtro de pacotes por status">
+            {filtrosPacotes.map((filtro) => (
+              <button
+                key={filtro.id}
+                type="button"
+                className={statusFiltro === filtro.id ? "ativo" : ""}
+                onClick={() => setStatusFiltro(filtro.id)}
+              >
+                {filtro.nome}
+                <span>{contadoresPacotes[filtro.id]}</span>
+              </button>
+            ))}
+          </div>
+
           {erro && <p>{erro}</p>}
 
           <PacotesTable
             pacotes={pacotesFiltrados}
             carregando={carregando}
+            mensagemVazia={mensagemVazia}
             calcularSaldoPacote={calcularSaldoPacote}
             pacoteEstaAcabando={pacoteEstaAcabando}
           />

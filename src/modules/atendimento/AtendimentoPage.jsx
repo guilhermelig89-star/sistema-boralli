@@ -1,6 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
+import AlertaTempoAtendimento from "../agendamentos/components/AlertaTempoAtendimento";
 import { useAgendamentos } from "../agendamentos/hooks/useAgendamentos";
+import { useSugestoesTempoAtendimento } from "../agendamentos/hooks/useSugestoesTempoAtendimento";
 import { useClientes } from "../clientes/hooks/useClientes";
 import { calcularSaldoItemPacote } from "../pacotes/domain/pacotesDomain";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
@@ -94,7 +96,12 @@ function obterItensVisiveisPacote(pacote = {}) {
   ];
 }
 
+function deveMostrarAlertaTempo(resultado) {
+  return Boolean(resultado?.tempoRealCalculado && resultado?.alertaTempoExigeAtencao);
+}
+
 function AtendimentoPage() {
+  const [alertaTempo, setAlertaTempo] = useState(null);
   const {
     agendamentos,
     carregando,
@@ -103,6 +110,10 @@ function AtendimentoPage() {
     finalizarAtendimento,
     cancelarAtendimento,
   } = useAgendamentos();
+  const {
+    salvarAjusteClienteServico,
+    revisarTempoPadraoServico,
+  } = useSugestoesTempoAtendimento();
   const { clientesAtivos } = useClientes();
   const { pacotes, calcularSaldoPacote, calcularSaldoServicoPacote } = usePacotesClientes();
   const hoje = obterHoje();
@@ -185,10 +196,18 @@ function AtendimentoPage() {
   }
 
   async function finalizar(agendamento) {
+    if (agendamento.status !== "em_atendimento") {
+      alert("Inicie o atendimento antes de finalizar para calcular o tempo real corretamente.");
+      return;
+    }
+
     if (!confirm(montarMensagemFinalizacao(agendamento))) return;
 
     try {
-      await finalizarAtendimento(agendamento.id);
+      const resultado = await finalizarAtendimento(agendamento.id);
+      if (deveMostrarAlertaTempo(resultado)) {
+        setAlertaTempo(resultado);
+      }
     } catch (erroFinalizar) {
       alert(erroFinalizar.message || "Não foi possível finalizar o atendimento.");
     }
@@ -201,6 +220,40 @@ function AtendimentoPage() {
       await cancelarAtendimento(agendamento.id);
     } catch (erroCancelar) {
       alert(erroCancelar.message || "Não foi possível cancelar o agendamento.");
+    }
+  }
+
+  async function ajustarTempoCliente() {
+    if (!alertaTempo) return;
+
+    try {
+      await salvarAjusteClienteServico({
+        ...alertaTempo,
+        duracaoMinutos: alertaTempo.tempoRealMinutos,
+        origemAgendamentoId: alertaTempo.agendamentoId,
+      });
+      setAlertaTempo(null);
+      alert("Sugestão ajustada para esta cliente e serviço.");
+    } catch (erroAjuste) {
+      alert(erroAjuste.message || "Não foi possível ajustar a sugestão de tempo.");
+    }
+  }
+
+  async function revisarTempoServico() {
+    if (!alertaTempo) return;
+
+    const confirmar = confirm(
+      `Revisar o tempo padrão geral de ${alertaTempo.servicoNome} para ${alertaTempo.tempoRealMinutos} min?`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      await revisarTempoPadraoServico(alertaTempo.servicoId, alertaTempo.tempoRealMinutos);
+      setAlertaTempo(null);
+      alert("Tempo padrão do serviço revisado.");
+    } catch (erroRevisao) {
+      alert(erroRevisao.message || "Não foi possível revisar o tempo padrão do serviço.");
     }
   }
 
@@ -284,6 +337,18 @@ function AtendimentoPage() {
     );
   }
 
+  function renderizarTempoAtendimento(agendamento) {
+    const previsto = agendamento.tempoPrevistoMinutos || agendamento.servicoDuracaoMinutos || 60;
+
+    return (
+      <div className="tempo-atendimento-card">
+        <span>Tempo previsto</span>
+        <strong>{previsto} min</strong>
+        {agendamento.tempoSugeridoMensagem && <small>{agendamento.tempoSugeridoMensagem}</small>}
+      </div>
+    );
+  }
+
   function renderizarCardAtendimento(agendamento) {
     const cliente = obterClienteAgendamento(agendamento);
     const pacote = obterPacoteAgendamento(agendamento);
@@ -311,6 +376,7 @@ function AtendimentoPage() {
             {agendamento.observacoes && <span>Obs: {agendamento.observacoes}</span>}
           </div>
 
+          {renderizarTempoAtendimento(agendamento)}
           {renderizarEnderecoAtendimento(cliente)}
           {renderizarResumoPacote(agendamento, pacote)}
 
@@ -318,12 +384,14 @@ function AtendimentoPage() {
             <div className="acoes-atendimento">
               {!emAtendimento && (
                 <button type="button" className="botao-secundario" onClick={() => iniciar(agendamento)}>
-                  Iniciar
+                  Iniciar atendimento
                 </button>
               )}
-              <button type="button" className="botao-principal-atendimento" onClick={() => finalizar(agendamento)}>
-                Finalizar
-              </button>
+              {emAtendimento && (
+                <button type="button" className="botao-principal-atendimento" onClick={() => finalizar(agendamento)}>
+                  Finalizar atendimento
+                </button>
+              )}
               <button type="button" className="botao-cancelar-atendimento" onClick={() => cancelar(agendamento)}>
                 Cancelar
               </button>
@@ -400,6 +468,13 @@ function AtendimentoPage() {
           {!carregando && proximosAtendimentos.map(renderizarCardAtendimento)}
         </section>
       </div>
+
+      <AlertaTempoAtendimento
+        alerta={alertaTempo}
+        onFechar={() => setAlertaTempo(null)}
+        onAjustarCliente={ajustarTempoCliente}
+        onRevisarServico={revisarTempoServico}
+      />
     </div>
   );
 }

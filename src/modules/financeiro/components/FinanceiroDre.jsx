@@ -39,19 +39,25 @@ function FinanceiroDre({ dre }) {
         <div className="card card-dre-principal">
           <span>Resultado líquido</span>
           <strong>{formatarMoeda(dre.resultadoLiquido)}</strong>
-          <p>Receitas menos despesas no filtro</p>
+          <p>Recebido menos despesas no filtro</p>
         </div>
 
         <div className="card">
-          <span>Margem líquida</span>
-          <strong>{formatarPercentual(dre.margemLiquida)}</strong>
-          <p>Quanto sobra sobre a receita</p>
+          <span>Pendente</span>
+          <strong>{formatarMoeda(dre.pendente)}</strong>
+          <p>Valores ainda não recebidos</p>
         </div>
 
         <div className="card">
-          <span>Ticket médio</span>
+          <span>Descontos</span>
+          <strong>{formatarMoeda(dre.descontos)}</strong>
+          <p>Descontos concedidos no fechamento</p>
+        </div>
+
+        <div className="card">
+          <span>Ticket médio recebido</span>
           <strong>{formatarMoeda(dre.ticketMedio)}</strong>
-          <p>Média por receita confirmada</p>
+          <p>Média por receita ativa</p>
         </div>
       </div>
 
@@ -60,23 +66,25 @@ function FinanceiroDre({ dre }) {
           <div className="cabecalho-dre">
             <div>
               <h2>DRE do período</h2>
-              <p>Visão simples de resultado para acompanhar entradas, saídas e lucro.</p>
+              <p>Resultado baseado no dinheiro recebido, com pendências e descontos separados.</p>
             </div>
           </div>
 
           <div className="linhas-dre">
-            <LinhaDre nome="Receita bruta" valor={dre.receitaBruta} destaque />
+            <LinhaDre nome="Recebido" valor={dre.recebido} destaque />
             <LinhaDre nome="Pacotes vendidos" valor={dre.vendaPacotes} />
             <LinhaDre nome="Atendimentos avulsos" valor={dre.atendimentosAvulsos} />
             <LinhaDre nome="Outras receitas" valor={dre.outrasReceitas} />
+            <LinhaDre nome="Pendente em aberto" valor={dre.pendente} />
+            <LinhaDre nome="Descontos concedidos" valor={dre.descontos} negativo />
             <LinhaDre nome="Despesas" valor={dre.despesas} negativo />
             <LinhaDre nome="Resultado líquido" valor={dre.resultadoLiquido} destaque />
           </div>
         </div>
 
         <div className="analises-financeiras">
-          <ListaAnalise titulo="Receita por forma de pagamento" itens={dre.porFormaPagamento} campoNome="forma" />
-          <ListaAnalise titulo="Receita por origem" itens={dre.porOrigem} campoNome="origem" />
+          <ListaAnalise titulo="Recebido por forma de pagamento" itens={dre.porFormaPagamento} campoNome="forma" />
+          <ListaAnalise titulo="Recebido por origem" itens={dre.porOrigem} campoNome="origem" />
           <ListaAnalise titulo="Despesas por categoria" itens={dre.porCategoriaDespesa} campoNome="categoria" />
         </div>
       </div>

@@ -1,4 +1,4 @@
-const ORIGENS_SISTEMA = ["venda_pacote", "atendimento_avulso"];
+const ORIGENS_SISTEMA = ["venda_pacote", "atendimento_avulso", "recebimento_pendencia"];
 
 export const FORMAS_RECEBIMENTO_PENDENCIA = [
   "Pix",
@@ -55,6 +55,7 @@ function chaveCategoriaDespesa(categoria) {
 function descricaoOrigem(origem) {
   if (origem === "venda_pacote") return "Pacotes vendidos";
   if (origem === "atendimento_avulso") return "Atendimentos avulsos";
+  if (origem === "recebimento_pendencia") return "Recebimentos de pendências";
   if (origem === "despesa_manual") return "Despesas manuais";
   return "Outras receitas";
 }
@@ -63,15 +64,6 @@ function statusNormalizado(status) {
   if (!status) return "pago";
   if (status === "confirmado") return "pago";
   return status;
-}
-
-function montarResumoFormaPagamento(pagamentos, status) {
-  const pagamentosValidos = (pagamentos || []).filter((pagamento) => numero(pagamento.valor, 0) > 0);
-
-  if (status === "pendente") return "Fiado/Pendente";
-  if (pagamentosValidos.length === 0) return "Não informado";
-  if (pagamentosValidos.length === 1) return pagamentosValidos[0].forma;
-  return "Múltiplos pagamentos";
 }
 
 export function movimentoEhDoSistema(movimento) {
@@ -115,6 +107,7 @@ export function formatarPercentual(valor) {
 export function formatarOrigem(origem) {
   if (origem === "venda_pacote") return "Venda de pacote";
   if (origem === "atendimento_avulso") return "Atendimento avulso";
+  if (origem === "recebimento_pendencia") return "Recebimento de pendência";
   if (origem === "despesa_manual") return "Despesa manual";
   return origem || "Outro/manual";
 }
@@ -189,7 +182,7 @@ export function calcularTotaisFinanceiros(movimentos) {
         totais.pacotes += recebido;
       }
 
-      if (movimento.origem === "atendimento_avulso" && ativo) {
+      if ((movimento.origem === "atendimento_avulso" || movimento.origem === "recebimento_pendencia") && ativo) {
         totais.avulsos += recebido;
       }
 
@@ -338,25 +331,45 @@ export function prepararRecebimentoPendente(movimento, dados) {
     data: dados.data || dataHoje(),
     observacao: texto(dados.observacao),
   };
-  const pagamentos = [...(Array.isArray(movimento.pagamentos) ? movimento.pagamentos : []), recebimento];
   const recebimentosRegistrados = [
     ...(Array.isArray(movimento.recebimentosRegistrados) ? movimento.recebimentosRegistrados : []),
     recebimento,
   ];
-  const valorRecebido = arredondarValor(obterValorRecebido(movimento) + valorInformado);
   const valorPendente = arredondarValor(Math.max(0, pendenteAtual - valorInformado));
   const status = valorPendente > 0 ? "parcial" : "pago";
+  const descricaoBase = movimento.servicoNome || movimento.descricao || "atendimento";
 
   return {
-    valor: valorRecebido,
-    valorRecebido,
-    valorPendente,
-    status,
-    statusFinanceiro: status,
-    formaPagamento: montarResumoFormaPagamento(pagamentos, status),
-    pagamentos,
-    recebimentosRegistrados,
-    ultimaDataRecebimento: recebimento.data,
+    atualizacaoPendencia: {
+      valorPendente,
+      status,
+      statusFinanceiro: status,
+      recebimentosRegistrados,
+      ultimaDataRecebimento: recebimento.data,
+    },
+    novoRecebimento: {
+      tipo: "receita",
+      origem: "recebimento_pendencia",
+      status: "pago",
+      statusFinanceiro: "pago",
+      data: recebimento.data,
+      valor: recebimento.valor,
+      valorOriginal: recebimento.valor,
+      valorFinal: recebimento.valor,
+      valorRecebido: recebimento.valor,
+      valorPendente: 0,
+      descontoValor: 0,
+      clienteId: movimento.clienteId || "",
+      clienteNome: movimento.clienteNome || "",
+      servicoId: movimento.servicoId || "",
+      servicoNome: movimento.servicoNome || "",
+      agendamentoId: movimento.agendamentoId || "",
+      movimentoOrigemId: movimento.id || "",
+      formaPagamento: recebimento.forma,
+      pagamentos: [recebimento],
+      descricao: `Recebimento de pendência: ${descricaoBase}`,
+      observacoesFinanceiras: recebimento.observacao,
+    },
   };
 }
 

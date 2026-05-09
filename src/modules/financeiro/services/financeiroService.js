@@ -47,12 +47,37 @@ function descricaoOrigem(origem) {
   return "Outras receitas";
 }
 
+function statusNormalizado(status) {
+  if (!status) return "pago";
+  if (status === "confirmado") return "pago";
+  return status;
+}
+
 export function movimentoEhDoSistema(movimento) {
   return ORIGENS_SISTEMA.includes(movimento.origem);
 }
 
 export function obterDataMovimento(movimento) {
   return movimento.data || dataParaChave(movimento.criadoEm);
+}
+
+export function obterValorRecebido(movimento) {
+  if (movimento.tipo !== "receita") return 0;
+  if (movimento.status === "cancelado") return 0;
+  if (movimento.valorRecebido !== undefined) return numero(movimento.valorRecebido, 0);
+  return numero(movimento.valor, 0);
+}
+
+export function obterValorPendente(movimento) {
+  if (movimento.tipo !== "receita") return 0;
+  if (movimento.status === "cancelado") return 0;
+  return numero(movimento.valorPendente, 0);
+}
+
+export function obterValorDesconto(movimento) {
+  if (movimento.tipo !== "receita") return 0;
+  if (movimento.status === "cancelado") return 0;
+  return numero(movimento.descontoValor, 0);
 }
 
 export function formatarMoeda(valor) {
@@ -74,10 +99,12 @@ export function formatarOrigem(origem) {
 }
 
 export function formatarStatus(status) {
-  if (status === "confirmado") return "Confirmado";
-  if (status === "cancelado") return "Cancelado";
-  if (status === "pendente") return "Pendente";
-  return status || "Confirmado";
+  const normalizado = statusNormalizado(status);
+  if (normalizado === "pago") return "Pago";
+  if (normalizado === "parcial") return "Parcial";
+  if (normalizado === "pendente") return "Pendente";
+  if (normalizado === "cancelado") return "Cancelado";
+  return normalizado || "Pago";
 }
 
 function origemCorresponde(movimento, filtroOrigem) {
@@ -96,13 +123,14 @@ export function aplicarFiltrosFinanceiros(movimentos, filtros) {
     const correspondeFim = !filtros.dataFim || dataMovimento <= filtros.dataFim;
     const correspondeCliente = !filtros.clienteId || movimento.clienteId === filtros.clienteId;
     const correspondeOrigem = origemCorresponde(movimento, filtros.origem);
-    const correspondeStatus = !filtros.status || (movimento.status || "confirmado") === filtros.status;
+    const correspondeStatus = !filtros.status || statusNormalizado(movimento.status) === filtros.status;
     const correspondePesquisa =
       !termo ||
       movimento.clienteNome?.toLowerCase().includes(termo) ||
       movimento.descricao?.toLowerCase().includes(termo) ||
       movimento.servicoNome?.toLowerCase().includes(termo) ||
-      movimento.categoria?.toLowerCase().includes(termo);
+      movimento.categoria?.toLowerCase().includes(termo) ||
+      movimento.formaPagamento?.toLowerCase().includes(termo);
 
     return (
       correspondeInicio &&
@@ -118,23 +146,43 @@ export function aplicarFiltrosFinanceiros(movimentos, filtros) {
 export function calcularTotaisFinanceiros(movimentos) {
   return movimentos.reduce(
     (totais, movimento) => {
-      const valor = numero(movimento.valor, 0);
-      const confirmado = (movimento.status || "confirmado") === "confirmado";
+      const status = statusNormalizado(movimento.status);
+      const ativo = status !== "cancelado";
+      const recebido = obterValorRecebido(movimento);
+      const pendente = obterValorPendente(movimento);
+      const desconto = obterValorDesconto(movimento);
+      const despesa = numero(movimento.valor, 0);
 
-      if (movimento.tipo === "receita" && confirmado) {
-        totais.receitas += valor;
+      if (movimento.tipo === "receita" && ativo) {
+        totais.receitas += recebido;
+        totais.recebido += recebido;
+        totais.pendente += pendente;
+        totais.descontos += desconto;
       }
 
-      if (movimento.tipo === "despesa" && confirmado) {
-        totais.despesas += valor;
+      if (movimento.tipo === "despesa" && ativo) {
+        totais.despesas += despesa;
       }
 
-      if (movimento.origem === "venda_pacote" && confirmado) {
-        totais.pacotes += valor;
+      if (movimento.origem === "venda_pacote" && ativo) {
+        totais.pacotes += recebido;
       }
 
-      if (movimento.origem === "atendimento_avulso" && confirmado) {
-        totais.avulsos += valor;
+      if (movimento.origem === "atendimento_avulso" && ativo) {
+        totais.avulsos += recebido;
+      }
+
+      if (movimento.tipo === "receita" && ativo) {
+        const pagamentos = Array.isArray(movimento.pagamentos) ? movimento.pagamentos : [];
+        if (pagamentos.length > 0) {
+          pagamentos.forEach((pagamento) => {
+            const forma = chaveFormaPagamento(pagamento.forma);
+            totais.porForma[forma] = (totais.porForma[forma] || 0) + numero(pagamento.valor, 0);
+          });
+        } else if (recebido > 0) {
+          const forma = chaveFormaPagamento(movimento.formaPagamento);
+          totais.porForma[forma] = (totais.porForma[forma] || 0) + recebido;
+        }
       }
 
       totais.saldo = totais.receitas - totais.despesas;
@@ -142,31 +190,42 @@ export function calcularTotaisFinanceiros(movimentos) {
     },
     {
       receitas: 0,
+      recebido: 0,
+      pendente: 0,
+      descontos: 0,
       despesas: 0,
       saldo: 0,
       pacotes: 0,
       avulsos: 0,
+      porForma: {},
     }
   );
 }
 
 export function calcularDreFinanceiro(movimentos) {
-  const confirmados = movimentos.filter((movimento) => (movimento.status || "confirmado") === "confirmado");
-  const receitasConfirmadas = confirmados.filter((movimento) => movimento.tipo === "receita");
-  const despesasConfirmadas = confirmados.filter((movimento) => movimento.tipo === "despesa");
-  const totais = calcularTotaisFinanceiros(confirmados);
-  const outrasReceitas = receitasConfirmadas.reduce((total, movimento) => {
+  const ativos = movimentos.filter((movimento) => statusNormalizado(movimento.status) !== "cancelado");
+  const receitasAtivas = ativos.filter((movimento) => movimento.tipo === "receita");
+  const despesasAtivas = ativos.filter((movimento) => movimento.tipo === "despesa");
+  const totais = calcularTotaisFinanceiros(ativos);
+  const outrasReceitas = receitasAtivas.reduce((total, movimento) => {
     if (movimentoEhDoSistema(movimento)) return total;
-    return total + numero(movimento.valor, 0);
+    return total + obterValorRecebido(movimento);
   }, 0);
 
   const porFormaPagamento = Object.values(
-    receitasConfirmadas.reduce((grupos, movimento) => {
-      const forma = chaveFormaPagamento(movimento.formaPagamento);
-      const atual = grupos[forma] || { forma, valor: 0, quantidade: 0, percentual: 0 };
-      atual.valor += numero(movimento.valor, 0);
-      atual.quantidade += 1;
-      grupos[forma] = atual;
+    receitasAtivas.reduce((grupos, movimento) => {
+      const pagamentos = Array.isArray(movimento.pagamentos) && movimento.pagamentos.length > 0
+        ? movimento.pagamentos
+        : [{ forma: movimento.formaPagamento, valor: obterValorRecebido(movimento) }];
+
+      pagamentos.forEach((pagamento) => {
+        const forma = chaveFormaPagamento(pagamento.forma);
+        const atual = grupos[forma] || { forma, valor: 0, quantidade: 0, percentual: 0 };
+        atual.valor += numero(pagamento.valor, 0);
+        atual.quantidade += 1;
+        grupos[forma] = atual;
+      });
+
       return grupos;
     }, {})
   )
@@ -174,10 +233,10 @@ export function calcularDreFinanceiro(movimentos) {
     .sort((a, b) => b.valor - a.valor);
 
   const porOrigem = Object.values(
-    receitasConfirmadas.reduce((grupos, movimento) => {
+    receitasAtivas.reduce((grupos, movimento) => {
       const origem = descricaoOrigem(movimento.origem);
       const atual = grupos[origem] || { origem, valor: 0, quantidade: 0, percentual: 0 };
-      atual.valor += numero(movimento.valor, 0);
+      atual.valor += obterValorRecebido(movimento);
       atual.quantidade += 1;
       grupos[origem] = atual;
       return grupos;
@@ -187,7 +246,7 @@ export function calcularDreFinanceiro(movimentos) {
     .sort((a, b) => b.valor - a.valor);
 
   const porCategoriaDespesa = Object.values(
-    despesasConfirmadas.reduce((grupos, movimento) => {
+    despesasAtivas.reduce((grupos, movimento) => {
       const categoria = chaveCategoriaDespesa(movimento.categoria);
       const atual = grupos[categoria] || { categoria, valor: 0, quantidade: 0, percentual: 0 };
       atual.valor += numero(movimento.valor, 0);
@@ -201,13 +260,16 @@ export function calcularDreFinanceiro(movimentos) {
 
   return {
     receitaBruta: totais.receitas,
+    recebido: totais.recebido,
+    pendente: totais.pendente,
+    descontos: totais.descontos,
     vendaPacotes: totais.pacotes,
     atendimentosAvulsos: totais.avulsos,
     outrasReceitas,
     despesas: totais.despesas,
     resultadoLiquido: totais.saldo,
     margemLiquida: percentual(totais.saldo, totais.receitas),
-    ticketMedio: receitasConfirmadas.length ? totais.receitas / receitasConfirmadas.length : 0,
+    ticketMedio: receitasAtivas.length ? totais.receitas / receitasAtivas.length : 0,
     porFormaPagamento,
     porOrigem,
     porCategoriaDespesa,
@@ -224,7 +286,7 @@ export function prepararDespesaManual(dados) {
   return {
     tipo: "despesa",
     origem: "despesa_manual",
-    status: dados.status || "confirmado",
+    status: dados.status || "pago",
     data: dados.data || dataHoje(),
     valor,
     categoria: texto(dados.categoria, "Outros"),

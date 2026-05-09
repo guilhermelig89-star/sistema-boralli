@@ -23,6 +23,21 @@ function dataParaChave(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
+function percentual(valor, total) {
+  if (!total) return 0;
+  return Math.round((numero(valor) / numero(total)) * 1000) / 10;
+}
+
+function chaveFormaPagamento(formaPagamento) {
+  return texto(formaPagamento, "Não informado") || "Não informado";
+}
+
+function descricaoOrigem(origem) {
+  if (origem === "venda_pacote") return "Pacotes vendidos";
+  if (origem === "atendimento_avulso") return "Atendimentos avulsos";
+  return "Outras receitas";
+}
+
 export function movimentoEhDoSistema(movimento) {
   return ORIGENS_SISTEMA.includes(movimento.origem);
 }
@@ -36,6 +51,10 @@ export function formatarMoeda(valor) {
     style: "currency",
     currency: "BRL",
   });
+}
+
+export function formatarPercentual(valor) {
+  return `${numero(valor, 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 }
 
 export function formatarOrigem(origem) {
@@ -118,6 +137,58 @@ export function calcularTotaisFinanceiros(movimentos) {
       avulsos: 0,
     }
   );
+}
+
+export function calcularDreFinanceiro(movimentos) {
+  const confirmados = movimentos.filter((movimento) => (movimento.status || "confirmado") === "confirmado");
+  const totais = calcularTotaisFinanceiros(confirmados);
+  const outrasReceitas = confirmados.reduce((total, movimento) => {
+    if (movimento.tipo !== "receita" || movimentoEhDoSistema(movimento)) return total;
+    return total + numero(movimento.valor, 0);
+  }, 0);
+
+  const porFormaPagamento = Object.values(
+    confirmados.reduce((grupos, movimento) => {
+      if (movimento.tipo !== "receita") return grupos;
+
+      const forma = chaveFormaPagamento(movimento.formaPagamento);
+      const atual = grupos[forma] || { forma, valor: 0, quantidade: 0, percentual: 0 };
+      atual.valor += numero(movimento.valor, 0);
+      atual.quantidade += 1;
+      grupos[forma] = atual;
+      return grupos;
+    }, {})
+  )
+    .map((item) => ({ ...item, percentual: percentual(item.valor, totais.receitas) }))
+    .sort((a, b) => b.valor - a.valor);
+
+  const porOrigem = Object.values(
+    confirmados.reduce((grupos, movimento) => {
+      if (movimento.tipo !== "receita") return grupos;
+
+      const origem = descricaoOrigem(movimento.origem);
+      const atual = grupos[origem] || { origem, valor: 0, quantidade: 0, percentual: 0 };
+      atual.valor += numero(movimento.valor, 0);
+      atual.quantidade += 1;
+      grupos[origem] = atual;
+      return grupos;
+    }, {})
+  )
+    .map((item) => ({ ...item, percentual: percentual(item.valor, totais.receitas) }))
+    .sort((a, b) => b.valor - a.valor);
+
+  return {
+    receitaBruta: totais.receitas,
+    vendaPacotes: totais.pacotes,
+    atendimentosAvulsos: totais.avulsos,
+    outrasReceitas,
+    despesas: totais.despesas,
+    resultadoLiquido: totais.saldo,
+    margemLiquida: percentual(totais.saldo, totais.receitas),
+    ticketMedio: confirmados.length ? totais.receitas / confirmados.filter((movimento) => movimento.tipo === "receita").length : 0,
+    porFormaPagamento,
+    porOrigem,
+  };
 }
 
 export function filtrarMovimentosDoMes(movimentos, dataReferencia = new Date()) {

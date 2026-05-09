@@ -1,8 +1,10 @@
 import {
+  addDoc,
   collection,
   query,
   orderBy,
   onSnapshot,
+  serverTimestamp,
 } from "firebase/firestore";
 
 import { db } from "../../../shared/firebase/firebaseConfig";
@@ -26,4 +28,12 @@ export function observarMovimentosFinanceiros(onMovimentos, onErro) {
     },
     onErro
   );
+}
+
+export async function criarMovimentoFinanceiro(dados) {
+  return addDoc(movimentosRef, {
+    ...dados,
+    criadoEm: serverTimestamp(),
+    atualizadoEm: serverTimestamp(),
+  });
 }

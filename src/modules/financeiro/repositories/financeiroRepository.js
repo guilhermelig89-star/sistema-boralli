@@ -1,10 +1,12 @@
 import {
   addDoc,
   collection,
+  doc,
   query,
   orderBy,
   onSnapshot,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "../../../shared/firebase/firebaseConfig";
@@ -34,6 +36,15 @@ export async function criarMovimentoFinanceiro(dados) {
   return addDoc(movimentosRef, {
     ...dados,
     criadoEm: serverTimestamp(),
+    atualizadoEm: serverTimestamp(),
+  });
+}
+
+export async function atualizarMovimentoFinanceiro(id, dados) {
+  const movimentoRef = doc(db, "movimentosFinanceiros", id);
+
+  return updateDoc(movimentoRef, {
+    ...dados,
     atualizadoEm: serverTimestamp(),
   });
 }

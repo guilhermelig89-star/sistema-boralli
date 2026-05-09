@@ -60,13 +60,17 @@ function PendenciasFinanceiras({ movimentos, carregando, salvando, onRegistrarPa
   async function registrar(movimento) {
     const dados = obterFormulario(movimento);
 
-    await onRegistrarPagamento(movimento.id, dados);
+    try {
+      await onRegistrarPagamento(movimento.id, dados);
 
-    setFormularios((atuais) => {
-      const novos = { ...atuais };
-      delete novos[movimento.id];
-      return novos;
-    });
+      setFormularios((atuais) => {
+        const novos = { ...atuais };
+        delete novos[movimento.id];
+        return novos;
+      });
+    } catch (erro) {
+      alert(erro.message || "Não foi possível registrar o pagamento.");
+    }
   }
 
   return (

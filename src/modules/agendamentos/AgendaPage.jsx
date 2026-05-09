@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import FechamentoFinanceiroModal from "../atendimento/components/FechamentoFinanceiroModal";
 import { useClientes } from "../clientes/hooks/useClientes";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
 import { useServicos } from "../servicos/hooks/useServicos";
@@ -28,6 +29,7 @@ function AgendaPage() {
   const [filtros, setFiltros] = useState(filtrosIniciais);
   const [abaAtual, setAbaAtual] = useState("agenda");
   const [alertaTempo, setAlertaTempo] = useState(null);
+  const [agendamentoFechamento, setAgendamentoFechamento] = useState(null);
   const { clientesAtivos } = useClientes();
   const { servicosAtivos } = useServicos();
   const {
@@ -36,6 +38,7 @@ function AgendaPage() {
     revisarTempoPadraoServico,
   } = useSugestoesTempoAtendimento();
   const {
+    pacotes,
     pacotesAtivos,
     calcularSaldoServicoPacote,
     pacoteTemSaldoParaServico,
@@ -57,6 +60,16 @@ function AgendaPage() {
     finalizarAtendimento,
     cancelarAtendimento,
   } = useAgendamentos();
+
+  const pacotesPorId = useMemo(
+    () => new Map(pacotes.map((pacote) => [pacote.id, pacote])),
+    [pacotes]
+  );
+
+  const pacoteFechamento = useMemo(
+    () => (agendamentoFechamento?.pacoteClienteId ? pacotesPorId.get(agendamentoFechamento.pacoteClienteId) || null : null),
+    [agendamentoFechamento, pacotesPorId]
+  );
 
   const agendamentosFiltrados = useMemo(() => {
     const termo = filtros.pesquisa.toLowerCase();
@@ -122,9 +135,28 @@ function AgendaPage() {
     }
   }
 
-  async function finalizar(id) {
+  function finalizar(id) {
+    const agendamento = agendamentos.find((item) => item.id === id);
+
+    if (!agendamento) {
+      alert("Agendamento não encontrado.");
+      return;
+    }
+
+    if (agendamento.status !== "em_atendimento") {
+      alert("Inicie o atendimento antes de finalizar para calcular o tempo real corretamente.");
+      return;
+    }
+
+    setAgendamentoFechamento(agendamento);
+  }
+
+  async function confirmarFechamento(fechamentoFinanceiro) {
+    if (!agendamentoFechamento) return;
+
     try {
-      const resultado = await finalizarAtendimento(id);
+      const resultado = await finalizarAtendimento(agendamentoFechamento.id, fechamentoFinanceiro);
+      setAgendamentoFechamento(null);
       if (deveMostrarAlertaTempo(resultado)) {
         setAlertaTempo(resultado);
       }
@@ -245,6 +277,13 @@ function AgendaPage() {
           />
         )}
       </div>
+
+      <FechamentoFinanceiroModal
+        agendamento={agendamentoFechamento}
+        pacote={pacoteFechamento}
+        onFechar={() => setAgendamentoFechamento(null)}
+        onConfirmar={confirmarFechamento}
+      />
 
       <AlertaTempoAtendimento
         alerta={alertaTempo}

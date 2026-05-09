@@ -20,21 +20,25 @@
   align-items: end;
 }
 
-.financeiro-filtros label {
+.financeiro-filtros label,
+.despesa-form label {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
 
-.financeiro-filtros label span {
+.financeiro-filtros label span,
+.despesa-form label span {
   color: #6f5a49;
   font-size: 12px;
   font-weight: 800;
 }
 
 .financeiro-filtros input,
-.financeiro-filtros select {
+.financeiro-filtros select,
+.despesa-form input,
+.despesa-form select {
   width: 100%;
   min-width: 0;
   border: 1px solid #d8c7b7;
@@ -47,7 +51,9 @@
 }
 
 .financeiro-filtros input:focus,
-.financeiro-filtros select:focus {
+.financeiro-filtros select:focus,
+.despesa-form input:focus,
+.despesa-form select:focus {
   border-color: #d7b56d;
 }
 
@@ -58,6 +64,58 @@
   background: #faf7f2;
   color: #3b2b25;
   padding: 12px 14px;
+  font-weight: 800;
+}
+
+.despesa-form {
+  border: 1px solid #e7d9c9;
+  border-radius: 18px;
+  background: #fff;
+  padding: 22px 24px;
+}
+
+.cabecalho-despesa-form {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cabecalho-despesa-form h2 {
+  margin: 0 0 6px;
+}
+
+.cabecalho-despesa-form p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.campos-despesa-form {
+  display: grid;
+  grid-template-columns: 150px minmax(160px, 1fr) 150px minmax(180px, 1fr) 140px;
+  gap: 12px;
+}
+
+.campo-descricao-despesa {
+  grid-column: 1 / -1;
+}
+
+.rodape-despesa-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.rodape-despesa-form button {
+  min-width: 190px;
+}
+
+.rodape-despesa-form span {
+  color: #6f5a49;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -234,10 +292,15 @@
   font-weight: 800;
 }
 
+.valor-despesa {
+  color: #a92318 !important;
+}
+
 @media (max-width: 1100px) {
   .financeiro-filtros,
   .linha-financeiro,
-  .dre-layout {
+  .dre-layout,
+  .campos-despesa-form {
     grid-template-columns: 1fr;
   }
 
@@ -247,6 +310,7 @@
 }
 
 @media (max-width: 640px) {
+  .despesa-form,
   .painel-dre,
   .painel-analise-financeira {
     padding: 18px;
@@ -256,6 +320,10 @@
   .linha-analise-financeira {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .rodape-despesa-form button {
+    width: 100%;
   }
 
   .linha-analise-financeira span,

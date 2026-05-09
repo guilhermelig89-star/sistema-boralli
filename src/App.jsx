@@ -8,6 +8,7 @@ import ClientesPage from "./modules/clientes/ClientesPage";
 import DashboardPage from "./modules/dashboard/DashboardPage";
 import FinanceiroPage from "./modules/financeiro/FinanceiroPage";
 import PacotesPage from "./modules/pacotes/PacotesPage";
+import RelatoriosPage from "./modules/relatorios/RelatoriosPage";
 import ServicosPage from "./modules/servicos/ServicosPage";
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
         return <AgendaPage />;
       case "financeiro":
         return <FinanceiroPage />;
+      case "relatorios":
+        return <RelatoriosPage />;
       case "atendimento":
         return <AtendimentoPage />;
       default:

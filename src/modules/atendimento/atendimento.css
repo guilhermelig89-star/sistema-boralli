@@ -1,0 +1,195 @@
+.topo-atendimento {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.data-atendimento {
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  background: #fff;
+  color: #5a4639;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.resumo-atendimento {
+  margin-bottom: 24px;
+}
+
+.atendimento-layout {
+  gap: 18px;
+}
+
+.bloco-atendimento {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cabecalho-atendimento {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabecalho-atendimento h2 {
+  margin: 0 0 6px;
+}
+
+.cabecalho-atendimento p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.card-atendimento {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 16px;
+  border: 1px solid #eadfce;
+  border-radius: 18px;
+  background: #fff;
+  padding: 16px;
+}
+
+.card-atendimento.em-andamento {
+  border-color: #d7b56d;
+  background: #fffaf0;
+}
+
+.hora-atendimento {
+  display: flex;
+  min-height: 96px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #f6efe7;
+  color: #2b2420;
+}
+
+.hora-atendimento strong {
+  font-size: 24px;
+}
+
+.hora-atendimento span {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dados-atendimento {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topo-card-atendimento {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topo-card-atendimento h3 {
+  margin: 0 0 4px;
+  color: #2b2420;
+  font-size: 18px;
+}
+
+.topo-card-atendimento p,
+.detalhes-atendimento span {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.detalhes-atendimento {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detalhes-atendimento span {
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  background: #faf7f2;
+  padding: 7px 10px;
+  font-weight: 700;
+}
+
+.acoes-atendimento {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.acoes-atendimento button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.botao-principal-atendimento {
+  background: #3b2b25;
+  color: #fff;
+}
+
+.botao-secundario {
+  background: #d7b56d;
+  color: #1f1714;
+}
+
+.botao-cancelar-atendimento {
+  background: #b42318;
+  color: #fff;
+}
+
+.badge-atendimento-andamento {
+  background: #d7b56d;
+  color: #1f1714;
+}
+
+.estado-vazio-atendimento {
+  border: 1px dashed #d8c7b7;
+  border-radius: 16px;
+  background: #faf7f2;
+  color: #7b6b5d;
+  padding: 18px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .topo-atendimento,
+  .topo-card-atendimento {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .data-atendimento {
+    width: fit-content;
+  }
+
+  .card-atendimento {
+    grid-template-columns: 1fr;
+  }
+
+  .hora-atendimento {
+    min-height: auto;
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .acoes-atendimento button {
+    flex: 1;
+  }
+}

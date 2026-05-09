@@ -81,10 +81,7 @@ function AtendimentoPage() {
   );
 
   const proximosAtendimentos = useMemo(
-    () =>
-      atendimentosHoje.filter(
-        (item) => item.status !== "finalizado" && item.status !== "cancelado"
-      ),
+    () => atendimentosHoje.filter((item) => item.status === "agendado" || !item.status),
     [atendimentosHoje]
   );
 
@@ -92,10 +89,10 @@ function AtendimentoPage() {
     () => ({
       total: atendimentosHoje.filter((item) => item.status !== "cancelado").length,
       emAndamento: atendimentosEmAndamento.length,
-      pendentes: atendimentosHoje.filter((item) => item.status === "agendado" || !item.status).length,
+      pendentes: proximosAtendimentos.length,
       finalizados: atendimentosHoje.filter((item) => item.status === "finalizado").length,
     }),
-    [atendimentosHoje, atendimentosEmAndamento]
+    [atendimentosHoje, atendimentosEmAndamento, proximosAtendimentos]
   );
 
   function obterSaldoPacote(agendamento) {
@@ -240,7 +237,7 @@ function AtendimentoPage() {
         <section className="lista-clientes bloco-atendimento">
           <div className="cabecalho-atendimento">
             <div>
-              <h2>Agenda de hoje</h2>
+              <h2>Próximos atendimentos</h2>
               <p>Use esta lista durante o dia para iniciar, finalizar ou cancelar atendimentos.</p>
             </div>
           </div>

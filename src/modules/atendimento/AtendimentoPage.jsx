@@ -162,13 +162,6 @@ function AtendimentoPage() {
     return pacotesPorId.get(agendamento.pacoteClienteId) || null;
   }
 
-  function obterSaldoPacote(agendamento) {
-    const pacote = obterPacoteAgendamento(agendamento);
-    if (!pacote) return null;
-
-    return calcularSaldoServicoPacote(pacote, agendamento.servicoId);
-  }
-
   function montarMensagemFinalizacao(agendamento) {
     const pacote = obterPacoteAgendamento(agendamento);
 

@@ -124,6 +124,64 @@
   font-weight: 700;
 }
 
+.endereco-atendimento {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px;
+}
+
+.endereco-atendimento div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.endereco-atendimento strong {
+  color: #2b2420;
+  font-size: 13px;
+}
+
+.endereco-atendimento span,
+.endereco-atendimento small,
+.endereco-vazio-atendimento {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.endereco-atendimento span {
+  overflow-wrap: anywhere;
+}
+
+.botao-rota-atendimento {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border: 1px solid #3b2b25;
+  border-radius: 10px;
+  background: #3b2b25;
+  color: #fff;
+  padding: 9px 13px;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.endereco-vazio-atendimento {
+  border: 1px dashed #d8c7b7;
+  border-radius: 14px;
+  background: #faf7f2;
+  padding: 12px;
+}
+
 .pacote-atendimento {
   display: flex;
   flex-direction: column;
@@ -263,7 +321,8 @@
 @media (max-width: 760px) {
   .topo-atendimento,
   .topo-card-atendimento,
-  .topo-pacote-atendimento {
+  .topo-pacote-atendimento,
+  .endereco-atendimento {
     align-items: stretch;
     flex-direction: column;
   }
@@ -283,7 +342,8 @@
     padding: 14px;
   }
 
+  .botao-rota-atendimento,
   .acoes-atendimento button {
-    flex: 1;
+    width: 100%;
   }
 }

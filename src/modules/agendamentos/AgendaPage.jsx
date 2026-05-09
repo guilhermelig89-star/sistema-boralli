@@ -53,6 +53,7 @@ function AgendaPage() {
     carregando,
     erro,
     salvarAgendamento,
+    iniciarAtendimento,
     finalizarAtendimento,
     cancelarAtendimento,
   } = useAgendamentos();
@@ -110,6 +111,14 @@ function AgendaPage() {
       await salvarExcecao(dados);
     } catch (erroSalvar) {
       alert(erroSalvar.message || "Não foi possível salvar a exceção.");
+    }
+  }
+
+  async function iniciar(id) {
+    try {
+      await iniciarAtendimento(id);
+    } catch (erroIniciar) {
+      alert(erroIniciar.message || "Não foi possível iniciar o atendimento.");
     }
   }
 
@@ -217,6 +226,7 @@ function AgendaPage() {
               <AgendamentosTable
                 agendamentos={agendamentosFiltrados}
                 carregando={carregando}
+                onIniciar={iniciar}
                 onFinalizar={finalizar}
                 onCancelar={cancelar}
               />

@@ -14,9 +14,8 @@ function formatarMoeda(valor) {
   });
 }
 
-function criarPagamentoInicial(valor, pacote) {
-  if (pacote) return [{ forma: "Fiado/Pendente", valor: 0 }];
-  return [{ forma: "Pix", valor: Number(valor || 0) }];
+function criarPagamentoInicial() {
+  return [{ forma: "Fiado/Pendente", valor: 0 }];
 }
 
 function statusTexto(status) {
@@ -44,7 +43,7 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
   const [descontoValor, setDescontoValor] = useState(0);
   const [valorFinalCobrado, setValorFinalCobrado] = useState(valorBase);
   const [motivoDesconto, setMotivoDesconto] = useState("");
-  const [pagamentos, setPagamentos] = useState(() => criarPagamentoInicial(valorBase, pacote));
+  const [pagamentos, setPagamentos] = useState(criarPagamentoInicial);
   const [observacoesFinanceiras, setObservacoesFinanceiras] = useState("");
   const [salvando, setSalvando] = useState(false);
 

@@ -52,6 +52,14 @@ export function criarAgendamentoRegistro(dados) {
   });
 }
 
+export function iniciarAgendamentoRegistro(agendamentoId) {
+  return updateDoc(doc(db, "agendamentos", agendamentoId), {
+    status: "em_atendimento",
+    iniciadoEm: serverTimestamp(),
+    atualizadoEm: serverTimestamp(),
+  });
+}
+
 export function cancelarAgendamentoRegistro(agendamentoId) {
   return updateDoc(doc(db, "agendamentos", agendamentoId), {
     status: "cancelado",

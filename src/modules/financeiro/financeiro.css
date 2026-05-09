@@ -71,19 +71,61 @@
   font-weight: 800;
 }
 
-.financeiro-configuracao-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-  gap: 20px;
-  align-items: start;
-}
-
-.despesa-form,
-.categorias-despesa {
+.financeiro-configuracao-abas {
   border: 1px solid #e7d9c9;
   border-radius: 18px;
   background: #fff;
   padding: 22px 24px;
+}
+
+.financeiro-abas-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.financeiro-abas-topo h2 {
+  margin: 0 0 6px;
+}
+
+.financeiro-abas-topo p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.abas-financeiro {
+  display: flex;
+  gap: 6px;
+  border: 1px solid #e1d2c1;
+  border-radius: 14px;
+  background: #faf7f2;
+  padding: 5px;
+}
+
+.abas-financeiro button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #3b2b25;
+  padding: 9px 14px;
+  font-weight: 900;
+}
+
+.abas-financeiro button.ativo {
+  background: #dcbc67;
+  color: #1f1714;
+}
+
+.despesa-form,
+.categorias-despesa {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .cabecalho-despesa-form,
@@ -97,6 +139,7 @@
 .cabecalho-despesa-form h2,
 .cabecalho-categorias-despesa h2 {
   margin: 0 0 6px;
+  font-size: 20px;
 }
 
 .cabecalho-despesa-form p,
@@ -146,8 +189,8 @@
 }
 
 .lista-categorias-despesa {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 8px;
   margin-top: 16px;
   max-height: 260px;
@@ -373,7 +416,6 @@
   .financeiro-filtros,
   .linha-financeiro,
   .dre-layout,
-  .financeiro-configuracao-grid,
   .campos-despesa-form {
     grid-template-columns: 1fr;
   }
@@ -384,13 +426,13 @@
 }
 
 @media (max-width: 640px) {
-  .despesa-form,
-  .categorias-despesa,
+  .financeiro-configuracao-abas,
   .painel-dre,
   .painel-analise-financeira {
     padding: 18px;
   }
 
+  .financeiro-abas-topo,
   .linha-dre,
   .linha-analise-financeira,
   .item-categoria-despesa {
@@ -398,6 +440,8 @@
     flex-direction: column;
   }
 
+  .abas-financeiro,
+  .abas-financeiro button,
   .rodape-despesa-form button,
   .form-categoria-despesa button,
   .item-categoria-despesa button {

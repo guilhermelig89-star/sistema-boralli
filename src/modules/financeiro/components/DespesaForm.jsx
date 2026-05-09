@@ -1,16 +1,5 @@
 import { useState } from "react";
 
-const categoriasDespesa = [
-  "Material",
-  "Transporte",
-  "Aluguel",
-  "Taxas",
-  "Marketing",
-  "Alimentação",
-  "Manutenção",
-  "Outros",
-];
-
 const formasPagamento = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito", "Transferência", "Outro"];
 
 function obterHoje() {
@@ -22,19 +11,20 @@ function obterHoje() {
   return `${ano}-${mes}-${dia}`;
 }
 
-function criarDespesaInicial() {
+function criarDespesaInicial(categoriaInicial) {
   return {
     data: obterHoje(),
     descricao: "",
-    categoria: "Material",
+    categoria: categoriaInicial || "Material",
     valor: "",
     formaPagamento: "Pix",
     status: "confirmado",
   };
 }
 
-function DespesaForm({ onSalvar, salvando }) {
-  const [despesa, setDespesa] = useState(criarDespesaInicial);
+function DespesaForm({ categorias = [], onSalvar, salvando }) {
+  const categoriaInicial = categorias[0]?.nome || "Material";
+  const [despesa, setDespesa] = useState(() => criarDespesaInicial(categoriaInicial));
   const [mensagem, setMensagem] = useState("");
 
   function alterarCampo(campo, valor) {
@@ -47,7 +37,7 @@ function DespesaForm({ onSalvar, salvando }) {
 
     try {
       await onSalvar(despesa);
-      setDespesa(criarDespesaInicial());
+      setDespesa(criarDespesaInicial(categoriaInicial));
       setMensagem("Despesa lançada com sucesso.");
     } catch (erro) {
       setMensagem(erro.message || "Não foi possível lançar a despesa.");
@@ -72,8 +62,8 @@ function DespesaForm({ onSalvar, salvando }) {
         <label>
           <span>Categoria</span>
           <select value={despesa.categoria} onChange={(e) => alterarCampo("categoria", e.target.value)}>
-            {categoriasDespesa.map((categoria) => (
-              <option key={categoria} value={categoria}>{categoria}</option>
+            {categorias.map((categoria) => (
+              <option key={categoria.id || categoria.nome} value={categoria.nome}>{categoria.nome}</option>
             ))}
           </select>
         </label>

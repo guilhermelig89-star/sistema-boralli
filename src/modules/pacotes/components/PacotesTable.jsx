@@ -1,6 +1,18 @@
 import { obterResumoItensPacote } from "../domain/pacotesDomain";
 
-function PacotesTable({ pacotes, carregando, pacoteEstaAcabando }) {
+function obterStatusPacote(pacote, pacoteEstaAcabando) {
+  if (pacote.status === "esgotado" || pacote.saldoRestante <= 0) {
+    return { texto: "Finalizado", classe: "badge-tipo badge-finalizado" };
+  }
+
+  if (pacoteEstaAcabando(pacote)) {
+    return { texto: "Saldo baixo", classe: "badge-tipo badge-alerta" };
+  }
+
+  return { texto: "Ativo", classe: "badge-tipo badge-servico" };
+}
+
+function PacotesTable({ pacotes, carregando, mensagemVazia, pacoteEstaAcabando }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-pacote cabecalho">
@@ -19,13 +31,13 @@ function PacotesTable({ pacotes, carregando, pacoteEstaAcabando }) {
 
       {!carregando && pacotes.length === 0 && (
         <div className="linha-pacote">
-          <span>Nenhum pacote encontrado para este filtro.</span>
+          <span>{mensagemVazia || "Nenhum pacote encontrado para este filtro."}</span>
         </div>
       )}
 
       {!carregando &&
         pacotes.map((pacote) => {
-          const acabando = pacoteEstaAcabando(pacote);
+          const status = obterStatusPacote(pacote, pacoteEstaAcabando);
 
           return (
             <div className="linha-pacote" key={pacote.id}>
@@ -33,9 +45,7 @@ function PacotesTable({ pacotes, carregando, pacoteEstaAcabando }) {
               <span>{pacote.nome}</span>
               <span>{pacote.servicoNome}</span>
               <span>{obterResumoItensPacote(pacote)}</span>
-              <span className={acabando ? "badge-tipo badge-alerta" : "badge-tipo badge-servico"}>
-                {acabando ? "Saldo baixo" : pacote.status || "ativo"}
-              </span>
+              <span className={status.classe}>{status.texto}</span>
             </div>
           );
         })}

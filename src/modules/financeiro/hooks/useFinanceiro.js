@@ -83,10 +83,10 @@ export function useFinanceiro(filtros) {
     setErro(null);
 
     try {
-      await atualizarMovimentoFinanceiro(
-        movimentoId,
-        prepararRecebimentoPendente(movimento, dados)
-      );
+      const { atualizacaoPendencia, novoRecebimento } = prepararRecebimentoPendente(movimento, dados);
+
+      await atualizarMovimentoFinanceiro(movimentoId, atualizacaoPendencia);
+      await criarMovimentoFinanceiro(novoRecebimento);
     } catch (erroFirebase) {
       console.error("Erro ao registrar pagamento pendente", erroFirebase);
       setErro("Não foi possível registrar o pagamento da pendência.");

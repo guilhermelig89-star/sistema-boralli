@@ -1,0 +1,128 @@
+.dashboard-real {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-real .card-grid {
+  margin-top: 0;
+}
+
+.dashboard-header-real {
+  margin-bottom: 0;
+}
+
+.acoes-dashboard-topo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.card-dashboard strong {
+  font-size: clamp(24px, 3vw, 30px);
+}
+
+.painel-dashboard {
+  margin-top: 0;
+}
+
+.bloco-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho-bloco-dashboard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabecalho-bloco-dashboard h2 {
+  margin: 0 0 6px;
+}
+
+.cabecalho-bloco-dashboard p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.lista-dashboard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #efe5d8;
+  border-radius: 16px;
+}
+
+.item-dashboard,
+.item-dashboard-vazio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid #efe5d8;
+  padding: 14px 16px;
+}
+
+.item-dashboard:last-child,
+.item-dashboard-vazio:last-child {
+  border-bottom: 0;
+}
+
+.item-dashboard strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #2b2420;
+  font-size: 13px;
+}
+
+.item-dashboard span,
+.item-dashboard-vazio {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.acoes-rapidas-dashboard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.acoes-rapidas-dashboard button {
+  width: 100%;
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b2420;
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 800;
+}
+
+.acoes-rapidas-dashboard button:hover {
+  border-color: #d7b56d;
+  background: #fffaf0;
+}
+
+.bloco-pacotes-dashboard,
+.bloco-servicos-dashboard {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .cabecalho-bloco-dashboard,
+  .dashboard-header-real,
+  .item-dashboard {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .acoes-dashboard-topo {
+    justify-content: flex-start;
+  }
+}

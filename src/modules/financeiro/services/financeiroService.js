@@ -23,6 +23,10 @@ function dataParaChave(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
+function dataHoje() {
+  return dataParaChave(new Date());
+}
+
 function percentual(valor, total) {
   if (!total) return 0;
   return Math.round((numero(valor) / numero(total)) * 1000) / 10;
@@ -32,9 +36,14 @@ function chaveFormaPagamento(formaPagamento) {
   return texto(formaPagamento, "Não informado") || "Não informado";
 }
 
+function chaveCategoriaDespesa(categoria) {
+  return texto(categoria, "Sem categoria") || "Sem categoria";
+}
+
 function descricaoOrigem(origem) {
   if (origem === "venda_pacote") return "Pacotes vendidos";
   if (origem === "atendimento_avulso") return "Atendimentos avulsos";
+  if (origem === "despesa_manual") return "Despesas manuais";
   return "Outras receitas";
 }
 
@@ -60,6 +69,7 @@ export function formatarPercentual(valor) {
 export function formatarOrigem(origem) {
   if (origem === "venda_pacote") return "Venda de pacote";
   if (origem === "atendimento_avulso") return "Atendimento avulso";
+  if (origem === "despesa_manual") return "Despesa manual";
   return origem || "Outro/manual";
 }
 
@@ -91,7 +101,8 @@ export function aplicarFiltrosFinanceiros(movimentos, filtros) {
       !termo ||
       movimento.clienteNome?.toLowerCase().includes(termo) ||
       movimento.descricao?.toLowerCase().includes(termo) ||
-      movimento.servicoNome?.toLowerCase().includes(termo);
+      movimento.servicoNome?.toLowerCase().includes(termo) ||
+      movimento.categoria?.toLowerCase().includes(termo);
 
     return (
       correspondeInicio &&
@@ -142,6 +153,7 @@ export function calcularTotaisFinanceiros(movimentos) {
 export function calcularDreFinanceiro(movimentos) {
   const confirmados = movimentos.filter((movimento) => (movimento.status || "confirmado") === "confirmado");
   const receitasConfirmadas = confirmados.filter((movimento) => movimento.tipo === "receita");
+  const despesasConfirmadas = confirmados.filter((movimento) => movimento.tipo === "despesa");
   const totais = calcularTotaisFinanceiros(confirmados);
   const outrasReceitas = receitasConfirmadas.reduce((total, movimento) => {
     if (movimentoEhDoSistema(movimento)) return total;
@@ -174,6 +186,19 @@ export function calcularDreFinanceiro(movimentos) {
     .map((item) => ({ ...item, percentual: percentual(item.valor, totais.receitas) }))
     .sort((a, b) => b.valor - a.valor);
 
+  const porCategoriaDespesa = Object.values(
+    despesasConfirmadas.reduce((grupos, movimento) => {
+      const categoria = chaveCategoriaDespesa(movimento.categoria);
+      const atual = grupos[categoria] || { categoria, valor: 0, quantidade: 0, percentual: 0 };
+      atual.valor += numero(movimento.valor, 0);
+      atual.quantidade += 1;
+      grupos[categoria] = atual;
+      return grupos;
+    }, {})
+  )
+    .map((item) => ({ ...item, percentual: percentual(item.valor, totais.despesas) }))
+    .sort((a, b) => b.valor - a.valor);
+
   return {
     receitaBruta: totais.receitas,
     vendaPacotes: totais.pacotes,
@@ -185,6 +210,26 @@ export function calcularDreFinanceiro(movimentos) {
     ticketMedio: receitasConfirmadas.length ? totais.receitas / receitasConfirmadas.length : 0,
     porFormaPagamento,
     porOrigem,
+    porCategoriaDespesa,
+  };
+}
+
+export function prepararDespesaManual(dados) {
+  const valor = numero(dados.valor, 0);
+
+  if (!valor || valor <= 0) {
+    throw new Error("Informe um valor maior que zero.");
+  }
+
+  return {
+    tipo: "despesa",
+    origem: "despesa_manual",
+    status: dados.status || "confirmado",
+    data: dados.data || dataHoje(),
+    valor,
+    categoria: texto(dados.categoria, "Outros"),
+    formaPagamento: texto(dados.formaPagamento, "Não informado"),
+    descricao: texto(dados.descricao, "Despesa manual"),
   };
 }
 

@@ -141,16 +141,15 @@ export function calcularTotaisFinanceiros(movimentos) {
 
 export function calcularDreFinanceiro(movimentos) {
   const confirmados = movimentos.filter((movimento) => (movimento.status || "confirmado") === "confirmado");
+  const receitasConfirmadas = confirmados.filter((movimento) => movimento.tipo === "receita");
   const totais = calcularTotaisFinanceiros(confirmados);
-  const outrasReceitas = confirmados.reduce((total, movimento) => {
-    if (movimento.tipo !== "receita" || movimentoEhDoSistema(movimento)) return total;
+  const outrasReceitas = receitasConfirmadas.reduce((total, movimento) => {
+    if (movimentoEhDoSistema(movimento)) return total;
     return total + numero(movimento.valor, 0);
   }, 0);
 
   const porFormaPagamento = Object.values(
-    confirmados.reduce((grupos, movimento) => {
-      if (movimento.tipo !== "receita") return grupos;
-
+    receitasConfirmadas.reduce((grupos, movimento) => {
       const forma = chaveFormaPagamento(movimento.formaPagamento);
       const atual = grupos[forma] || { forma, valor: 0, quantidade: 0, percentual: 0 };
       atual.valor += numero(movimento.valor, 0);
@@ -163,9 +162,7 @@ export function calcularDreFinanceiro(movimentos) {
     .sort((a, b) => b.valor - a.valor);
 
   const porOrigem = Object.values(
-    confirmados.reduce((grupos, movimento) => {
-      if (movimento.tipo !== "receita") return grupos;
-
+    receitasConfirmadas.reduce((grupos, movimento) => {
       const origem = descricaoOrigem(movimento.origem);
       const atual = grupos[origem] || { origem, valor: 0, quantidade: 0, percentual: 0 };
       atual.valor += numero(movimento.valor, 0);
@@ -185,7 +182,7 @@ export function calcularDreFinanceiro(movimentos) {
     despesas: totais.despesas,
     resultadoLiquido: totais.saldo,
     margemLiquida: percentual(totais.saldo, totais.receitas),
-    ticketMedio: confirmados.length ? totais.receitas / confirmados.filter((movimento) => movimento.tipo === "receita").length : 0,
+    ticketMedio: receitasConfirmadas.length ? totais.receitas / receitasConfirmadas.length : 0,
     porFormaPagamento,
     porOrigem,
   };

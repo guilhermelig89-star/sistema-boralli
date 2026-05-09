@@ -87,6 +87,21 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
     setDescontoValor(calcularDescontoPeloFinal(valorBase, valor));
   }
 
+  function marcarPagoAgora() {
+    setPagamentos([{ forma: "Pix", valor: fechamento.valorFinal }]);
+  }
+
+  function marcarParcial() {
+    setPagamentos([{ forma: "Pix", valor: "" }]);
+  }
+
+  function marcarReceberDepois() {
+    setPagamentos([{ forma: "Fiado/Pendente", valor: 0 }]);
+    if (!observacoesFinanceiras) {
+      setObservacoesFinanceiras("Cliente ficou de pagar depois.");
+    }
+  }
+
   function alterarPagamento(indice, campo, valor) {
     setPagamentos((atuais) =>
       atuais.map((pagamento, pagamentoIndice) =>
@@ -137,6 +152,14 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
         {pacote && (
           <div className="fechamento-aviso-pacote">
             Atendimento vinculado a pacote. O consumo será registrado, mas não será lançado como recebido agora.
+          </div>
+        )}
+
+        {!pacote && (
+          <div className="fechamento-atalhos" aria-label="Ações rápidas de fechamento">
+            <button type="button" onClick={marcarPagoAgora}>Pago agora</button>
+            <button type="button" onClick={marcarParcial}>Pagamento parcial</button>
+            <button type="button" onClick={marcarReceberDepois}>Receber depois</button>
           </div>
         )}
 

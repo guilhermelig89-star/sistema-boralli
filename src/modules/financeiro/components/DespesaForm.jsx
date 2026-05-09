@@ -18,7 +18,7 @@ function criarDespesaInicial(categoriaInicial) {
     categoria: categoriaInicial || "Material",
     valor: "",
     formaPagamento: "Pix",
-    status: "confirmado",
+    status: "pago",
   };
 }
 
@@ -92,7 +92,7 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
         <label>
           <span>Status</span>
           <select value={despesa.status} onChange={(e) => alterarCampo("status", e.target.value)}>
-            <option value="confirmado">Confirmada</option>
+            <option value="pago">Paga</option>
             <option value="pendente">Pendente</option>
           </select>
         </label>

@@ -324,8 +324,8 @@ export function iniciarAgendamento(id) {
   return iniciarAgendamentoRegistro(id);
 }
 
-export function finalizarAgendamento(id) {
-  return finalizarAgendamentoRegistro(id);
+export function finalizarAgendamento(id, fechamentoFinanceiro) {
+  return finalizarAgendamentoRegistro(id, fechamentoFinanceiro);
 }
 
 export function cancelarAgendamento(id) {

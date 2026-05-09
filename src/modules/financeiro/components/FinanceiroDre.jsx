@@ -9,7 +9,7 @@ function LinhaDre({ nome, valor, destaque, negativo }) {
   );
 }
 
-function ListaAnalise({ titulo, itens, campoNome }) {
+function ListaAnalise({ titulo, itens = [], campoNome }) {
   return (
     <div className="painel-analise-financeira">
       <h3>{titulo}</h3>
@@ -77,6 +77,7 @@ function FinanceiroDre({ dre }) {
         <div className="analises-financeiras">
           <ListaAnalise titulo="Receita por forma de pagamento" itens={dre.porFormaPagamento} campoNome="forma" />
           <ListaAnalise titulo="Receita por origem" itens={dre.porOrigem} campoNome="origem" />
+          <ListaAnalise titulo="Despesas por categoria" itens={dre.porCategoriaDespesa} campoNome="categoria" />
         </div>
       </div>
     </div>

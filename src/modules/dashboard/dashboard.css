@@ -250,6 +250,35 @@
   font-size: clamp(24px, 2.6vw, 30px);
 }
 
+.dashboard-financeiro-indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.dashboard-financeiro-indicadores div {
+  border: 1px solid #eadcca;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 24px rgba(58, 38, 31, 0.05);
+  padding: 14px;
+}
+
+.dashboard-financeiro-indicadores span {
+  display: block;
+  color: #755f4d;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 7px;
+}
+
+.dashboard-financeiro-indicadores strong {
+  display: block;
+  color: #171717;
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.1;
+}
+
 .painel-dashboard {
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
   margin-top: 0;

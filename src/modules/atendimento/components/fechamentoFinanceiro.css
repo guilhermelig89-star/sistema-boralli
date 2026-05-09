@@ -72,6 +72,27 @@
   font-weight: 800;
 }
 
+.fechamento-atalhos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.fechamento-atalhos button {
+  border: 1px solid #d8c7b7;
+  border-radius: 14px;
+  background: #faf7f2;
+  color: #3b2b25;
+  padding: 12px 14px;
+  font-weight: 900;
+}
+
+.fechamento-atalhos button:hover {
+  border-color: #d7b56d;
+  background: #fffaf0;
+}
+
 .fechamento-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -196,7 +217,8 @@
 
   .fechamento-grid,
   .fechamento-resumo,
-  .linha-pagamento-fechamento {
+  .linha-pagamento-fechamento,
+  .fechamento-atalhos {
     grid-template-columns: 1fr;
   }
 

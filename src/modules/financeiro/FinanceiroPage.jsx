@@ -35,7 +35,7 @@ function criarFiltrosIniciais() {
     dataFim: obterFimMes(),
     clienteId: "",
     origem: "todos",
-    status: "confirmado",
+    status: "",
     pesquisa: "",
   };
 }
@@ -80,7 +80,7 @@ function FinanceiroPage() {
       <div className="topo-clientes">
         <div>
           <h1>Financeiro</h1>
-          <p>Acompanhe receitas, despesas, resultado do período e formas de pagamento.</p>
+          <p>Acompanhe receitas, pendências, descontos, despesas, resultado do período e formas de pagamento.</p>
         </div>
       </div>
 

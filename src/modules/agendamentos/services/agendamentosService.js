@@ -2,6 +2,7 @@ import {
   criarAgendamentoRegistro,
   cancelarAgendamentoRegistro,
   finalizarAgendamentoRegistro,
+  iniciarAgendamentoRegistro,
 } from "../repositories/agendamentosRepository";
 
 function texto(valor, padrao = "") {
@@ -311,6 +312,10 @@ export async function criarAgendamento(dados, agendamentosExistentes = [], confi
   }
 
   return criarAgendamentoRegistro(agendamento);
+}
+
+export function iniciarAgendamento(id) {
+  return iniciarAgendamentoRegistro(id);
 }
 
 export function finalizarAgendamento(id) {

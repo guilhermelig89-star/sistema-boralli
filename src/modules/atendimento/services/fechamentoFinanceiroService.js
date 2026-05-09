@@ -4,7 +4,7 @@ export const FORMAS_PAGAMENTO_FECHAMENTO = [
   "Cartão Débito",
   "Cartão Crédito",
   "Transferência",
-  "Fiado/Pendente",
+  "Pendente",
 ];
 
 function numero(valor, padrao = 0) {
@@ -20,6 +20,10 @@ function valorFoiInformado(valor) {
   return valor !== undefined && valor !== null && String(valor).trim() !== "";
 }
 
+function formaEhPendente(forma) {
+  return forma === "Pendente" || forma === "Fiado/Pendente";
+}
+
 function limitarPagamentosAoValorFinal(pagamentos, valorFinal) {
   let restante = arredondarValor(valorFinal);
 
@@ -29,7 +33,7 @@ function limitarPagamentosAoValorFinal(pagamentos, valorFinal) {
     const forma = texto(pagamento.forma, "Pix");
     const valor = arredondarValor(pagamento.valor);
 
-    if (forma === "Fiado/Pendente" || valor <= 0) return lista;
+    if (formaEhPendente(forma) || valor <= 0) return lista;
 
     const valorRegistrado = arredondarValor(Math.min(valor, restante));
     restante = arredondarValor(restante - valorRegistrado);
@@ -76,7 +80,7 @@ export function calcularFechamentoFinanceiro({ valorOriginal, descontoValor, val
 }
 
 export function montarResumoFormaPagamento(pagamentos, statusFinanceiro) {
-  if (statusFinanceiro === "pendente") return "Fiado/Pendente";
+  if (statusFinanceiro === "pendente") return "Pendente";
   if (!pagamentos?.length) return "Não informado";
   if (pagamentos.length === 1) return pagamentos[0].forma;
   return "Múltiplos pagamentos";

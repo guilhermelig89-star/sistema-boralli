@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { observarMovimentosFinanceiros } from "../repositories/financeiroRepository";
+import { criarMovimentoFinanceiro, observarMovimentosFinanceiros } from "../repositories/financeiroRepository";
 import {
   aplicarFiltrosFinanceiros,
   calcularDreFinanceiro,
   calcularTotaisFinanceiros,
   filtrarMovimentosDoMes,
+  prepararDespesaManual,
 } from "../services/financeiroService";
 
 export function useFinanceiro(filtros) {
   const [movimentos, setMovimentos] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
 
   useEffect(() => {
@@ -54,6 +56,21 @@ export function useFinanceiro(filtros) {
     [movimentosFiltrados]
   );
 
+  async function salvarDespesa(dados) {
+    setSalvando(true);
+    setErro(null);
+
+    try {
+      await criarMovimentoFinanceiro(prepararDespesaManual(dados));
+    } catch (erroFirebase) {
+      console.error("Erro ao salvar despesa", erroFirebase);
+      setErro("Não foi possível salvar a despesa.");
+      throw erroFirebase;
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   return {
     movimentos,
     movimentosFiltrados,
@@ -61,6 +78,8 @@ export function useFinanceiro(filtros) {
     totaisMes,
     dreFiltro,
     carregando,
+    salvando,
     erro,
+    salvarDespesa,
   };
 }

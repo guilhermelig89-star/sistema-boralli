@@ -11,6 +11,11 @@ function statusClasse(status) {
   return "badge-tipo badge-servico";
 }
 
+function valorMovimento(movimento) {
+  const valor = Number(movimento.valor || 0);
+  return movimento.tipo === "despesa" ? valor * -1 : valor;
+}
+
 function MovimentosTable({ movimentos, carregando }) {
   return (
     <div className="tabela-clientes">
@@ -41,10 +46,13 @@ function MovimentosTable({ movimentos, carregando }) {
           <span>{movimento.clienteNome || "-"}</span>
           <span>
             {formatarOrigem(movimento.origem)}
+            {movimento.categoria && <small>Categoria: {movimento.categoria}</small>}
             {movimento.descricao && <small>{movimento.descricao}</small>}
           </span>
           <span>{movimento.formaPagamento || "-"}</span>
-          <span className="valor-financeiro">{formatarMoeda(movimento.valor)}</span>
+          <span className={`valor-financeiro${movimento.tipo === "despesa" ? " valor-despesa" : ""}`}>
+            {formatarMoeda(valorMovimento(movimento))}
+          </span>
           <span className={statusClasse(movimento.status || "confirmado")}>
             {formatarStatus(movimento.status || "confirmado")}
           </span>

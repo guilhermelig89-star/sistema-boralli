@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { observarMovimentosFinanceiros } from "../repositories/financeiroRepository";
 import {
   aplicarFiltrosFinanceiros,
+  calcularDreFinanceiro,
   calcularTotaisFinanceiros,
   filtrarMovimentosDoMes,
 } from "../services/financeiroService";
@@ -48,11 +49,17 @@ export function useFinanceiro(filtros) {
     [movimentosDoMes]
   );
 
+  const dreFiltro = useMemo(
+    () => calcularDreFinanceiro(movimentosFiltrados),
+    [movimentosFiltrados]
+  );
+
   return {
     movimentos,
     movimentosFiltrados,
     totaisFiltro,
     totaisMes,
+    dreFiltro,
     carregando,
     erro,
   };

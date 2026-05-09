@@ -8,6 +8,7 @@ import FinanceiroDre from "./components/FinanceiroDre";
 import FinanceiroFiltros from "./components/FinanceiroFiltros";
 import FinanceiroResumo from "./components/FinanceiroResumo";
 import MovimentosTable from "./components/MovimentosTable";
+import PendenciasFinanceiras from "./components/PendenciasFinanceiras";
 import { useCategoriasFinanceiras } from "./hooks/useCategoriasFinanceiras";
 import { useFinanceiro } from "./hooks/useFinanceiro";
 
@@ -53,14 +54,16 @@ function FinanceiroPage() {
     removerCategoria,
   } = useCategoriasFinanceiras();
   const {
+    movimentos,
     movimentosFiltrados,
     totaisFiltro,
     totaisMes,
     dreFiltro,
     carregando,
-    salvando: salvandoDespesa,
+    salvando: salvandoFinanceiro,
     erro,
     salvarDespesa,
+    registrarPagamentoPendente,
   } = useFinanceiro(filtros);
 
   function alterarFiltro(campo, valor) {
@@ -90,6 +93,13 @@ function FinanceiroPage() {
           <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
         </div>
 
+        <PendenciasFinanceiras
+          movimentos={movimentos}
+          carregando={carregando}
+          salvando={salvandoFinanceiro}
+          onRegistrarPagamento={registrarPagamentoPendente}
+        />
+
         <div className="financeiro-configuracao-abas">
           <div className="financeiro-abas-topo">
             <div>
@@ -116,7 +126,7 @@ function FinanceiroPage() {
           </div>
 
           {abaDespesa === "lancar" && (
-            <DespesaForm categorias={categoriasDespesa} onSalvar={salvarDespesa} salvando={salvandoDespesa} />
+            <DespesaForm categorias={categoriasDespesa} onSalvar={salvarDespesa} salvando={salvandoFinanceiro} />
           )}
 
           {abaDespesa === "categorias" && (

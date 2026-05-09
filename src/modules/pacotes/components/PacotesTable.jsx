@@ -5,21 +5,21 @@ function PacotesTable({ pacotes, carregando, pacoteEstaAcabando }) {
     <div className="tabela-clientes">
       <div className="linha-pacote cabecalho">
         <span>Cliente</span>
-        <span>Pacote vendido</span>
-        <span>Serviços incluídos</span>
-        <span>Uso do pacote</span>
+        <span>Pacote</span>
+        <span>Itens do pacote</span>
+        <span>Saldo</span>
         <span>Status</span>
       </div>
 
       {carregando && (
         <div className="linha-pacote">
-          <span>Carregando pacotes vendidos...</span>
+          <span>Carregando pacotes...</span>
         </div>
       )}
 
       {!carregando && pacotes.length === 0 && (
         <div className="linha-pacote">
-          <span>Nenhum pacote vendido encontrado.</span>
+          <span>Nenhum pacote encontrado para este filtro.</span>
         </div>
       )}
 

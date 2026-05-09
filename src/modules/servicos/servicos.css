@@ -30,15 +30,25 @@
 }
 
 .form-combo {
-  gap: 14px;
+  gap: 16px;
 }
 
 .cabecalho-form-combo,
-.campo-combo,
+.campo-combo-nome,
 .combo-itens-linha,
+.resumo-combo,
 .combo-calculadora,
 .campo-combo-observacoes {
   grid-column: 1 / -1;
+}
+
+.cabecalho-form-combo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #efe5d8;
+  padding-bottom: 12px;
 }
 
 .cabecalho-form-combo h2 {
@@ -55,6 +65,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .campo-combo span,
@@ -88,24 +99,47 @@
 
 .combo-itens-linha {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 130px auto;
+  grid-template-columns: minmax(260px, 1fr) 130px 180px;
   gap: 12px;
   align-items: end;
+  border: 1px solid #eadfce;
+  border-radius: 16px;
+  background: #fffaf6;
+  padding: 14px;
+}
+
+.combo-itens-linha .campo-combo,
+.combo-itens-linha .botao-adicionar-combo {
+  grid-column: auto;
 }
 
 .botao-adicionar-combo {
+  width: 100%;
   min-height: 44px;
+  white-space: nowrap;
 }
 
 .resumo-combo {
-  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  border: 1px solid #eadfce;
+  min-height: 58px;
+  border: 1px dashed #d8c7b7;
   border-radius: 14px;
   background: #faf7f2;
   padding: 12px;
+}
+
+.resumo-combo > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  background: #fff;
+  color: #3b2b25;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .resumo-combo span {
@@ -290,7 +324,8 @@
   }
 
   .combo-frase-economia,
-  .item-combo {
+  .item-combo,
+  .resumo-combo > span:first-child {
     border-radius: 14px;
   }
 }

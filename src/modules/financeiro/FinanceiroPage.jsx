@@ -42,6 +42,7 @@ function criarFiltrosIniciais() {
 
 function FinanceiroPage() {
   const [filtros, setFiltros] = useState(criarFiltrosIniciais);
+  const [abaDespesa, setAbaDespesa] = useState("lancar");
   const { clientesAtivos } = useClientes();
   const {
     categoriasDespesa,
@@ -89,16 +90,45 @@ function FinanceiroPage() {
           <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
         </div>
 
-        <div className="financeiro-configuracao-grid">
-          <DespesaForm categorias={categoriasDespesa} onSalvar={salvarDespesa} salvando={salvandoDespesa} />
-          <CategoriasDespesa
-            categorias={categoriasDespesa}
-            carregando={carregandoCategorias}
-            salvando={salvandoCategoria}
-            erro={erroCategorias}
-            onSalvar={salvarCategoria}
-            onRemover={removerCategoria}
-          />
+        <div className="financeiro-configuracao-abas">
+          <div className="financeiro-abas-topo">
+            <div>
+              <h2>Despesas</h2>
+              <p>Lance custos e organize as categorias usadas no DRE.</p>
+            </div>
+
+            <div className="abas-financeiro" role="tablist" aria-label="Opções de despesas">
+              <button
+                type="button"
+                className={abaDespesa === "lancar" ? "ativo" : ""}
+                onClick={() => setAbaDespesa("lancar")}
+              >
+                Lançar despesa
+              </button>
+              <button
+                type="button"
+                className={abaDespesa === "categorias" ? "ativo" : ""}
+                onClick={() => setAbaDespesa("categorias")}
+              >
+                Categorias
+              </button>
+            </div>
+          </div>
+
+          {abaDespesa === "lancar" && (
+            <DespesaForm categorias={categoriasDespesa} onSalvar={salvarDespesa} salvando={salvandoDespesa} />
+          )}
+
+          {abaDespesa === "categorias" && (
+            <CategoriasDespesa
+              categorias={categoriasDespesa}
+              carregando={carregandoCategorias}
+              salvando={salvandoCategoria}
+              erro={erroCategorias}
+              onSalvar={salvarCategoria}
+              onRemover={removerCategoria}
+            />
+          )}
         </div>
 
         <FinanceiroResumo totaisFiltro={totaisFiltro} totaisMes={totaisMes} />

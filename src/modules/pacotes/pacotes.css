@@ -93,6 +93,49 @@
   outline: none;
 }
 
+.abas-pacotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.abas-pacotes button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  background: #fff;
+  color: #5a4639;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.abas-pacotes button.ativo {
+  border-color: #dfbb67;
+  background: #dfbb67;
+  color: #1f1714;
+}
+
+.abas-pacotes span {
+  min-width: 24px;
+  border-radius: 999px;
+  background: rgba(43, 36, 32, 0.08);
+  padding: 3px 8px;
+  text-align: center;
+}
+
+.abas-pacotes button.ativo span {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.badge-finalizado {
+  background: #eee7df;
+  color: #6b5c50;
+}
+
 @media (max-width: 900px) {
   .campo-pacote-destaque {
     grid-column: 1 / -1;
@@ -105,5 +148,10 @@
 
   .filtro-pacotes {
     width: 100%;
+  }
+
+  .abas-pacotes button {
+    flex: 1;
+    justify-content: center;
   }
 }

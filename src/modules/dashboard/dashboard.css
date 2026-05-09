@@ -12,6 +12,57 @@
   margin-bottom: 0;
 }
 
+.dashboard-filtros-periodo {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.campo-periodo-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+}
+
+.campo-periodo-dashboard span {
+  color: #6f5a49;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.campo-periodo-dashboard input {
+  min-height: 42px;
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #fff;
+  color: #1f1f1f;
+  padding: 9px 12px;
+}
+
+.atalhos-periodo-dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.atalhos-periodo-dashboard button {
+  min-height: 42px;
+  border: 1px solid #d8c7b7;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #3a261f;
+  padding: 9px 14px;
+  font-weight: 800;
+}
+
+.atalhos-periodo-dashboard button:hover {
+  border-color: #d7b56d;
+  background: #f3dfab;
+}
+
 .acoes-dashboard-topo {
   display: flex;
   flex-wrap: wrap;
@@ -124,5 +175,22 @@
 
   .acoes-dashboard-topo {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-filtros-periodo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .campo-periodo-dashboard,
+  .atalhos-periodo-dashboard button {
+    width: 100%;
+  }
+
+  .atalhos-periodo-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }

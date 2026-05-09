@@ -12,7 +12,7 @@ function statusTexto(status) {
   return "Agendado";
 }
 
-function AgendamentosTable({ agendamentos, carregando, onFinalizar, onCancelar }) {
+function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, onCancelar }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-agendamento cabecalho">
@@ -38,6 +38,7 @@ function AgendamentosTable({ agendamentos, carregando, onFinalizar, onCancelar }
       {!carregando &&
         agendamentos.map((agendamento) => {
           const encerrado = agendamento.status === "finalizado" || agendamento.status === "cancelado";
+          const emAtendimento = agendamento.status === "em_atendimento";
 
           return (
             <div className="linha-agendamento" key={agendamento.id}>
@@ -57,28 +58,37 @@ function AgendamentosTable({ agendamentos, carregando, onFinalizar, onCancelar }
               <div className="acoes-cliente">
                 <span className={statusClasse(agendamento.status)}>{statusTexto(agendamento.status)}</span>
 
-                {!encerrado && (
-                  <>
-                    <button
-                      className="botao-editar"
-                      onClick={() => {
-                        const confirmar = confirm("Finalizar este atendimento?");
-                        if (confirmar) onFinalizar(agendamento.id);
-                      }}
-                    >
-                      Finalizar
-                    </button>
+                {!encerrado && !emAtendimento && (
+                  <button
+                    className="botao-editar"
+                    onClick={() => onIniciar(agendamento.id)}
+                  >
+                    Iniciar
+                  </button>
+                )}
 
-                    <button
-                      className="botao-desativar"
-                      onClick={() => {
-                        const confirmar = confirm("Cancelar este agendamento?");
-                        if (confirmar) onCancelar(agendamento.id);
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                  </>
+                {!encerrado && emAtendimento && (
+                  <button
+                    className="botao-editar"
+                    onClick={() => {
+                      const confirmar = confirm("Finalizar este atendimento?");
+                      if (confirmar) onFinalizar(agendamento.id);
+                    }}
+                  >
+                    Finalizar
+                  </button>
+                )}
+
+                {!encerrado && (
+                  <button
+                    className="botao-desativar"
+                    onClick={() => {
+                      const confirmar = confirm("Cancelar este agendamento?");
+                      if (confirmar) onCancelar(agendamento.id);
+                    }}
+                  >
+                    Cancelar
+                  </button>
                 )}
               </div>
             </div>

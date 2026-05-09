@@ -1,4 +1,4 @@
-function ClientesTable({ clientes, carregando, onEditar, onDesativar }) {
+function ClientesTable({ clientes, carregando, onEditar, onDesativar, onHistorico }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-cliente cabecalho">
@@ -25,11 +25,15 @@ function ClientesTable({ clientes, carregando, onEditar, onDesativar }) {
         clientes.map((cliente) => (
           <div className="linha-cliente" key={cliente.id}>
             <strong>{cliente.nome}</strong>
-            <span>{cliente.telefone}</span>
+            <span>{cliente.telefone || "-"}</span>
             <span>{cliente.bairro || "-"}</span>
             <span>{cliente.cidade || "-"}</span>
 
             <div className="acoes-cliente">
+              <button className="botao-historico" onClick={() => onHistorico(cliente)}>
+                Histórico
+              </button>
+
               <button className="botao-editar" onClick={() => onEditar(cliente)}>
                 Editar
               </button>

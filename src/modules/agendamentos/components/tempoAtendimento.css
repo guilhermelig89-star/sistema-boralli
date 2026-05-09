@@ -1,0 +1,204 @@
+.sugestao-tempo-agendamento {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 1px solid #dfbb67;
+  border-radius: 16px;
+  background: #fffaf0;
+  padding: 14px 16px;
+}
+
+.sugestao-tempo-agendamento div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sugestao-tempo-agendamento span,
+.tempo-atendimento-card span {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.sugestao-tempo-agendamento strong,
+.tempo-atendimento-card strong {
+  color: #2b2420;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.sugestao-tempo-agendamento p {
+  margin: 0;
+  color: #6a4a38;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.tempo-atendimento-card {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fffaf0;
+  padding: 12px;
+}
+
+.tempo-atendimento-card small {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.modal-tempo-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgba(31, 23, 20, 0.42);
+  padding: 18px;
+}
+
+.modal-tempo {
+  width: min(620px, 100%);
+  border: 1px solid #eadfce;
+  border-top: 6px solid #d7b56d;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(31, 23, 20, 0.28);
+  padding: 22px;
+}
+
+.modal-tempo-leve {
+  border-top-color: #d7b56d;
+}
+
+.modal-tempo-revisao {
+  border-top-color: #f79009;
+}
+
+.modal-tempo-forte {
+  border-top-color: #b42318;
+}
+
+.modal-tempo-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.modal-tempo-topo span {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.modal-tempo-topo h2 {
+  margin: 6px 0 0;
+  color: #2b2420;
+  font-size: clamp(22px, 3vw, 28px);
+  line-height: 1.1;
+}
+
+.modal-tempo-topo button {
+  width: auto;
+  margin: 0;
+  border: 1px solid #d8c7b7;
+  border-radius: 999px;
+  background: #fff;
+  color: #3b2b25;
+  padding: 9px 13px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.modal-tempo-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.modal-tempo-resumo div {
+  border: 1px solid #efe5d8;
+  border-radius: 14px;
+  background: #faf7f2;
+  padding: 13px;
+}
+
+.modal-tempo-resumo span {
+  display: block;
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.modal-tempo-resumo strong {
+  display: block;
+  margin-top: 6px;
+  color: #2b2420;
+  font-size: 22px;
+}
+
+.modal-tempo-texto {
+  margin: 0;
+  color: #6a4a38;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.modal-tempo-acoes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-tempo-acoes button {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.botao-tempo-neutro {
+  background: #faf7f2;
+  color: #3b2b25;
+}
+
+.botao-tempo-cliente {
+  background: #d7b56d;
+  color: #1f1714;
+}
+
+.botao-tempo-geral {
+  background: #3b2b25;
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .sugestao-tempo-agendamento,
+  .modal-tempo-resumo,
+  .modal-tempo-acoes {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-tempo {
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .modal-tempo-topo {
+    flex-direction: column;
+  }
+}

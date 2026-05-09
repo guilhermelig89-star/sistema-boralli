@@ -133,12 +133,18 @@ function avaliarEncaixe(inicio, fim, janela, bloqueios) {
 }
 
 export function montarAgendamento(dados) {
+  const duracaoPrevista = numero(dados.tempoPrevistoMinutos || dados.servicoDuracaoMinutos, 60) || 60;
+
   return {
     clienteId: dados.clienteId,
     clienteNome: texto(dados.clienteNome),
     servicoId: dados.servicoId,
     servicoNome: texto(dados.servicoNome),
-    servicoDuracaoMinutos: numero(dados.servicoDuracaoMinutos, 60) || 60,
+    servicoDuracaoMinutos: duracaoPrevista,
+    tempoPrevistoMinutos: duracaoPrevista,
+    tempoSugeridoOrigem: texto(dados.tempoSugeridoOrigem, "padrao"),
+    tempoSugeridoMensagem: texto(dados.tempoSugeridoMensagem),
+    tempoSugeridoQuantidadeBase: numero(dados.tempoSugeridoQuantidadeBase, 0),
     pacoteClienteId: dados.pacoteClienteId || "",
     pacoteNome: texto(dados.pacoteNome),
     data: texto(dados.data),

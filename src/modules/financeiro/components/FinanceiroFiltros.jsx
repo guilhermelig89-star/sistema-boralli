@@ -47,7 +47,8 @@ function FinanceiroFiltros({ filtros, clientes, onAlterar }) {
         <span>Status</span>
         <select value={filtros.status} onChange={(e) => onAlterar("status", e.target.value)}>
           <option value="">Todos os status</option>
-          <option value="confirmado">Confirmado</option>
+          <option value="pago">Pago</option>
+          <option value="parcial">Parcial</option>
           <option value="pendente">Pendente</option>
           <option value="cancelado">Cancelado</option>
         </select>
@@ -56,7 +57,7 @@ function FinanceiroFiltros({ filtros, clientes, onAlterar }) {
       <label className="financeiro-filtro-pesquisa">
         <span>Busca</span>
         <input
-          placeholder="Cliente, serviço, categoria ou descrição"
+          placeholder="Cliente, serviço, forma, categoria ou descrição"
           value={filtros.pesquisa}
           onChange={(e) => onAlterar("pesquisa", e.target.value)}
         />

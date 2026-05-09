@@ -21,7 +21,8 @@
 }
 
 .financeiro-filtros label,
-.despesa-form label {
+.despesa-form label,
+.form-categoria-despesa label {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -29,7 +30,8 @@
 }
 
 .financeiro-filtros label span,
-.despesa-form label span {
+.despesa-form label span,
+.form-categoria-despesa label span {
   color: #6f5a49;
   font-size: 12px;
   font-weight: 800;
@@ -38,7 +40,8 @@
 .financeiro-filtros input,
 .financeiro-filtros select,
 .despesa-form input,
-.despesa-form select {
+.despesa-form select,
+.form-categoria-despesa input {
   width: 100%;
   min-width: 0;
   border: 1px solid #d8c7b7;
@@ -53,7 +56,8 @@
 .financeiro-filtros input:focus,
 .financeiro-filtros select:focus,
 .despesa-form input:focus,
-.despesa-form select:focus {
+.despesa-form select:focus,
+.form-categoria-despesa input:focus {
   border-color: #d7b56d;
 }
 
@@ -67,25 +71,36 @@
   font-weight: 800;
 }
 
-.despesa-form {
+.financeiro-configuracao-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.despesa-form,
+.categorias-despesa {
   border: 1px solid #e7d9c9;
   border-radius: 18px;
   background: #fff;
   padding: 22px 24px;
 }
 
-.cabecalho-despesa-form {
+.cabecalho-despesa-form,
+.cabecalho-categorias-despesa {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
 }
 
-.cabecalho-despesa-form h2 {
+.cabecalho-despesa-form h2,
+.cabecalho-categorias-despesa h2 {
   margin: 0 0 6px;
 }
 
-.cabecalho-despesa-form p {
+.cabecalho-despesa-form p,
+.cabecalho-categorias-despesa p {
   margin: 0;
   color: #7b6b5d;
   font-size: 13px;
@@ -116,6 +131,64 @@
 .rodape-despesa-form span {
   color: #6f5a49;
   font-size: 13px;
+  font-weight: 800;
+}
+
+.form-categoria-despesa {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.form-categoria-despesa button {
+  min-height: 44px;
+}
+
+.lista-categorias-despesa {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.item-categoria-despesa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #efe5d8;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.item-categoria-despesa strong,
+.item-categoria-despesa span {
+  display: block;
+}
+
+.item-categoria-despesa strong {
+  color: #2b2420;
+  font-size: 13px;
+}
+
+.item-categoria-despesa span,
+.mensagem-categoria-despesa {
+  margin: 3px 0 0;
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.item-categoria-despesa button {
+  border: 1px solid #d8c7b7;
+  border-radius: 999px;
+  background: #fff;
+  color: #3b2b25;
+  padding: 8px 12px;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -300,6 +373,7 @@
   .financeiro-filtros,
   .linha-financeiro,
   .dre-layout,
+  .financeiro-configuracao-grid,
   .campos-despesa-form {
     grid-template-columns: 1fr;
   }
@@ -311,19 +385,27 @@
 
 @media (max-width: 640px) {
   .despesa-form,
+  .categorias-despesa,
   .painel-dre,
   .painel-analise-financeira {
     padding: 18px;
   }
 
   .linha-dre,
-  .linha-analise-financeira {
+  .linha-analise-financeira,
+  .item-categoria-despesa {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .rodape-despesa-form button {
+  .rodape-despesa-form button,
+  .form-categoria-despesa button,
+  .item-categoria-despesa button {
     width: 100%;
+  }
+
+  .form-categoria-despesa {
+    grid-template-columns: 1fr;
   }
 
   .linha-analise-financeira span,

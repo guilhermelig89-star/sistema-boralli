@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
 import "./financeiro.css";
+import DespesaForm from "./components/DespesaForm";
 import FinanceiroDre from "./components/FinanceiroDre";
 import FinanceiroFiltros from "./components/FinanceiroFiltros";
 import FinanceiroResumo from "./components/FinanceiroResumo";
@@ -46,7 +47,9 @@ function FinanceiroPage() {
     totaisMes,
     dreFiltro,
     carregando,
+    salvando,
     erro,
+    salvarDespesa,
   } = useFinanceiro(filtros);
 
   function alterarFiltro(campo, valor) {
@@ -76,6 +79,7 @@ function FinanceiroPage() {
           <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
         </div>
 
+        <DespesaForm onSalvar={salvarDespesa} salvando={salvando} />
         <FinanceiroResumo totaisFiltro={totaisFiltro} totaisMes={totaisMes} />
         <FinanceiroDre dre={dreFiltro} />
 

@@ -20,6 +20,24 @@ function valorFoiInformado(valor) {
   return valor !== undefined && valor !== null && String(valor).trim() !== "";
 }
 
+function limitarPagamentosAoValorFinal(pagamentos, valorFinal) {
+  let restante = arredondarValor(valorFinal);
+
+  return (pagamentos || []).reduce((lista, pagamento) => {
+    if (restante <= 0) return lista;
+
+    const forma = texto(pagamento.forma, "Pix");
+    const valor = arredondarValor(pagamento.valor);
+
+    if (forma === "Fiado/Pendente" || valor <= 0) return lista;
+
+    const valorRegistrado = arredondarValor(Math.min(valor, restante));
+    restante = arredondarValor(restante - valorRegistrado);
+
+    return [...lista, { forma, valor: valorRegistrado }];
+  }, []);
+}
+
 export function arredondarValor(valor) {
   return Math.round(numero(valor, 0) * 100) / 100;
 }
@@ -33,17 +51,9 @@ export function calcularFechamentoFinanceiro({ valorOriginal, descontoValor, val
     ? finalManual
     : arredondarValor(Math.max(0, original - descontoDigitado));
   const desconto = arredondarValor(Math.max(0, original - valorFinal));
-  const pagamentosValidos = (pagamentos || [])
-    .map((pagamento) => ({
-      forma: texto(pagamento.forma, "Pix"),
-      valor: arredondarValor(pagamento.valor),
-    }))
-    .filter((pagamento) => pagamento.valor > 0 && pagamento.forma !== "Fiado/Pendente");
+  const pagamentosValidos = limitarPagamentosAoValorFinal(pagamentos, valorFinal);
   const valorRecebido = arredondarValor(
-    Math.min(
-      valorFinal,
-      pagamentosValidos.reduce((total, pagamento) => total + pagamento.valor, 0)
-    )
+    pagamentosValidos.reduce((total, pagamento) => total + pagamento.valor, 0)
   );
   const valorPendente = arredondarValor(Math.max(0, valorFinal - valorRecebido));
   let statusFinanceiro = "pago";

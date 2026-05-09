@@ -16,14 +16,23 @@ function texto(valor, padrao = "") {
   return String(valor || padrao).trim();
 }
 
+function valorFoiInformado(valor) {
+  return valor !== undefined && valor !== null && String(valor).trim() !== "";
+}
+
 export function arredondarValor(valor) {
   return Math.round(numero(valor, 0) * 100) / 100;
 }
 
-export function calcularFechamentoFinanceiro({ valorOriginal, descontoValor, pagamentos }) {
+export function calcularFechamentoFinanceiro({ valorOriginal, descontoValor, valorFinalManual, pagamentos }) {
   const original = arredondarValor(valorOriginal);
-  const desconto = Math.min(original, Math.max(0, arredondarValor(descontoValor)));
-  const valorFinal = arredondarValor(Math.max(0, original - desconto));
+  const finalManualInformado = valorFoiInformado(valorFinalManual);
+  const finalManual = Math.min(original, Math.max(0, arredondarValor(valorFinalManual)));
+  const descontoDigitado = Math.min(original, Math.max(0, arredondarValor(descontoValor)));
+  const valorFinal = finalManualInformado
+    ? finalManual
+    : arredondarValor(Math.max(0, original - descontoDigitado));
+  const desconto = arredondarValor(Math.max(0, original - valorFinal));
   const pagamentosValidos = (pagamentos || [])
     .map((pagamento) => ({
       forma: texto(pagamento.forma, "Pix"),

@@ -278,12 +278,14 @@ function AgendaPage() {
         )}
       </div>
 
-      <FechamentoFinanceiroModal
-        agendamento={agendamentoFechamento}
-        pacote={pacoteFechamento}
-        onFechar={() => setAgendamentoFechamento(null)}
-        onConfirmar={confirmarFechamento}
-      />
+      {agendamentoFechamento && (
+        <FechamentoFinanceiroModal
+          agendamento={agendamentoFechamento}
+          pacote={pacoteFechamento}
+          onFechar={() => setAgendamentoFechamento(null)}
+          onConfirmar={confirmarFechamento}
+        />
+      )}
 
       <AlertaTempoAtendimento
         alerta={alertaTempo}

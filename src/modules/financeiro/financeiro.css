@@ -22,7 +22,8 @@
 
 .financeiro-filtros label,
 .despesa-form label,
-.form-categoria-despesa label {
+.form-categoria-despesa label,
+.form-pendencia-financeira label {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -31,7 +32,8 @@
 
 .financeiro-filtros label span,
 .despesa-form label span,
-.form-categoria-despesa label span {
+.form-categoria-despesa label span,
+.form-pendencia-financeira label span {
   color: #6f5a49;
   font-size: 12px;
   font-weight: 800;
@@ -41,7 +43,9 @@
 .financeiro-filtros select,
 .despesa-form input,
 .despesa-form select,
-.form-categoria-despesa input {
+.form-categoria-despesa input,
+.form-pendencia-financeira input,
+.form-pendencia-financeira select {
   width: 100%;
   min-width: 0;
   border: 1px solid #d8c7b7;
@@ -57,7 +61,9 @@
 .financeiro-filtros select:focus,
 .despesa-form input:focus,
 .despesa-form select:focus,
-.form-categoria-despesa input:focus {
+.form-categoria-despesa input:focus,
+.form-pendencia-financeira input:focus,
+.form-pendencia-financeira select:focus {
   border-color: #d7b56d;
 }
 
@@ -69,6 +75,99 @@
   color: #3b2b25;
   padding: 12px 14px;
   font-weight: 800;
+}
+
+.pendencias-financeiras {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cabecalho-pendencias-financeiras {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.cabecalho-pendencias-financeiras h2 {
+  margin: 0 0 6px;
+}
+
+.cabecalho-pendencias-financeiras p,
+.pendencia-vazia {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.cabecalho-pendencias-financeiras > strong {
+  border: 1px solid #fedf89;
+  border-radius: 999px;
+  background: #fffaeb;
+  color: #7a3d00;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+
+.card-pendencia-financeira {
+  border: 1px solid #eadfce;
+  border-radius: 16px;
+  background: #fffaf3;
+  padding: 16px;
+}
+
+.dados-pendencia-financeira {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.dados-pendencia-financeira span,
+.valores-pendencia-financeira span {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dados-pendencia-financeira h3 {
+  margin: 4px 0;
+  color: #2b2420;
+}
+
+.dados-pendencia-financeira p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.valores-pendencia-financeira {
+  text-align: right;
+}
+
+.valores-pendencia-financeira strong {
+  display: block;
+  margin-top: 5px;
+  color: #7a3d00;
+}
+
+.form-pendencia-financeira {
+  display: grid;
+  grid-template-columns: 140px minmax(150px, 1fr) 150px minmax(180px, 1.2fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.form-pendencia-financeira button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #3b2b25;
+  color: #fff;
+  padding: 12px 14px;
+  font-weight: 900;
 }
 
 .financeiro-configuracao-abas {
@@ -416,7 +515,8 @@
   .financeiro-filtros,
   .linha-financeiro,
   .dre-layout,
-  .campos-despesa-form {
+  .campos-despesa-form,
+  .form-pendencia-financeira {
     grid-template-columns: 1fr;
   }
 
@@ -435,7 +535,9 @@
   .financeiro-abas-topo,
   .linha-dre,
   .linha-analise-financeira,
-  .item-categoria-despesa {
+  .item-categoria-despesa,
+  .cabecalho-pendencias-financeiras,
+  .dados-pendencia-financeira {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -444,7 +546,8 @@
   .abas-financeiro button,
   .rodape-despesa-form button,
   .form-categoria-despesa button,
-  .item-categoria-despesa button {
+  .item-categoria-despesa button,
+  .form-pendencia-financeira button {
     width: 100%;
   }
 
@@ -453,7 +556,8 @@
   }
 
   .linha-analise-financeira span,
-  .linha-analise-financeira div:first-child span {
+  .linha-analise-financeira div:first-child span,
+  .valores-pendencia-financeira {
     text-align: left;
   }
 }

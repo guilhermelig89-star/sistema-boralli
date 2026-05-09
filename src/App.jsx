@@ -2,6 +2,7 @@ import "./App.css";
 import { useState } from "react";
 import Layout from "./components/Layout";
 import AgendaPage from "./modules/agendamentos/AgendaPage";
+import AtendimentoPage from "./modules/atendimento/AtendimentoPage";
 import ClientesPage from "./modules/clientes/ClientesPage";
 import FinanceiroPage from "./modules/financeiro/FinanceiroPage";
 import PacotesPage from "./modules/pacotes/PacotesPage";
@@ -23,7 +24,7 @@ function App() {
       case "financeiro":
         return <FinanceiroPage />;
       case "atendimento":
-        return <h1>Atendimento</h1>;
+        return <AtendimentoPage />;
       default:
         return (
           <section className="dashboard">
@@ -77,6 +78,7 @@ function App() {
                 <button onClick={() => setTelaAtual("servicos")}>Cadastrar serviço</button>
                 <button onClick={() => setTelaAtual("pacotes")}>Vender pacote</button>
                 <button onClick={() => setTelaAtual("agenda")}>Abrir agendamentos</button>
+                <button onClick={() => setTelaAtual("atendimento")}>Abrir atendimento</button>
                 <button onClick={() => setTelaAtual("financeiro")}>Abrir financeiro</button>
               </div>
             </div>

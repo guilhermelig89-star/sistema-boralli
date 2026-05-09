@@ -2,34 +2,56 @@ import { useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
 import "./financeiro.css";
+import FinanceiroDre from "./components/FinanceiroDre";
 import FinanceiroFiltros from "./components/FinanceiroFiltros";
 import FinanceiroResumo from "./components/FinanceiroResumo";
 import MovimentosTable from "./components/MovimentosTable";
 import { useFinanceiro } from "./hooks/useFinanceiro";
 
-const filtrosIniciais = {
-  dataInicio: "",
-  dataFim: "",
-  clienteId: "",
-  origem: "sistema",
-  status: "confirmado",
-  pesquisa: "",
-};
+function formatarDataChave(data) {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+
+  return `${ano}-${mes}-${dia}`;
+}
+
+function obterInicioMes() {
+  const hoje = new Date();
+  return formatarDataChave(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+}
+
+function obterFimMes() {
+  const hoje = new Date();
+  return formatarDataChave(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0));
+}
+
+function criarFiltrosIniciais() {
+  return {
+    dataInicio: obterInicioMes(),
+    dataFim: obterFimMes(),
+    clienteId: "",
+    origem: "todos",
+    status: "confirmado",
+    pesquisa: "",
+  };
+}
 
 function FinanceiroPage() {
-  const [filtros, setFiltros] = useState(filtrosIniciais);
+  const [filtros, setFiltros] = useState(criarFiltrosIniciais);
   const { clientesAtivos } = useClientes();
   const {
     movimentosFiltrados,
     totaisFiltro,
     totaisMes,
+    dreFiltro,
     carregando,
     erro,
   } = useFinanceiro(filtros);
 
   function alterarFiltro(campo, valor) {
     if (campo === "limpar") {
-      setFiltros(filtrosIniciais);
+      setFiltros(criarFiltrosIniciais());
       return;
     }
 
@@ -44,16 +66,21 @@ function FinanceiroPage() {
       <div className="topo-clientes">
         <div>
           <h1>Financeiro</h1>
-          <p>Acompanhe receitas de pacotes, atendimentos avulsos e formas de pagamento.</p>
+          <p>Acompanhe receitas, despesas, resultado do período e formas de pagamento.</p>
         </div>
       </div>
 
-      <div className="cliente-layout">
+      <div className="cliente-layout financeiro-layout">
+        <div className="lista-clientes financeiro-filtros-bloco">
+          <h2>Período e filtros</h2>
+          <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
+        </div>
+
         <FinanceiroResumo totaisFiltro={totaisFiltro} totaisMes={totaisMes} />
+        <FinanceiroDre dre={dreFiltro} />
 
         <div className="lista-clientes">
           <h2>Movimentos financeiros</h2>
-          <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
           {erro && <p>{erro}</p>}
           <MovimentosTable movimentos={movimentosFiltrados} carregando={carregando} />
         </div>

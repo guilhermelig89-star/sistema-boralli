@@ -19,6 +19,13 @@ const formasPagamento = [
   "Outro",
 ];
 
+function formatarMoeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 function descreverItensCombo(combo) {
   return (combo?.itens || [])
     .map((item) => `${item.quantidade}x ${item.servicoNome}`)
@@ -66,6 +73,10 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       clienteNome: clienteSelecionado?.nome || "",
       comboNome: comboSelecionado?.nome || "",
       itens: comboSelecionado?.itens || [],
+      totalAvulso: comboSelecionado?.totalAvulso || 0,
+      economiaValor: comboSelecionado?.economiaValor || 0,
+      economiaPercentual: comboSelecionado?.economiaPercentual || 0,
+      fraseEconomia: comboSelecionado?.fraseEconomia || "",
     });
 
     setFormulario(pacoteInicial);
@@ -161,6 +172,11 @@ function PacoteForm({ clientes, combos, onSalvar }) {
               {item.quantidade}x {item.servicoNome}
             </span>
           ))}
+          {comboSelecionado.economiaValor > 0 && (
+            <strong>
+              Avulso: {formatarMoeda(comboSelecionado.totalAvulso)} | Combo: {formatarMoeda(comboSelecionado.valor)} | {comboSelecionado.fraseEconomia}
+            </strong>
+          )}
         </div>
       )}
 

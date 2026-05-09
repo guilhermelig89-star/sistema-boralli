@@ -1,21 +1,21 @@
 function HistoricoPacotes({ historico }) {
   return (
     <div className="lista-clientes bloco-pacotes">
-      <h2>Histórico de uso dos pacotes</h2>
-      <p className="texto-ajuda-pacotes">Cada linha mostra um serviço consumido quando um atendimento é finalizado.</p>
+      <h2>Histórico de uso</h2>
+      <p className="texto-ajuda-pacotes">Veja quais serviços foram descontados dos pacotes finalizados na agenda.</p>
 
       <div className="tabela-clientes">
         <div className="linha-historico cabecalho">
           <span>Cliente</span>
           <span>Pacote</span>
-          <span>Serviço usado</span>
-          <span>Consumo</span>
-          <span>Saldo</span>
+          <span>Serviço utilizado</span>
+          <span>Quantidade</span>
+          <span>Saldo após uso</span>
         </div>
 
         {historico.length === 0 && (
           <div className="linha-historico">
-            <span>Nenhum consumo registrado.</span>
+            <span>Nenhum uso registrado ainda.</span>
           </div>
         )}
 

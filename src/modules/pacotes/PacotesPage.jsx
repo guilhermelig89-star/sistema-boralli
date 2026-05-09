@@ -141,6 +141,7 @@ function PacotesPage() {
             pacotes={pacotesFiltrados}
             carregando={carregando}
             mensagemVazia={mensagemVazia}
+            calcularSaldoPacote={calcularSaldoPacote}
             pacoteEstaAcabando={pacoteEstaAcabando}
           />
         </div>

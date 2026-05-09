@@ -15,7 +15,11 @@ function formatarMoeda(valor) {
 }
 
 function criarPagamentoInicial() {
-  return [{ forma: "Fiado/Pendente", valor: 0 }];
+  return [{ forma: "Pendente", valor: 0 }];
+}
+
+function formaEhPendente(forma) {
+  return forma === "Pendente" || forma === "Fiado/Pendente";
 }
 
 function statusTexto(status) {
@@ -62,7 +66,7 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
 
   function sincronizarPagamentoIntegral(novoValorFinal, valorFinalAnterior) {
     setPagamentos((atuais) => {
-      if (atuais.length !== 1 || atuais[0].forma === "Fiado/Pendente") return atuais;
+      if (atuais.length !== 1 || formaEhPendente(atuais[0].forma)) return atuais;
 
       const valorAtual = Number(atuais[0].valor || 0);
       const valorAnterior = Number(valorFinalAnterior || 0);
@@ -95,7 +99,7 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
   }
 
   function marcarReceberDepois() {
-    setPagamentos([{ forma: "Fiado/Pendente", valor: 0 }]);
+    setPagamentos([{ forma: "Pendente", valor: 0 }]);
     if (!observacoesFinanceiras) {
       setObservacoesFinanceiras("Cliente ficou de pagar depois.");
     }
@@ -233,7 +237,7 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
             {pagamentos.map((pagamento, indice) => (
               <div className="linha-pagamento-fechamento" key={`${pagamento.forma}-${indice}`}>
                 <select
-                  value={pagamento.forma}
+                  value={formaEhPendente(pagamento.forma) ? "Pendente" : pagamento.forma}
                   onChange={(e) => alterarPagamento(indice, "forma", e.target.value)}
                 >
                   {FORMAS_PAGAMENTO_FECHAMENTO.map((forma) => (
@@ -246,7 +250,7 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
                   placeholder="Valor recebido"
                   value={pagamento.valor}
                   onChange={(e) => alterarPagamento(indice, "valor", e.target.value)}
-                  disabled={pagamento.forma === "Fiado/Pendente"}
+                  disabled={formaEhPendente(pagamento.forma)}
                 />
                 {pagamentos.length > 1 && (
                   <button type="button" onClick={() => removerPagamento(indice)}>Remover</button>

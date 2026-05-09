@@ -73,65 +73,104 @@ function ClienteForm({ cliente, onSalvar, onCancelar }) {
   }
 
   return (
-    <form className="form-cliente" onSubmit={salvar}>
-      <h2>{cliente ? "Editar cliente" : "Novo cliente"}</h2>
+    <form className="form-cliente form-cliente-cadastro" onSubmit={salvar}>
+      <div className="titulo-form-cliente">
+        <h2>{cliente ? "Editar cliente" : "Novo cliente"}</h2>
+        <p>Cadastre os dados principais para agenda, atendimento e histórico.</p>
+      </div>
 
-      <input
-        placeholder="Nome do cliente"
-        value={formulario.nome}
-        onChange={(e) => alterarCampo("nome", e.target.value)}
-      />
-      <input
-        placeholder="Telefone"
-        value={formulario.telefone}
-        onChange={(e) => alterarCampo("telefone", e.target.value)}
-      />
+      <label className="campo-cliente">
+        <span>Nome</span>
+        <input
+          placeholder="Nome completo"
+          value={formulario.nome}
+          onChange={(e) => alterarCampo("nome", e.target.value)}
+        />
+      </label>
 
-      <input
-        placeholder="CEP"
-        value={formulario.cep}
-        onChange={(e) => {
-          alterarCampo("cep", e.target.value);
-          buscarCEP(e.target.value);
-        }}
-      />
+      <label className="campo-cliente">
+        <span>Telefone</span>
+        <input
+          placeholder="WhatsApp ou telefone"
+          value={formulario.telefone}
+          onChange={(e) => alterarCampo("telefone", e.target.value)}
+        />
+      </label>
 
-      <input
-        placeholder="Rua"
-        value={formulario.rua}
-        onChange={(e) => alterarCampo("rua", e.target.value)}
-      />
-      <input
-        placeholder="Número"
-        value={formulario.numero}
-        onChange={(e) => alterarCampo("numero", e.target.value)}
-      />
-      <input
-        placeholder="Bairro"
-        value={formulario.bairro}
-        onChange={(e) => alterarCampo("bairro", e.target.value)}
-      />
-      <input
-        placeholder="Cidade"
-        value={formulario.cidade}
-        onChange={(e) => alterarCampo("cidade", e.target.value)}
-      />
-      <input
-        placeholder="Complemento"
-        value={formulario.complemento}
-        onChange={(e) => alterarCampo("complemento", e.target.value)}
-      />
-      <input
-        placeholder="Referência"
-        value={formulario.referencia}
-        onChange={(e) => alterarCampo("referencia", e.target.value)}
-      />
+      <label className="campo-cliente">
+        <span>CEP</span>
+        <input
+          placeholder="00000-000"
+          value={formulario.cep}
+          onChange={(e) => {
+            alterarCampo("cep", e.target.value);
+            buscarCEP(e.target.value);
+          }}
+        />
+      </label>
 
-      <textarea
-        placeholder="Observações"
-        value={formulario.observacoes}
-        onChange={(e) => alterarCampo("observacoes", e.target.value)}
-      />
+      <label className="campo-cliente campo-cliente-largo">
+        <span>Rua</span>
+        <input
+          placeholder="Rua ou avenida"
+          value={formulario.rua}
+          onChange={(e) => alterarCampo("rua", e.target.value)}
+        />
+      </label>
+
+      <label className="campo-cliente">
+        <span>Número</span>
+        <input
+          placeholder="Número"
+          value={formulario.numero}
+          onChange={(e) => alterarCampo("numero", e.target.value)}
+        />
+      </label>
+
+      <label className="campo-cliente">
+        <span>Bairro</span>
+        <input
+          placeholder="Bairro"
+          value={formulario.bairro}
+          onChange={(e) => alterarCampo("bairro", e.target.value)}
+        />
+      </label>
+
+      <label className="campo-cliente">
+        <span>Cidade</span>
+        <input
+          placeholder="Cidade"
+          value={formulario.cidade}
+          onChange={(e) => alterarCampo("cidade", e.target.value)}
+        />
+      </label>
+
+      <label className="campo-cliente">
+        <span>Complemento</span>
+        <input
+          placeholder="Casa, ap., bloco..."
+          value={formulario.complemento}
+          onChange={(e) => alterarCampo("complemento", e.target.value)}
+        />
+      </label>
+
+      <label className="campo-cliente">
+        <span>Referência</span>
+        <input
+          placeholder="Ponto de referência"
+          value={formulario.referencia}
+          onChange={(e) => alterarCampo("referencia", e.target.value)}
+        />
+      </label>
+
+      <label className="campo-cliente campo-cliente-observacoes">
+        <span>Observações</span>
+        <textarea
+          placeholder="Preferências, alergias, restrições ou detalhes importantes"
+          value={formulario.observacoes}
+          onChange={(e) => alterarCampo("observacoes", e.target.value)}
+        />
+      </label>
 
       <button type="submit">{cliente ? "Atualizar cliente" : "Salvar cliente"}</button>
 

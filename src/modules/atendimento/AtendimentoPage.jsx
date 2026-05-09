@@ -456,12 +456,14 @@ function AtendimentoPage() {
         </section>
       </div>
 
-      <FechamentoFinanceiroModal
-        agendamento={atendimentoFechamento}
-        pacote={pacoteFechamento}
-        onFechar={() => setAtendimentoFechamento(null)}
-        onConfirmar={confirmarFechamento}
-      />
+      {atendimentoFechamento && (
+        <FechamentoFinanceiroModal
+          agendamento={atendimentoFechamento}
+          pacote={pacoteFechamento}
+          onFechar={() => setAtendimentoFechamento(null)}
+          onConfirmar={confirmarFechamento}
+        />
+      )}
 
       <AlertaTempoAtendimento
         alerta={alertaTempo}

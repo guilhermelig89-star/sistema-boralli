@@ -29,6 +29,74 @@
   color: #1f1714;
 }
 
+.form-combo {
+  gap: 14px;
+}
+
+.cabecalho-form-combo,
+.campo-combo,
+.combo-itens-linha,
+.combo-calculadora,
+.campo-combo-observacoes {
+  grid-column: 1 / -1;
+}
+
+.cabecalho-form-combo h2 {
+  margin: 0 0 6px;
+}
+
+.cabecalho-form-combo p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.campo-combo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo-combo span,
+.combo-calculadora-campos label span {
+  color: #6f5a49;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.campo-combo input,
+.campo-combo select,
+.campo-combo textarea,
+.combo-calculadora-campos input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b2420;
+  padding: 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.campo-combo input:focus,
+.campo-combo select:focus,
+.campo-combo textarea:focus,
+.combo-calculadora-campos input:focus {
+  border-color: #d7b56d;
+}
+
+.combo-itens-linha {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 130px auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.botao-adicionar-combo {
+  min-height: 44px;
+}
+
 .resumo-combo {
   grid-column: 1 / -1;
   display: flex;
@@ -55,6 +123,12 @@
   padding: 8px 10px;
 }
 
+.item-combo small {
+  color: #7b6b5d;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .item-combo button {
   border: 0;
   border-radius: 999px;
@@ -65,9 +139,93 @@
   font-weight: 700;
 }
 
+.combo-calculadora {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #e2d2bd;
+  border-radius: 18px;
+  background: #fffaf0;
+  padding: 18px;
+}
+
+.combo-calculadora-topo h3 {
+  margin: 0 0 5px;
+  font-size: 20px;
+}
+
+.combo-calculadora-topo p {
+  margin: 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.combo-calculadora-comparativo {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 12px;
+}
+
+.combo-calculadora-comparativo > div,
+.combo-calculadora-card {
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px;
+}
+
+.combo-calculadora-comparativo span,
+.combo-calculadora-card span {
+  display: block;
+  margin-bottom: 6px;
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.combo-calculadora-comparativo strong,
+.combo-calculadora-card strong {
+  color: #1f1714;
+  font-size: 20px;
+}
+
+.combo-calculadora-comparativo .economia,
+.combo-calculadora-card.destaque {
+  border-color: #d7b56d;
+  background: #f6e6b6;
+}
+
+.combo-calculadora-campos {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1fr);
+  gap: 12px;
+}
+
+.combo-calculadora-campos label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.combo-calculadora-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.combo-frase-economia {
+  border: 1px solid #d7b56d;
+  border-radius: 999px;
+  background: #fff;
+  color: #3b2b25;
+  padding: 12px 14px;
+  text-align: center;
+  font-weight: 900;
+}
+
 .linha-combo {
   display: grid;
-  grid-template-columns: 1.1fr 1.8fr 120px 120px 140px;
+  grid-template-columns: 1.1fr 1.7fr 120px 130px 100px 140px;
   gap: 12px;
   align-items: center;
   border-bottom: 1px solid #efe5d8;
@@ -99,6 +257,11 @@
   font-size: 12px;
 }
 
+.economia-combo-lista {
+  color: #3b2b25 !important;
+  font-weight: 900;
+}
+
 @media (max-width: 900px) {
   .topo-com-abas {
     align-items: stretch;
@@ -115,11 +278,19 @@
     width: 100%;
   }
 
+  .combo-itens-linha,
+  .combo-calculadora-comparativo,
+  .combo-calculadora-campos,
   .linha-combo {
     grid-template-columns: 1fr;
   }
 
   .linha-combo.cabecalho {
     display: none;
+  }
+
+  .combo-frase-economia,
+  .item-combo {
+    border-radius: 14px;
   }
 }

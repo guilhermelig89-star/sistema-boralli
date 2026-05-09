@@ -124,6 +124,98 @@
   font-weight: 700;
 }
 
+.pacote-atendimento {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #eadfce;
+  border-radius: 16px;
+  background: #faf7f2;
+  padding: 14px;
+}
+
+.pacote-atendimento-alerta {
+  border-color: #f7c566;
+  background: #fff7e6;
+}
+
+.pacote-atendimento-alerta p,
+.topo-pacote-atendimento p {
+  margin: 4px 0 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.topo-pacote-atendimento {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topo-pacote-atendimento strong {
+  color: #2b2420;
+  font-size: 14px;
+}
+
+.consumo-atendimento {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #dfbb67;
+  border-radius: 14px;
+  background: #fffaf0;
+  padding: 12px;
+}
+
+.consumo-atendimento span,
+.consumo-atendimento small,
+.itens-pacote-atendimento small {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.consumo-atendimento strong {
+  color: #1f1714;
+  font-size: 15px;
+}
+
+.itens-pacote-atendimento {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.itens-pacote-atendimento div {
+  display: flex;
+  min-height: 76px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fff;
+  padding: 10px 12px;
+}
+
+.itens-pacote-atendimento div.item-pacote-atual {
+  border-color: #dfbb67;
+  background: #fffaf0;
+}
+
+.itens-pacote-atendimento span {
+  color: #6a4a38;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.itens-pacote-atendimento strong {
+  color: #2b2420;
+  font-size: 15px;
+}
+
 .acoes-atendimento {
   display: flex;
   flex-wrap: wrap;
@@ -170,7 +262,8 @@
 
 @media (max-width: 760px) {
   .topo-atendimento,
-  .topo-card-atendimento {
+  .topo-card-atendimento,
+  .topo-pacote-atendimento {
     align-items: stretch;
     flex-direction: column;
   }
@@ -179,7 +272,8 @@
     width: fit-content;
   }
 
-  .card-atendimento {
+  .card-atendimento,
+  .consumo-atendimento {
     grid-template-columns: 1fr;
   }
 

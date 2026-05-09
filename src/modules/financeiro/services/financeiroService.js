@@ -193,7 +193,5 @@ export function filtrarMovimentosDoMes(movimentos, dataReferencia = new Date()) 
   const mes = String(dataReferencia.getMonth() + 1).padStart(2, "0");
   const prefixo = `${ano}-${mes}`;
 
-  return movimentos.filter(
-    (movimento) => movimentoEhDoSistema(movimento) && obterDataMovimento(movimento).startsWith(prefixo)
-  );
+  return movimentos.filter((movimento) => obterDataMovimento(movimento).startsWith(prefixo));
 }

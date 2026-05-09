@@ -74,8 +74,8 @@ function PacoteForm({ clientes, combos, onSalvar }) {
   return (
     <form className="form-cliente form-pacote" onSubmit={salvar}>
       <div className="titulo-form-pacote">
-        <h2>Nova venda de pacote</h2>
-        <p>Escolha a cliente, selecione o combo vendido e confirme o pagamento recebido.</p>
+        <h2>Vender novo pacote</h2>
+        <p>Selecione o cliente, escolha o combo comprado e registre o pagamento.</p>
       </div>
 
       <label className="campo-pacote">
@@ -94,7 +94,7 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       </label>
 
       <label className="campo-pacote campo-pacote-destaque">
-        <span>Combo vendido</span>
+        <span>Combo comprado</span>
         <select
           value={formulario.comboId}
           onChange={(e) => alterarCampo("comboId", e.target.value)}
@@ -109,7 +109,7 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       </label>
 
       <label className="campo-pacote">
-        <span>Nome do pacote da cliente</span>
+        <span>Nome do pacote</span>
         <input
           placeholder="Ex: Pacote 4 mãos"
           value={formulario.nome}
@@ -118,7 +118,7 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       </label>
 
       <label className="campo-pacote">
-        <span>Avisar quando restar</span>
+        <span>Alerta de saldo mínimo</span>
         <input
           type="number"
           min="1"
@@ -128,10 +128,11 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       </label>
 
       <label className="campo-pacote">
-        <span>Valor pago pela cliente</span>
+        <span>Valor recebido</span>
         <input
           type="number"
           min="0"
+          placeholder="Ex: 120"
           value={formulario.valorPago}
           onChange={(e) => alterarCampo("valorPago", e.target.value)}
         />
@@ -154,7 +155,7 @@ function PacoteForm({ clientes, combos, onSalvar }) {
 
       {comboSelecionado && (
         <div className="resumo-combo resumo-venda-pacote">
-          <strong>Resumo do combo: {comboSelecionado.nome}</strong>
+          <strong>Itens incluídos no pacote: {comboSelecionado.nome}</strong>
           {(comboSelecionado.itens || []).map((item) => (
             <span key={item.servicoId}>
               {item.quantidade}x {item.servicoNome}
@@ -173,13 +174,13 @@ function PacoteForm({ clientes, combos, onSalvar }) {
       <label className="campo-pacote campo-pacote-observacoes">
         <span>Observações</span>
         <textarea
-          placeholder="Informações extras sobre a venda"
+          placeholder="Ex: pagamento parcial, desconto ou condição combinada"
           value={formulario.observacoes}
           onChange={(e) => alterarCampo("observacoes", e.target.value)}
         />
       </label>
 
-      <button type="submit">Salvar pacote vendido</button>
+      <button type="submit">Salvar pacote</button>
     </form>
   );
 }

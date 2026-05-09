@@ -2,11 +2,13 @@ import { useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
 import "./financeiro.css";
+import CategoriasDespesa from "./components/CategoriasDespesa";
 import DespesaForm from "./components/DespesaForm";
 import FinanceiroDre from "./components/FinanceiroDre";
 import FinanceiroFiltros from "./components/FinanceiroFiltros";
 import FinanceiroResumo from "./components/FinanceiroResumo";
 import MovimentosTable from "./components/MovimentosTable";
+import { useCategoriasFinanceiras } from "./hooks/useCategoriasFinanceiras";
 import { useFinanceiro } from "./hooks/useFinanceiro";
 
 function formatarDataChave(data) {
@@ -42,12 +44,20 @@ function FinanceiroPage() {
   const [filtros, setFiltros] = useState(criarFiltrosIniciais);
   const { clientesAtivos } = useClientes();
   const {
+    categoriasDespesa,
+    carregando: carregandoCategorias,
+    salvando: salvandoCategoria,
+    erro: erroCategorias,
+    salvarCategoria,
+    removerCategoria,
+  } = useCategoriasFinanceiras();
+  const {
     movimentosFiltrados,
     totaisFiltro,
     totaisMes,
     dreFiltro,
     carregando,
-    salvando,
+    salvando: salvandoDespesa,
     erro,
     salvarDespesa,
   } = useFinanceiro(filtros);
@@ -79,7 +89,18 @@ function FinanceiroPage() {
           <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
         </div>
 
-        <DespesaForm onSalvar={salvarDespesa} salvando={salvando} />
+        <div className="financeiro-configuracao-grid">
+          <DespesaForm categorias={categoriasDespesa} onSalvar={salvarDespesa} salvando={salvandoDespesa} />
+          <CategoriasDespesa
+            categorias={categoriasDespesa}
+            carregando={carregandoCategorias}
+            salvando={salvandoCategoria}
+            erro={erroCategorias}
+            onSalvar={salvarCategoria}
+            onRemover={removerCategoria}
+          />
+        </div>
+
         <FinanceiroResumo totaisFiltro={totaisFiltro} totaisMes={totaisMes} />
         <FinanceiroDre dre={dreFiltro} />
 

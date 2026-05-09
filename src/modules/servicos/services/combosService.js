@@ -19,6 +19,7 @@ export function montarCombo(dados = {}) {
           servicoId: item.servicoId,
           servicoNome: texto(item.servicoNome),
           quantidade: Math.max(0, numero(item.quantidade, 0)),
+          valorUnitario: numero(item.valorUnitario, 0),
         }))
         .filter((item) => item.servicoId && item.quantidade > 0)
     : [];
@@ -26,6 +27,13 @@ export function montarCombo(dados = {}) {
   return {
     nome: texto(dados.nome),
     valor: numero(dados.valor, 0),
+    totalAvulso: numero(dados.totalAvulso, 0),
+    descontoPercentual: numero(dados.descontoPercentual, 0),
+    descontoValor: numero(dados.descontoValor, 0),
+    precoSugerido: numero(dados.precoSugerido, 0),
+    economiaValor: numero(dados.economiaValor, 0),
+    economiaPercentual: numero(dados.economiaPercentual, 0),
+    fraseEconomia: texto(dados.fraseEconomia),
     itens,
     observacoes: texto(dados.observacoes),
     ativo: true,

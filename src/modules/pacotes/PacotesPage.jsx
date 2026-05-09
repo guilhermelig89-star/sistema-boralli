@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
 import { useCombos } from "../servicos/hooks/useCombos";
@@ -29,9 +29,10 @@ function PacotesPage() {
     pacoteEstaAcabando,
   } = usePacotesClientes();
 
-  function pacoteEstaFinalizado(pacote) {
-    return pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0;
-  }
+  const pacoteEstaFinalizado = useCallback(
+    (pacote) => pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0,
+    [calcularSaldoPacote]
+  );
 
   const pacotesPorCliente = useMemo(() => {
     if (!clienteFiltro) return pacotes;
@@ -51,7 +52,7 @@ function PacotesPage() {
       },
       { ativos: 0, finalizados: 0, todos: 0 }
     );
-  }, [pacotesPorCliente]);
+  }, [pacotesPorCliente, pacoteEstaFinalizado]);
 
   const pacotesFiltrados = useMemo(() => {
     if (statusFiltro === "finalizados") {
@@ -63,7 +64,7 @@ function PacotesPage() {
     }
 
     return pacotesPorCliente.filter((pacote) => !pacoteEstaFinalizado(pacote));
-  }, [pacotesPorCliente, statusFiltro]);
+  }, [pacotesPorCliente, statusFiltro, pacoteEstaFinalizado]);
 
   const historicoFiltrado = useMemo(() => {
     if (!clienteFiltro) return historico;
@@ -140,7 +141,6 @@ function PacotesPage() {
             pacotes={pacotesFiltrados}
             carregando={carregando}
             mensagemVazia={mensagemVazia}
-            calcularSaldoPacote={calcularSaldoPacote}
             pacoteEstaAcabando={pacoteEstaAcabando}
           />
         </div>

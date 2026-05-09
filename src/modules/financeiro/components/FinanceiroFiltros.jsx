@@ -35,9 +35,10 @@ function FinanceiroFiltros({ filtros, clientes, onAlterar }) {
         <span>Origem</span>
         <select value={filtros.origem} onChange={(e) => onAlterar("origem", e.target.value)}>
           <option value="todos">Tudo</option>
-          <option value="sistema">Somente do sistema</option>
+          <option value="sistema">Somente receitas do sistema</option>
           <option value="venda_pacote">Venda de pacote</option>
           <option value="atendimento_avulso">Atendimento avulso</option>
+          <option value="despesa_manual">Despesas</option>
           <option value="outros">Outros/manuais</option>
         </select>
       </label>
@@ -55,7 +56,7 @@ function FinanceiroFiltros({ filtros, clientes, onAlterar }) {
       <label className="financeiro-filtro-pesquisa">
         <span>Busca</span>
         <input
-          placeholder="Cliente, serviço ou descrição"
+          placeholder="Cliente, serviço, categoria ou descrição"
           value={filtros.pesquisa}
           onChange={(e) => onAlterar("pesquisa", e.target.value)}
         />

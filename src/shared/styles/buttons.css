@@ -1,0 +1,77 @@
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.acoes-cliente {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.botao-editar,
+.botao-desativar,
+.botao-historico,
+.botao-acao,
+.botao-acao-secundario,
+.botao-acao-perigo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.botao-editar,
+.botao-acao {
+  border: 1px solid #3b2b25;
+  background: #3b2b25;
+  color: #fff;
+}
+
+.botao-historico,
+.botao-acao-secundario {
+  border: 1px solid #d8c7b7;
+  background: #fff;
+  color: #3b2b25;
+}
+
+.botao-desativar,
+.botao-acao-perigo {
+  border: 1px solid #b42318;
+  background: #b42318;
+  color: #fff;
+}
+
+.botao-editar:hover,
+.botao-acao:hover {
+  background: #2b211d;
+}
+
+.botao-historico:hover,
+.botao-acao-secundario:hover {
+  border-color: #d7b56d;
+  background: #fffaf0;
+}
+
+.botao-desativar:hover,
+.botao-acao-perigo:hover {
+  background: #991b1b;
+}
+
+@media (max-width: 900px) {
+  .acoes-cliente {
+    flex-wrap: wrap;
+  }
+}

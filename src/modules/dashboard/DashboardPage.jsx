@@ -76,6 +76,14 @@ function pagamentoTexto(agendamento) {
   return `Avulso - ${formatarMoeda(agendamento.valor)}`;
 }
 
+function somarFormasPagamento(porForma = {}, termos = []) {
+  return Object.entries(porForma).reduce((total, [forma, valor]) => {
+    const formaNormalizada = forma.toLowerCase();
+    const corresponde = termos.some((termo) => formaNormalizada.includes(termo));
+    return corresponde ? total + Number(valor || 0) : total;
+  }, 0);
+}
+
 function DashboardPage({ onNavigate }) {
   const hoje = obterHoje();
   const [periodo, setPeriodo] = useState(() => ({ inicio: hoje, fim: hoje }));
@@ -90,7 +98,7 @@ function DashboardPage({ onNavigate }) {
       dataFim: periodo.fim,
       clienteId: "",
       origem: "sistema",
-      status: "confirmado",
+      status: "",
       pesquisa: "",
     }),
     [periodo.fim, periodo.inicio]
@@ -139,6 +147,9 @@ function DashboardPage({ onNavigate }) {
 
   const proximoAtendimento = proximosAtendimentos[0];
   const percentualConclusao = agendaPeriodo.length > 0 ? Math.round((finalizadosPeriodo / agendaPeriodo.length) * 100) : 0;
+  const recebidoPix = somarFormasPagamento(totaisFiltro.porForma, ["pix"]);
+  const recebidoDinheiro = somarFormasPagamento(totaisFiltro.porForma, ["dinheiro"]);
+  const recebidoCartao = somarFormasPagamento(totaisFiltro.porForma, ["cartão", "cartao"]);
 
   const radarInteligente = useMemo(() => {
     const itens = [];
@@ -149,6 +160,15 @@ function DashboardPage({ onNavigate }) {
         texto: `${proximoAtendimento.hora} - ${proximoAtendimento.clienteNome} para ${proximoAtendimento.servicoNome}.`,
         acao: "Abrir atendimento",
         destino: "atendimento",
+      });
+    }
+
+    if (Number(totaisFiltro.pendente || 0) > 0) {
+      itens.push({
+        titulo: "Valores pendentes",
+        texto: `${formatarMoeda(totaisFiltro.pendente)} ainda em aberto no período.`,
+        acao: "Ver financeiro",
+        destino: "financeiro",
       });
     }
 
@@ -189,7 +209,7 @@ function DashboardPage({ onNavigate }) {
     }
 
     return itens;
-  }, [agendaPeriodo.length, pacotesBaixos.length, proximoAtendimento, receitaAvulsaPrevista]);
+  }, [agendaPeriodo.length, pacotesBaixos.length, proximoAtendimento, receitaAvulsaPrevista, totaisFiltro.pendente]);
 
   function definirPeriodoHoje() {
     setPeriodo({ inicio: hoje, fim: hoje });
@@ -312,9 +332,40 @@ function DashboardPage({ onNavigate }) {
         </div>
 
         <div className="card card-dashboard card-kpi-dashboard card-kpi-receita-dashboard">
-          <span>Receitas do período</span>
-          <strong>{formatarMoeda(totaisFiltro.receitas)}</strong>
-          <p>{formatarMoeda(receitaAvulsaPrevista)} avulso previsto</p>
+          <span>Recebido no período</span>
+          <strong>{formatarMoeda(totaisFiltro.recebido)}</strong>
+          <p>{formatarMoeda(totaisFiltro.pendente)} pendente</p>
+        </div>
+      </div>
+
+      <div className="dashboard-financeiro-indicadores">
+        <div>
+          <span>Recebido</span>
+          <strong>{formatarMoeda(totaisFiltro.recebido)}</strong>
+        </div>
+        <div>
+          <span>Pendente</span>
+          <strong>{formatarMoeda(totaisFiltro.pendente)}</strong>
+        </div>
+        <div>
+          <span>Pix</span>
+          <strong>{formatarMoeda(recebidoPix)}</strong>
+        </div>
+        <div>
+          <span>Dinheiro</span>
+          <strong>{formatarMoeda(recebidoDinheiro)}</strong>
+        </div>
+        <div>
+          <span>Cartão</span>
+          <strong>{formatarMoeda(recebidoCartao)}</strong>
+        </div>
+        <div>
+          <span>Descontos</span>
+          <strong>{formatarMoeda(totaisFiltro.descontos)}</strong>
+        </div>
+        <div>
+          <span>Parcial em aberto</span>
+          <strong>{formatarMoeda(totaisFiltro.pendente)}</strong>
         </div>
       </div>
 

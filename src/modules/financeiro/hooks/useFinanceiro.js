@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { criarMovimentoFinanceiro, observarMovimentosFinanceiros } from "../repositories/financeiroRepository";
+import {
+  atualizarMovimentoFinanceiro,
+  criarMovimentoFinanceiro,
+  observarMovimentosFinanceiros,
+} from "../repositories/financeiroRepository";
 import {
   aplicarFiltrosFinanceiros,
   calcularDreFinanceiro,
   calcularTotaisFinanceiros,
   filtrarMovimentosDoMes,
   prepararDespesaManual,
+  prepararRecebimentoPendente,
 } from "../services/financeiroService";
 
 export function useFinanceiro(filtros) {
@@ -71,6 +76,26 @@ export function useFinanceiro(filtros) {
     }
   }
 
+  async function registrarPagamentoPendente(movimentoId, dados) {
+    const movimento = movimentos.find((item) => item.id === movimentoId);
+
+    setSalvando(true);
+    setErro(null);
+
+    try {
+      await atualizarMovimentoFinanceiro(
+        movimentoId,
+        prepararRecebimentoPendente(movimento, dados)
+      );
+    } catch (erroFirebase) {
+      console.error("Erro ao registrar pagamento pendente", erroFirebase);
+      setErro("Não foi possível registrar o pagamento da pendência.");
+      throw erroFirebase;
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   return {
     movimentos,
     movimentosFiltrados,
@@ -81,5 +106,6 @@ export function useFinanceiro(filtros) {
     salvando,
     erro,
     salvarDespesa,
+    registrarPagamentoPendente,
   };
 }

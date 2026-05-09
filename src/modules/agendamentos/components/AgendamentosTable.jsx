@@ -1,12 +1,14 @@
 function statusClasse(status) {
   if (status === "finalizado") return "badge-tipo badge-servico";
   if (status === "cancelado") return "badge-tipo badge-alerta";
+  if (status === "em_atendimento") return "badge-tipo badge-atendimento-andamento";
   return "badge-tipo badge-combo";
 }
 
 function statusTexto(status) {
   if (status === "finalizado") return "Finalizado";
   if (status === "cancelado") return "Cancelado";
+  if (status === "em_atendimento") return "Em atendimento";
   return "Agendado";
 }
 

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  atualizarMovimentoFinanceiro,
   criarMovimentoFinanceiro,
   observarMovimentosFinanceiros,
+  registrarRecebimentoPendencia,
 } from "../repositories/financeiroRepository";
 import {
   aplicarFiltrosFinanceiros,
@@ -85,8 +85,7 @@ export function useFinanceiro(filtros) {
     try {
       const { atualizacaoPendencia, novoRecebimento } = prepararRecebimentoPendente(movimento, dados);
 
-      await atualizarMovimentoFinanceiro(movimentoId, atualizacaoPendencia);
-      await criarMovimentoFinanceiro(novoRecebimento);
+      await registrarRecebimentoPendencia(movimentoId, atualizacaoPendencia, novoRecebimento);
     } catch (erroFirebase) {
       console.error("Erro ao registrar pagamento pendente", erroFirebase);
       setErro("Não foi possível registrar o pagamento da pendência.");

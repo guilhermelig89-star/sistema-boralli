@@ -9,8 +9,10 @@ import AgendaFiltros from "./components/AgendaFiltros";
 import AgendaResumo from "./components/AgendaResumo";
 import AgendamentoForm from "./components/AgendamentoForm";
 import AgendamentosTable from "./components/AgendamentosTable";
+import AlertaTempoAtendimento from "./components/AlertaTempoAtendimento";
 import { useAgendaConfiguracao } from "./hooks/useAgendaConfiguracao";
 import { useAgendamentos } from "./hooks/useAgendamentos";
+import { useSugestoesTempoAtendimento } from "./hooks/useSugestoesTempoAtendimento";
 
 const filtrosIniciais = {
   data: "",
@@ -18,11 +20,21 @@ const filtrosIniciais = {
   pesquisa: "",
 };
 
+function deveMostrarAlertaTempo(resultado) {
+  return Boolean(resultado?.tempoRealCalculado && resultado?.alertaTempoExigeAtencao);
+}
+
 function AgendaPage() {
   const [filtros, setFiltros] = useState(filtrosIniciais);
   const [abaAtual, setAbaAtual] = useState("agenda");
+  const [alertaTempo, setAlertaTempo] = useState(null);
   const { clientesAtivos } = useClientes();
   const { servicosAtivos } = useServicos();
+  const {
+    sugestoesTempo,
+    salvarAjusteClienteServico,
+    revisarTempoPadraoServico,
+  } = useSugestoesTempoAtendimento();
   const {
     pacotesAtivos,
     calcularSaldoServicoPacote,
@@ -103,7 +115,10 @@ function AgendaPage() {
 
   async function finalizar(id) {
     try {
-      await finalizarAtendimento(id);
+      const resultado = await finalizarAtendimento(id);
+      if (deveMostrarAlertaTempo(resultado)) {
+        setAlertaTempo(resultado);
+      }
     } catch (erroFinalizar) {
       alert(erroFinalizar.message || "Não foi possível finalizar o atendimento.");
     }
@@ -114,6 +129,40 @@ function AgendaPage() {
       await cancelarAtendimento(id);
     } catch (erroCancelar) {
       alert(erroCancelar.message || "Não foi possível cancelar o agendamento.");
+    }
+  }
+
+  async function ajustarTempoCliente() {
+    if (!alertaTempo) return;
+
+    try {
+      await salvarAjusteClienteServico({
+        ...alertaTempo,
+        duracaoMinutos: alertaTempo.tempoRealMinutos,
+        origemAgendamentoId: alertaTempo.agendamentoId,
+      });
+      setAlertaTempo(null);
+      alert("Sugestão ajustada para esta cliente e serviço.");
+    } catch (erroAjuste) {
+      alert(erroAjuste.message || "Não foi possível ajustar a sugestão de tempo.");
+    }
+  }
+
+  async function revisarTempoServico() {
+    if (!alertaTempo) return;
+
+    const confirmar = confirm(
+      `Revisar o tempo padrão geral de ${alertaTempo.servicoNome} para ${alertaTempo.tempoRealMinutos} min?`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      await revisarTempoPadraoServico(alertaTempo.servicoId, alertaTempo.tempoRealMinutos);
+      setAlertaTempo(null);
+      alert("Tempo padrão do serviço revisado.");
+    } catch (erroRevisao) {
+      alert(erroRevisao.message || "Não foi possível revisar o tempo padrão do serviço.");
     }
   }
 
@@ -155,6 +204,7 @@ function AgendaPage() {
               agendamentos={agendamentos}
               horarios={horarios}
               excecoes={excecoes}
+              sugestoesTempo={sugestoesTempo}
               calcularSaldoServicoPacote={calcularSaldoServicoPacote}
               pacoteTemSaldoParaServico={pacoteTemSaldoParaServico}
               onSalvar={salvarFormulario}
@@ -185,6 +235,13 @@ function AgendaPage() {
           />
         )}
       </div>
+
+      <AlertaTempoAtendimento
+        alerta={alertaTempo}
+        onFechar={() => setAlertaTempo(null)}
+        onAjustarCliente={ajustarTempoCliente}
+        onRevisarServico={revisarTempoServico}
+      />
     </div>
   );
 }

@@ -1,5 +1,13 @@
 const ORIGENS_SISTEMA = ["venda_pacote", "atendimento_avulso"];
 
+export const FORMAS_RECEBIMENTO_PENDENCIA = [
+  "Pix",
+  "Dinheiro",
+  "Cartão Débito",
+  "Cartão Crédito",
+  "Transferência",
+];
+
 function numero(valor, padrao = 0) {
   const convertido = Number(valor);
   return Number.isFinite(convertido) ? convertido : padrao;
@@ -7,6 +15,10 @@ function numero(valor, padrao = 0) {
 
 function texto(valor, padrao = "") {
   return String(valor || padrao).trim();
+}
+
+function arredondarValor(valor) {
+  return Math.round(numero(valor, 0) * 100) / 100;
 }
 
 function dataParaChave(data) {
@@ -51,6 +63,15 @@ function statusNormalizado(status) {
   if (!status) return "pago";
   if (status === "confirmado") return "pago";
   return status;
+}
+
+function montarResumoFormaPagamento(pagamentos, status) {
+  const pagamentosValidos = (pagamentos || []).filter((pagamento) => numero(pagamento.valor, 0) > 0);
+
+  if (status === "pendente") return "Fiado/Pendente";
+  if (pagamentosValidos.length === 0) return "Não informado";
+  if (pagamentosValidos.length === 1) return pagamentosValidos[0].forma;
+  return "Múltiplos pagamentos";
 }
 
 export function movimentoEhDoSistema(movimento) {
@@ -292,6 +313,50 @@ export function prepararDespesaManual(dados) {
     categoria: texto(dados.categoria, "Outros"),
     formaPagamento: texto(dados.formaPagamento, "Não informado"),
     descricao: texto(dados.descricao, "Despesa manual"),
+  };
+}
+
+export function prepararRecebimentoPendente(movimento, dados) {
+  if (!movimento || movimento.tipo !== "receita") {
+    throw new Error("Movimento financeiro inválido.");
+  }
+
+  const pendenteAtual = obterValorPendente(movimento);
+  const valorInformado = arredondarValor(dados.valor);
+
+  if (!valorInformado || valorInformado <= 0) {
+    throw new Error("Informe um valor recebido maior que zero.");
+  }
+
+  if (valorInformado > pendenteAtual) {
+    throw new Error("O valor recebido não pode ser maior que o valor pendente.");
+  }
+
+  const recebimento = {
+    forma: texto(dados.formaPagamento, "Pix"),
+    valor: valorInformado,
+    data: dados.data || dataHoje(),
+    observacao: texto(dados.observacao),
+  };
+  const pagamentos = [...(Array.isArray(movimento.pagamentos) ? movimento.pagamentos : []), recebimento];
+  const recebimentosRegistrados = [
+    ...(Array.isArray(movimento.recebimentosRegistrados) ? movimento.recebimentosRegistrados : []),
+    recebimento,
+  ];
+  const valorRecebido = arredondarValor(obterValorRecebido(movimento) + valorInformado);
+  const valorPendente = arredondarValor(Math.max(0, pendenteAtual - valorInformado));
+  const status = valorPendente > 0 ? "parcial" : "pago";
+
+  return {
+    valor: valorRecebido,
+    valorRecebido,
+    valorPendente,
+    status,
+    statusFinanceiro: status,
+    formaPagamento: montarResumoFormaPagamento(pagamentos, status),
+    pagamentos,
+    recebimentosRegistrados,
+    ultimaDataRecebimento: recebimento.data,
   };
 }
 

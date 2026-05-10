@@ -174,11 +174,9 @@ function ClienteForm({ cliente, onSalvar, onCancelar }) {
 
       <button type="submit">{cliente ? "Atualizar cliente" : "Salvar cliente"}</button>
 
-      {cliente && (
-        <button type="button" className="botao-cancelar" onClick={onCancelar}>
-          Cancelar edição
-        </button>
-      )}
+      <button type="button" className="botao-cancelar" onClick={onCancelar}>
+        {cliente ? "Cancelar edição" : "Fechar formulário"}
+      </button>
     </form>
   );
 }

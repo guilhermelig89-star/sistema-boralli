@@ -1,3 +1,10 @@
+.topo-clientes-modulo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .topo-clientes-modulo p,
 .titulo-form-cliente p,
 .cabecalho-lista-clientes p,
@@ -6,6 +13,20 @@
   margin: 0;
   color: #7b6b5d;
   font-size: 13px;
+}
+
+.botao-novo-cliente {
+  border: 0;
+  border-radius: 14px;
+  background: #3b2b25;
+  color: #fff;
+  padding: 13px 18px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.botao-novo-cliente:hover {
+  background: #2b1f1a;
 }
 
 .form-cliente-cadastro {
@@ -199,10 +220,15 @@
 }
 
 @media (max-width: 760px) {
+  .topo-clientes-modulo,
   .topo-historico-cliente,
   .cabecalho-lista-clientes {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .botao-novo-cliente {
+    width: 100%;
   }
 
   .abas-historico-cliente {

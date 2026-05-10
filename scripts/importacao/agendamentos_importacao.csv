@@ -1,0 +1,10 @@
+cliente,servico,data,hora_inicio,hora_fim,status,valor_cobrado,valor_pago,forma_pagamento,pacote_nome,consumiu_pacote,observacao
+LURDINHA,Pé,2026-04-27,19:00,20:00,finalizado,40,40,Pix,,não,Importado agenda antiga
+"BIANCA ""RENATA""",Mão,2026-04-29,19:20,20:20,finalizado,35,35,Pix,,não,Importado agenda antiga
+RENATA - PADARIA,Mão,2026-05-02,13:00,14:00,finalizado,35,35,Pix,,não,Importado agenda antiga
+COLEGA ANDREIA,MÃO + PÉ,2026-05-02,14:00,15:40,finalizado,70,70,Pix,,não,Importado agenda antiga
+"CAMILINHA ""IBIMAGEM""",Mão,2026-05-05,18:00,19:00,finalizado,35,35,Pix,,não,Importado agenda antiga
+"BIANCA ""RENATA""",Mão,2026-05-06,18:00,19:00,finalizado,0,0,,Combo 4 Mãos + 1 Pé,sim,Atendimento importado; consumiu 1 mão do combo vendido no mesmo dia
+RENATA - PADARIA,Mão,2026-05-06,19:00,20:00,finalizado,0,0,,Combo 4 Mãos + 1 Pé,sim,Atendimento importado; consumiu 1 mão do combo vendido no mesmo dia
+ALESSANDRA,MÃO + PÉ,2026-05-07,18:00,19:40,finalizado,70,70,Pix,,não,Importado agenda antiga
+NATALIA ANTONIASSE,PÉ PREMIUM,2026-05-09,08:00,09:30,finalizado,55,55,Pix,,não,Importado agenda antiga

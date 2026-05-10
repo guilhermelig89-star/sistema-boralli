@@ -32,6 +32,15 @@ function normalizarTexto(valor) {
     .toUpperCase();
 }
 
+function normalizarServicoComposto(valor) {
+  return normalizarTexto(valor)
+    .split("+")
+    .map((parte) => parte.trim())
+    .filter(Boolean)
+    .sort()
+    .join("+");
+}
+
 function numero(valor, padrao = 0) {
   const normalizado = String(valor || "").replace(",", ".");
   const convertido = Number(normalizado);
@@ -127,6 +136,23 @@ function criarIndicePorNome(docs, campo = "nome") {
   }, new Map());
 }
 
+function criarIndiceServicos(servicos) {
+  return servicos.reduce((indice, servico) => {
+    const chaves = new Set([
+      normalizarTexto(servico.nome),
+      normalizarServicoComposto(servico.nome),
+    ]);
+
+    chaves.forEach((chave) => {
+      if (!chave) return;
+      if (!indice.has(chave)) indice.set(chave, []);
+      indice.get(chave).push(servico);
+    });
+
+    return indice;
+  }, new Map());
+}
+
 function buscarUnico(indice, nome, tipo, linha, erros) {
   const chave = normalizarTexto(nome);
   const encontrados = indice.get(chave) || [];
@@ -138,6 +164,24 @@ function buscarUnico(indice, nome, tipo, linha, erros) {
 
   if (encontrados.length > 1) {
     erros.push(`Linha ${linha}: ${tipo} duplicado com este nome: ${nome}`);
+    return null;
+  }
+
+  return encontrados[0];
+}
+
+function buscarServico(indiceServicos, nome, linha, erros) {
+  const chaveExata = normalizarTexto(nome);
+  const chaveComposta = normalizarServicoComposto(nome);
+  const encontrados = indiceServicos.get(chaveExata) || indiceServicos.get(chaveComposta) || [];
+
+  if (encontrados.length === 0) {
+    erros.push(`Linha ${linha}: serviço não encontrado: ${nome}`);
+    return null;
+  }
+
+  if (encontrados.length > 1) {
+    erros.push(`Linha ${linha}: serviço duplicado ou ambíguo com este nome: ${nome}`);
     return null;
   }
 
@@ -185,11 +229,11 @@ async function verificarImportacaoAnterior() {
 function montarRegistros(linhas, clientes, servicos, pacotes) {
   const erros = [];
   const indiceClientes = criarIndicePorNome(clientes, "nome");
-  const indiceServicos = criarIndicePorNome(servicos, "nome");
+  const indiceServicos = criarIndiceServicos(servicos);
 
   const registros = linhas.map((linha) => {
     const cliente = buscarUnico(indiceClientes, linha.cliente, "cliente", linha.linha, erros);
-    const servico = buscarUnico(indiceServicos, linha.servico, "serviço", linha.linha, erros);
+    const servico = buscarServico(indiceServicos, linha.servico, linha.linha, erros);
     const valorCobrado = numero(linha.valor_cobrado, 0);
     const valorPago = numero(linha.valor_pago, 0);
     const consumiuPacote = simNao(linha.consumiu_pacote);

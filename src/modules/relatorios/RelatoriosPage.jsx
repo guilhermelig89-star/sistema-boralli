@@ -7,6 +7,8 @@ import {
   formatarOrigem,
   formatarPercentual,
   obterDataMovimento,
+  obterValorPendente,
+  obterValorRecebido,
 } from "../financeiro/services/financeiroService";
 import { useFinanceiro } from "../financeiro/hooks/useFinanceiro";
 import { calcularSaldoPacote, obterResumoItensPacote } from "../pacotes/domain/pacotesDomain";
@@ -77,6 +79,18 @@ function statusPacote(pacote) {
   return "Ativo";
 }
 
+function valorMovimentoRelatorio(movimento) {
+  if (movimento.tipo === "despesa") return Number(movimento.valor || 0) * -1;
+  return obterValorRecebido(movimento);
+}
+
+function statusFinanceiroRelatorio(movimento) {
+  if (movimento.status === "parcial") return "Parcial";
+  if (movimento.status === "pendente") return "Pendente";
+  if (movimento.status === "cancelado") return "Cancelado";
+  return "Pago";
+}
+
 function BlocoResumo({ titulo, valor, detalhe }) {
   return (
     <div className="relatorio-resumo-card">
@@ -101,10 +115,10 @@ function RelatorioFinanceiro({ dre, movimentos }) {
       <section className="relatorio-secao">
         <h3>Resumo financeiro</h3>
         <div className="relatorio-resumo-grid">
-          <BlocoResumo titulo="Receita bruta" valor={formatarMoeda(dre.receitaBruta)} />
+          <BlocoResumo titulo="Recebido" valor={formatarMoeda(dre.recebido)} />
+          <BlocoResumo titulo="Pendente" valor={formatarMoeda(dre.pendente)} />
           <BlocoResumo titulo="Despesas" valor={formatarMoeda(dre.despesas)} />
           <BlocoResumo titulo="Resultado líquido" valor={formatarMoeda(dre.resultadoLiquido)} />
-          <BlocoResumo titulo="Margem líquida" valor={formatarPercentual(dre.margemLiquida)} />
         </div>
       </section>
 
@@ -112,10 +126,12 @@ function RelatorioFinanceiro({ dre, movimentos }) {
         <h3>DRE do período</h3>
         <table className="relatorio-tabela">
           <tbody>
-            <tr><td>Receita bruta</td><td>{formatarMoeda(dre.receitaBruta)}</td></tr>
+            <tr><td>Recebido no período</td><td>{formatarMoeda(dre.recebido)}</td></tr>
             <tr><td>Pacotes vendidos</td><td>{formatarMoeda(dre.vendaPacotes)}</td></tr>
             <tr><td>Atendimentos avulsos</td><td>{formatarMoeda(dre.atendimentosAvulsos)}</td></tr>
             <tr><td>Outras receitas</td><td>{formatarMoeda(dre.outrasReceitas)}</td></tr>
+            <tr><td>Pendente em aberto</td><td>{formatarMoeda(dre.pendente)}</td></tr>
+            <tr><td>Descontos concedidos</td><td>{formatarMoeda(dre.descontos)}</td></tr>
             <tr><td>Despesas</td><td>{formatarMoeda(dre.despesas)}</td></tr>
             <tr className="linha-total"><td>Resultado líquido</td><td>{formatarMoeda(dre.resultadoLiquido)}</td></tr>
           </tbody>
@@ -176,7 +192,9 @@ function RelatorioFinanceiro({ dre, movimentos }) {
                 <th>Origem</th>
                 <th>Descrição</th>
                 <th>Forma</th>
-                <th>Valor</th>
+                <th>Status</th>
+                <th>Recebido</th>
+                <th>Pendente</th>
               </tr>
             </thead>
             <tbody>
@@ -186,7 +204,9 @@ function RelatorioFinanceiro({ dre, movimentos }) {
                   <td>{formatarOrigem(movimento.origem)}</td>
                   <td>{movimento.descricao || movimento.clienteNome || "-"}</td>
                   <td>{movimento.formaPagamento || "-"}</td>
-                  <td>{formatarMoeda(movimento.tipo === "despesa" ? Number(movimento.valor || 0) * -1 : movimento.valor)}</td>
+                  <td>{statusFinanceiroRelatorio(movimento)}</td>
+                  <td>{formatarMoeda(valorMovimentoRelatorio(movimento))}</td>
+                  <td>{formatarMoeda(obterValorPendente(movimento))}</td>
                 </tr>
               ))}
             </tbody>
@@ -334,7 +354,7 @@ function RelatoriosPage() {
       dataFim: filtros.dataFim,
       clienteId: filtros.clienteId,
       origem: "todos",
-      status: "confirmado",
+      status: "",
       pesquisa: "",
     }),
     [filtros.clienteId, filtros.dataFim, filtros.dataInicio]

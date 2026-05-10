@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "node --test src/modules/pacotes/domain/pacotesDomain.test.js",
     "limpar:dados": "node scripts/limparDadosTeste.js",
+    "importar:agendamentos": "node scripts/importacao/importarAgendamentos.js",
     "preview": "vite preview"
   },
   "dependencies": {

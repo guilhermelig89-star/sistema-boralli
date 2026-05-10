@@ -20,6 +20,7 @@ const filtrosFinanceiroHistorico = {
 
 function ClientesPage() {
   const [pesquisa, setPesquisa] = useState("");
+  const [formularioAberto, setFormularioAberto] = useState(false);
   const [clienteEditando, setClienteEditando] = useState(null);
   const [clienteHistorico, setClienteHistorico] = useState(null);
 
@@ -44,10 +45,25 @@ function ClientesPage() {
     );
   }, [clientesAtivos, pesquisa]);
 
+  function abrirNovoCadastro() {
+    setClienteEditando(null);
+    setFormularioAberto(true);
+  }
+
+  function editarCliente(cliente) {
+    setClienteEditando(cliente);
+    setFormularioAberto(true);
+  }
+
+  function fecharFormulario() {
+    setClienteEditando(null);
+    setFormularioAberto(false);
+  }
+
   async function salvarFormulario(dados) {
     try {
       await salvarCliente(dados, clienteEditando?.id);
-      setClienteEditando(null);
+      fecharFormulario();
     } catch (erroSalvar) {
       alert(erroSalvar.message || "Não foi possível salvar o cliente.");
     }
@@ -59,6 +75,9 @@ function ClientesPage() {
       if (clienteHistorico?.id === id) {
         setClienteHistorico(null);
       }
+      if (clienteEditando?.id === id) {
+        fecharFormulario();
+      }
     } catch (erroDesativar) {
       alert(erroDesativar.message || "Não foi possível desativar o cliente.");
     }
@@ -69,17 +88,23 @@ function ClientesPage() {
       <div className="topo-clientes topo-clientes-modulo">
         <div>
           <h1>Clientes</h1>
-          <p>Cadastre clientes, consulte dados de contato e acompanhe o histórico de cada pessoa.</p>
+          <p>Consulte clientes, veja histórico e abra o cadastro apenas quando precisar.</p>
         </div>
+
+        <button type="button" className="botao-novo-cliente" onClick={abrirNovoCadastro}>
+          Novo cadastro
+        </button>
       </div>
 
       <div className="cliente-layout">
-        <ClienteForm
-          key={clienteEditando?.id || "novo-cliente"}
-          cliente={clienteEditando}
-          onSalvar={salvarFormulario}
-          onCancelar={() => setClienteEditando(null)}
-        />
+        {formularioAberto && (
+          <ClienteForm
+            key={clienteEditando?.id || "novo-cliente"}
+            cliente={clienteEditando}
+            onSalvar={salvarFormulario}
+            onCancelar={fecharFormulario}
+          />
+        )}
 
         <div className="lista-clientes bloco-lista-clientes">
           <div className="cabecalho-lista-clientes">
@@ -101,7 +126,7 @@ function ClientesPage() {
           <ClientesTable
             clientes={clientesFiltrados}
             carregando={carregando}
-            onEditar={setClienteEditando}
+            onEditar={editarCliente}
             onDesativar={desativar}
             onHistorico={setClienteHistorico}
           />

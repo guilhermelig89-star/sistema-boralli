@@ -236,6 +236,8 @@ function adicionarAgendamento(batch, registro) {
     const pacoteRef = doc(db, "pacotesClientes", pacote.id);
     const historicoRef = doc(collection(db, "pacotesHistorico"));
 
+    Object.assign(pacote, resultadoConsumo.atualizacao);
+
     consumoPacote = {
       ...resultadoConsumo.consumoPacote,
       agendamentoId: agendamentoRef.id,

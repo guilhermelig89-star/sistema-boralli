@@ -64,12 +64,7 @@ function ClienteForm({ cliente, onSalvar, onCancelar }) {
 
   async function salvar(e) {
     e.preventDefault();
-
     await onSalvar(formulario);
-
-    if (!cliente) {
-      setFormulario(clienteInicial);
-    }
   }
 
   return (

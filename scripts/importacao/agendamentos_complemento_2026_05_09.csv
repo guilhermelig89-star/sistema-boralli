@@ -1,0 +1,4 @@
+cliente,servico,data,hora_inicio,hora_fim,status,valor_cobrado,valor_pago,forma_pagamento,pacote_nome,consumiu_pacote,observacao
+JOANA,MÃO + PÉ,2026-05-08,19:00,21:10,finalizado,70,70,Pix,,não,Complemento agenda antiga
+ANA PAULA,Mão,2026-05-09,14:10,15:30,finalizado,35,35,Pix,,não,Complemento agenda antiga
+ANGELA,MÃO + PÉ,2026-05-09,16:30,18:40,finalizado,70,70,Pix,,não,Complemento agenda antiga

@@ -8,6 +8,8 @@ import {
   runTransaction,
   serverTimestamp,
   updateDoc,
+  deleteDoc,
+  arrayUnion,
 } from "firebase/firestore";
 
 import { consumirServicoDoPacote } from "../../pacotes/domain/pacotesDomain";
@@ -134,6 +136,18 @@ export function cancelarAgendamentoRegistro(agendamentoId) {
     canceladoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp(),
   });
+}
+
+export function atualizarAgendamentoRegistro(agendamentoId, dadosAtualizados, historicoAlteracoes = []) {
+  return updateDoc(doc(db, "agendamentos", agendamentoId), {
+    ...dadosAtualizados,
+    historicoAlteracoes: arrayUnion(...historicoAlteracoes),
+    atualizadoEm: serverTimestamp(),
+  });
+}
+
+export function excluirAgendamentoRegistro(agendamentoId) {
+  return deleteDoc(doc(db, "agendamentos", agendamentoId));
 }
 
 export function finalizarAgendamentoRegistro(agendamentoId, fechamentoFinanceiro = {}) {

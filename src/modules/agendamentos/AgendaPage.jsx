@@ -10,6 +10,7 @@ import AgendaFiltros from "./components/AgendaFiltros";
 import AgendaResumo from "./components/AgendaResumo";
 import AgendamentoForm from "./components/AgendamentoForm";
 import AgendamentosTable from "./components/AgendamentosTable";
+import AgendamentoEditModal from "./components/AgendamentoEditModal";
 import AlertaTempoAtendimento from "./components/AlertaTempoAtendimento";
 import { useAgendaConfiguracao } from "./hooks/useAgendaConfiguracao";
 import { useAgendamentos } from "./hooks/useAgendamentos";
@@ -30,6 +31,7 @@ function AgendaPage() {
   const [abaAtual, setAbaAtual] = useState("agenda");
   const [alertaTempo, setAlertaTempo] = useState(null);
   const [agendamentoFechamento, setAgendamentoFechamento] = useState(null);
+  const [agendamentoEmEdicao, setAgendamentoEmEdicao] = useState(null);
   const { clientesAtivos } = useClientes();
   const { servicosAtivos } = useServicos();
   const {
@@ -59,6 +61,8 @@ function AgendaPage() {
     iniciarAtendimento,
     finalizarAtendimento,
     cancelarAtendimento,
+    salvarEdicaoAgendamento,
+    excluirAgendamentoPorId,
   } = useAgendamentos();
 
   const pacotesPorId = useMemo(
@@ -173,6 +177,41 @@ function AgendaPage() {
     }
   }
 
+
+  async function salvarEdicao(dadosEdicao) {
+    if (!agendamentoEmEdicao) return;
+
+    try {
+      await salvarEdicaoAgendamento(
+        {
+          original: agendamentoEmEdicao,
+          dados: dadosEdicao,
+          confirmarEdicaoFinalizado: () =>
+            confirm("Esse agendamento está finalizado. Confirmar alteração de pacote/financeiro?")
+        },
+        { horarios, excecoes }
+      );
+      setAgendamentoEmEdicao(null);
+      alert("Agendamento atualizado com sucesso.");
+    } catch (erroSalvar) {
+      alert(erroSalvar.message || "Não foi possível salvar as alterações.");
+    }
+  }
+
+  async function excluirEdicao() {
+    if (!agendamentoEmEdicao) return;
+    const confirmar = confirm("Excluir este agendamento? Esta ação não pode ser desfeita.");
+    if (!confirmar) return;
+
+    try {
+      await excluirAgendamentoPorId(agendamentoEmEdicao.id);
+      setAgendamentoEmEdicao(null);
+      alert("Agendamento excluído com sucesso.");
+    } catch (erroExcluir) {
+      alert(erroExcluir.message || "Não foi possível excluir o agendamento.");
+    }
+  }
+
   async function ajustarTempoCliente() {
     if (!alertaTempo) return;
 
@@ -261,6 +300,7 @@ function AgendaPage() {
                 onIniciar={iniciar}
                 onFinalizar={finalizar}
                 onCancelar={cancelar}
+                onEditar={setAgendamentoEmEdicao}
               />
             </div>
           </>
@@ -284,6 +324,17 @@ function AgendaPage() {
           pacote={pacoteFechamento}
           onFechar={() => setAgendamentoFechamento(null)}
           onConfirmar={confirmarFechamento}
+        />
+      )}
+
+      {agendamentoEmEdicao && (
+        <AgendamentoEditModal
+          agendamento={agendamentoEmEdicao}
+          clientes={clientesAtivos}
+          servicos={servicosAtivos}
+          onSalvar={salvarEdicao}
+          onCancelar={() => setAgendamentoEmEdicao(null)}
+          onExcluir={excluirEdicao}
         />
       )}
 

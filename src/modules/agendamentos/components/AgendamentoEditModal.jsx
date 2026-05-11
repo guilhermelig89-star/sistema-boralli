@@ -21,7 +21,19 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
 
 
   function alterarCampo(campo, valor) {
-    setFormulario((atual) => ({ ...atual, [campo]: valor }));
+    setFormulario((atual) => {
+      if (campo === "hora") {
+        const inicio = horaParaMinutos(valor);
+        const duracao = Number(atual.servicoDuracaoMinutos) || 0;
+        return {
+          ...atual,
+          hora: valor,
+          horaFim: inicio !== null ? minutosParaHora(inicio + duracao) : atual.horaFim,
+        };
+      }
+
+      return { ...atual, [campo]: valor };
+    });
   }
 
   function alterarDuracao(valor) {

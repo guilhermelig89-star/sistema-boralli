@@ -460,6 +460,18 @@
   text-align: left;
 }
 
+.financeiro-movimentos-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.financeiro-movimentos-topo h2 {
+  margin: 0;
+}
+
 .linha-financeiro {
   display: grid;
   grid-template-columns: 110px 1fr 1.4fr 130px 130px 120px;
@@ -537,7 +549,8 @@
   .linha-analise-financeira,
   .item-categoria-despesa,
   .cabecalho-pendencias-financeiras,
-  .dados-pendencia-financeira {
+  .dados-pendencia-financeira,
+  .financeiro-movimentos-topo {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -547,7 +560,8 @@
   .rodape-despesa-form button,
   .form-categoria-despesa button,
   .item-categoria-despesa button,
-  .form-pendencia-financeira button {
+  .form-pendencia-financeira button,
+  .financeiro-movimentos-topo button {
     width: 100%;
   }
 

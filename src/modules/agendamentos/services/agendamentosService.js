@@ -151,7 +151,12 @@ export function montarAgendamento(dados) {
     pacoteNome: texto(dados.pacoteNome),
     data: texto(dados.data),
     hora: texto(dados.hora),
-    formaPagamento: dados.pacoteClienteId ? "pacote" : texto(dados.formaPagamento, "avulso"),
+    formaPagamento:
+      dados.pacoteClienteId
+        ? "pacote"
+        : texto(dados.formaPagamento, "avulso") === "combo"
+          ? "avulso"
+          : texto(dados.formaPagamento, "avulso"),
     valor: dados.pacoteClienteId ? 0 : numero(dados.valor, 0),
     observacoes: texto(dados.observacoes),
   };

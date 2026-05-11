@@ -17,6 +17,8 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
     ...agendamento,
     desconto: agendamento.desconto || 0,
     statusFinanceiro: agendamento.statusFinanceiro || "pendente",
+    formaPagamento:
+      agendamento.pacoteClienteId ? "pacote" : agendamento.formaPagamento === "combo" ? "avulso" : agendamento.formaPagamento || "avulso",
   });
 
 
@@ -88,14 +90,20 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
           </select>
           <input type="date" value={formulario.data || ""} onChange={(e) => alterarCampo("data", e.target.value)} />
           <input type="time" value={formulario.hora || ""} onChange={(e) => alterarCampo("hora", e.target.value)} />
-          <input type="number" value={formulario.servicoDuracaoMinutos || 0} onChange={(e) => alterarDuracao(e.target.value)} placeholder="Duração (min)" />
-          <input type="time" value={formulario.horaFim || ""} onChange={(e) => alterarHoraFim(e.target.value)} placeholder="Horário final" />
+          <input type="number" value={formulario.servicoDuracaoMinutos || 0} onChange={(e) => alterarDuracao(e.target.value)} placeholder="Duração prevista (min)" />
+          <input type="time" value={formulario.horaFim || ""} onChange={(e) => alterarHoraFim(e.target.value)} placeholder="Horário de término" />
           <input type="number" value={formulario.valor || 0} onChange={(e) => alterarCampo("valor", Number(e.target.value))} placeholder="Valor" />
           <input type="number" value={formulario.desconto || 0} onChange={(e) => alterarCampo("desconto", Number(e.target.value))} placeholder="Desconto" />
           <select value={formulario.status || "agendado"} onChange={(e) => alterarCampo("status", e.target.value)}>
             <option value="agendado">Agendado</option><option value="confirmado">Confirmado</option><option value="em_atendimento">Em atendimento</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option>
           </select>
-          <input placeholder="Forma de pagamento" value={formulario.formaPagamento || ""} onChange={(e) => alterarCampo("formaPagamento", e.target.value)} />
+          <select value={formulario.formaPagamento || "avulso"} onChange={(e) => alterarCampo("formaPagamento", e.target.value)} disabled={Boolean(formulario.pacoteClienteId)}>
+            <option value="avulso">Avulso</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="pix">PIX</option>
+            <option value="cartao">Cartão</option>
+            <option value="pacote">Pacote</option>
+          </select>
           <select value={formulario.statusFinanceiro || "pendente"} onChange={(e) => alterarCampo("statusFinanceiro", e.target.value)}>
             <option value="pendente">Pendente</option><option value="parcial">Parcial</option><option value="pago">Pago</option>
           </select>

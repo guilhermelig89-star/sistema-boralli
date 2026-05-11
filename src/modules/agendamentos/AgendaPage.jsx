@@ -332,6 +332,9 @@ function AgendaPage() {
           agendamento={agendamentoEmEdicao}
           clientes={clientesAtivos}
           servicos={servicosAtivos}
+          pacotesAtivos={pacotesAtivos}
+          calcularSaldoServicoPacote={calcularSaldoServicoPacote}
+          pacoteTemSaldoParaServico={pacoteTemSaldoParaServico}
           onSalvar={salvarEdicao}
           onCancelar={() => setAgendamentoEmEdicao(null)}
           onExcluir={excluirEdicao}

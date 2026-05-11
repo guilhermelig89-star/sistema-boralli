@@ -359,3 +359,24 @@
   flex: 1 1 180px;
   min-height: 44px;
 }
+
+.cabecalho-form-agendamento {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cabecalho-form-agendamento h2 {
+  margin: 0;
+}
+
+.botao-toggle-agendamento {
+  border: 1px solid #d8c7b7;
+  border-radius: 12px;
+  background: #fff;
+  color: #3b2b25;
+  padding: 10px 14px;
+  font-weight: 700;
+}

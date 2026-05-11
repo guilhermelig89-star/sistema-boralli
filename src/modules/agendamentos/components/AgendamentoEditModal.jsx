@@ -1,5 +1,17 @@
 import { useState } from "react";
 
+function horaParaMinutos(hora) {
+  const [h, m] = String(hora || "").split(":").map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return h * 60 + m;
+}
+
+function minutosParaHora(total) {
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCancelar, onExcluir }) {
   const [formulario, setFormulario] = useState({
     ...agendamento,
@@ -9,7 +21,41 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
 
 
   function alterarCampo(campo, valor) {
-    setFormulario((atual) => ({ ...atual, [campo]: valor }));
+    setFormulario((atual) => {
+      if (campo === "hora") {
+        const inicio = horaParaMinutos(valor);
+        const duracao = Number(atual.servicoDuracaoMinutos) || 0;
+        return {
+          ...atual,
+          hora: valor,
+          horaFim: inicio !== null ? minutosParaHora(inicio + duracao) : atual.horaFim,
+        };
+      }
+
+      return { ...atual, [campo]: valor };
+    });
+  }
+
+  function alterarDuracao(valor) {
+    const duracao = Number(valor) || 0;
+    setFormulario((atual) => {
+      const inicio = horaParaMinutos(atual.hora);
+      return {
+        ...atual,
+        servicoDuracaoMinutos: duracao,
+        tempoPrevistoMinutos: duracao,
+        horaFim: inicio !== null ? minutosParaHora(inicio + duracao) : atual.horaFim,
+      };
+    });
+  }
+
+  function alterarHoraFim(valor) {
+    setFormulario((atual) => {
+      const inicio = horaParaMinutos(atual.hora);
+      const fim = horaParaMinutos(valor);
+      const duracao = inicio !== null && fim !== null && fim > inicio ? fim - inicio : atual.servicoDuracaoMinutos;
+      return { ...atual, horaFim: valor, servicoDuracaoMinutos: duracao, tempoPrevistoMinutos: duracao };
+    });
   }
 
   function trocarServico(servicoId) {
@@ -33,7 +79,7 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
     <div className="modal-tempo-backdrop" role="presentation">
       <section className="modal-tempo modal-tempo-leve" role="dialog" aria-modal="true">
         <div className="modal-tempo-topo"><h2>Editar agendamento</h2></div>
-        <form className="form-cliente" onSubmit={salvar}>
+        <form className="form-cliente form-edicao-agendamento" onSubmit={salvar}>
           <select value={formulario.clienteId} onChange={(e) => alterarCampo("clienteId", e.target.value)}>
             {clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.nome}</option>)}
           </select>
@@ -42,7 +88,8 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
           </select>
           <input type="date" value={formulario.data || ""} onChange={(e) => alterarCampo("data", e.target.value)} />
           <input type="time" value={formulario.hora || ""} onChange={(e) => alterarCampo("hora", e.target.value)} />
-          <input type="number" value={formulario.servicoDuracaoMinutos || 0} onChange={(e) => alterarCampo("servicoDuracaoMinutos", Number(e.target.value))} placeholder="Duração (min)" />
+          <input type="number" value={formulario.servicoDuracaoMinutos || 0} onChange={(e) => alterarDuracao(e.target.value)} placeholder="Duração (min)" />
+          <input type="time" value={formulario.horaFim || ""} onChange={(e) => alterarHoraFim(e.target.value)} placeholder="Horário final" />
           <input type="number" value={formulario.valor || 0} onChange={(e) => alterarCampo("valor", Number(e.target.value))} placeholder="Valor" />
           <input type="number" value={formulario.desconto || 0} onChange={(e) => alterarCampo("desconto", Number(e.target.value))} placeholder="Desconto" />
           <select value={formulario.status || "agendado"} onChange={(e) => alterarCampo("status", e.target.value)}>
@@ -54,8 +101,8 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
           </select>
           <textarea placeholder="Observação" value={formulario.observacoes || ""} onChange={(e) => alterarCampo("observacoes", e.target.value)} />
 
-          <div className="modal-tempo-acoes">
-            <button type="submit">Salvar alterações</button>
+          <div className="modal-acoes-edicao">
+            <button type="submit" className="botao-tempo-cliente">Salvar alterações</button>
             <button type="button" className="botao-tempo-neutro" onClick={onCancelar}>Cancelar edição</button>
             <button type="button" className="botao-desativar" onClick={onExcluir}>Excluir agendamento</button>
           </div>

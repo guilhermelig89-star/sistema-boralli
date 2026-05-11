@@ -337,3 +337,25 @@
     flex-direction: column;
   }
 }
+
+.form-edicao-agendamento {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.form-edicao-agendamento textarea,
+.form-edicao-agendamento .modal-acoes-edicao {
+  grid-column: 1 / -1;
+}
+
+.modal-acoes-edicao {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-acoes-edicao button {
+  flex: 1 1 180px;
+  min-height: 44px;
+}

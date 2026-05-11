@@ -12,7 +12,7 @@ function statusTexto(status) {
   return "Agendado";
 }
 
-function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, onCancelar }) {
+function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, onCancelar, onEditar }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-agendamento cabecalho">
@@ -57,6 +57,8 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
               </span>
               <div className="acoes-cliente">
                 <span className={statusClasse(agendamento.status)}>{statusTexto(agendamento.status)}</span>
+
+                <button className="botao-editar" onClick={() => onEditar(agendamento)}>Editar</button>
 
                 {!encerrado && !emAtendimento && (
                   <button

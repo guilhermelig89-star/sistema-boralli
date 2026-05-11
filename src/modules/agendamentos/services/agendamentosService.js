@@ -3,6 +3,8 @@ import {
   cancelarAgendamentoRegistro,
   finalizarAgendamentoRegistro,
   iniciarAgendamentoRegistro,
+  atualizarAgendamentoRegistro,
+  excluirAgendamentoRegistro,
 } from "../repositories/agendamentosRepository";
 
 function texto(valor, padrao = "") {
@@ -292,6 +294,35 @@ export function validarConflitoHorario(agendamento, agendamentosExistentes) {
   });
 }
 
+function construirHistoricoAlteracoes(anterior, proximo) {
+  const campos = [
+    "clienteId",
+    "clienteNome",
+    "servicoId",
+    "servicoNome",
+    "data",
+    "hora",
+    "servicoDuracaoMinutos",
+    "valor",
+    "desconto",
+    "observacoes",
+    "status",
+    "formaPagamento",
+    "statusFinanceiro",
+  ];
+
+  const alteracoes = campos
+    .filter((campo) => (anterior?.[campo] ?? "") !== (proximo?.[campo] ?? ""))
+    .map((campo) => ({ campo, valorAntigo: anterior?.[campo] ?? null, valorNovo: proximo?.[campo] ?? null }));
+
+  if (!alteracoes.length) return [];
+
+  return [{
+    alteradoEm: new Date().toISOString(),
+    alteracoes,
+  }];
+}
+
 export async function criarAgendamento(dados, agendamentosExistentes = [], configuracaoAgenda = {}) {
   const agendamento = montarAgendamento(dados);
   const configuracao = {
@@ -330,4 +361,44 @@ export function finalizarAgendamento(id, fechamentoFinanceiro) {
 
 export function cancelarAgendamento(id) {
   return cancelarAgendamentoRegistro(id);
+}
+
+export async function editarAgendamento({
+  original,
+  dados,
+  agendamentosExistentes = [],
+  configuracaoAgenda = {},
+  confirmarEdicaoFinalizado,
+}) {
+  const configuracao = {
+    horarios: configuracaoAgenda.horarios || [],
+    excecoes: configuracaoAgenda.excecoes || [],
+  };
+  const atualizado = {
+    ...montarAgendamento(dados),
+    status: texto(dados.status, original.status || "agendado"),
+    desconto: numero(dados.desconto, 0),
+    statusFinanceiro: texto(dados.statusFinanceiro, original.statusFinanceiro || "pendente"),
+  };
+
+  validarHorarioDisponivel(atualizado, configuracao);
+
+  const semAtual = agendamentosExistentes.filter((item) => item.id !== original.id);
+  if (validarConflitoHorario(atualizado, semAtual)) {
+    throw new Error("Este horário conflita com outro agendamento ativo.");
+  }
+
+  if (original.status === "finalizado" && (original.pacoteClienteId !== atualizado.pacoteClienteId || Number(original.valor || 0) !== Number(atualizado.valor || 0))) {
+    const confirmou = typeof confirmarEdicaoFinalizado === "function" ? confirmarEdicaoFinalizado() : false;
+    if (!confirmou) {
+      throw new Error("Edição de pacote/financeiro cancelada para agendamento finalizado.");
+    }
+  }
+
+  const historico = construirHistoricoAlteracoes(original, atualizado);
+  return atualizarAgendamentoRegistro(original.id, atualizado, historico);
+}
+
+export function excluirAgendamento(id) {
+  return excluirAgendamentoRegistro(id);
 }

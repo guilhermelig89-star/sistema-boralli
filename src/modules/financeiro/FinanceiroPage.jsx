@@ -44,6 +44,7 @@ function criarFiltrosIniciais() {
 function FinanceiroPage() {
   const [filtros, setFiltros] = useState(criarFiltrosIniciais);
   const [abaDespesa, setAbaDespesa] = useState("lancar");
+  const [movimentosVisiveis, setMovimentosVisiveis] = useState(false);
   const { clientesAtivos } = useClientes();
   const {
     categoriasDespesa,
@@ -145,9 +146,23 @@ function FinanceiroPage() {
         <FinanceiroDre dre={dreFiltro} />
 
         <div className="lista-clientes">
-          <h2>Movimentos financeiros</h2>
-          {erro && <p>{erro}</p>}
-          <MovimentosTable movimentos={movimentosFiltrados} carregando={carregando} />
+          <div className="financeiro-movimentos-topo">
+            <h2>Movimentos financeiros</h2>
+            <button
+              type="button"
+              className="botao-principal"
+              onClick={() => setMovimentosVisiveis((visivel) => !visivel)}
+              aria-expanded={movimentosVisiveis}
+            >
+              {movimentosVisiveis ? "Ocultar movimentos financeiros" : "Ver movimentos financeiros"}
+            </button>
+          </div>
+          {movimentosVisiveis && (
+            <>
+              {erro && <p>{erro}</p>}
+              <MovimentosTable movimentos={movimentosFiltrados} carregando={carregando} />
+            </>
+          )}
         </div>
       </div>
     </div>

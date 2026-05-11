@@ -4,6 +4,8 @@ import { observarAgendamentos } from "../repositories/agendamentosRepository";
 import {
   cancelarAgendamento,
   criarAgendamento,
+  editarAgendamento,
+  excluirAgendamento,
   finalizarAgendamento,
   iniciarAgendamento,
 } from "../services/agendamentosService";
@@ -54,6 +56,16 @@ export function useAgendamentos() {
     return cancelarAgendamento(id);
   }
 
+  async function salvarEdicaoAgendamento(payload, configuracaoAgenda) {
+    setErro(null);
+    return editarAgendamento({ ...payload, agendamentosExistentes: agendamentos, configuracaoAgenda });
+  }
+
+  async function excluirAgendamentoPorId(id) {
+    setErro(null);
+    return excluirAgendamento(id);
+  }
+
   return {
     agendamentos,
     agendamentosAbertos,
@@ -63,5 +75,7 @@ export function useAgendamentos() {
     iniciarAtendimento,
     finalizarAtendimento,
     cancelarAtendimento,
+    salvarEdicaoAgendamento,
+    excluirAgendamentoPorId,
   };
 }

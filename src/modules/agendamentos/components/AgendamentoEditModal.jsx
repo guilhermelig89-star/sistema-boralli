@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 function horaParaMinutos(hora) {
   const [h, m] = String(hora || "").split(":").map(Number);
@@ -12,14 +12,42 @@ function minutosParaHora(total) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCancelar, onExcluir }) {
+function AgendamentoEditModal({
+  agendamento,
+  clientes,
+  servicos,
+  pacotesAtivos,
+  calcularSaldoServicoPacote,
+  pacoteTemSaldoParaServico,
+  onSalvar,
+  onCancelar,
+  onExcluir,
+}) {
   const [formulario, setFormulario] = useState({
     ...agendamento,
     desconto: agendamento.desconto || 0,
     statusFinanceiro: agendamento.statusFinanceiro || "pendente",
-    formaPagamento:
-      agendamento.pacoteClienteId ? "pacote" : agendamento.formaPagamento === "combo" ? "avulso" : agendamento.formaPagamento || "avulso",
+    formaPagamento: agendamento.pacoteClienteId ? "pacote" : "avulso",
   });
+
+  const pacotesDisponiveis = useMemo(
+    () =>
+      (pacotesAtivos || []).filter(
+        (pacote) =>
+          pacote.clienteId === formulario.clienteId &&
+          pacoteTemSaldoParaServico?.(pacote, formulario.servicoId)
+      ),
+    [pacotesAtivos, formulario.clienteId, formulario.servicoId, pacoteTemSaldoParaServico]
+  );
+
+  const pacoteSelecionado = useMemo(
+    () => pacotesDisponiveis.find((pacote) => pacote.id === formulario.pacoteClienteId),
+    [pacotesDisponiveis, formulario.pacoteClienteId]
+  );
+
+  const saldoServicoSelecionado = pacoteSelecionado
+    ? calcularSaldoServicoPacote?.(pacoteSelecionado, formulario.servicoId) || 0
+    : 0;
 
 
   function alterarCampo(campo, valor) {
@@ -31,6 +59,39 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
           ...atual,
           hora: valor,
           horaFim: inicio !== null ? minutosParaHora(inicio + duracao) : atual.horaFim,
+        };
+      }
+
+      if (campo === "formaPagamento") {
+        if (valor === "pacote") {
+          return { ...atual, formaPagamento: "pacote" };
+        }
+
+        return {
+          ...atual,
+          formaPagamento: valor,
+          pacoteClienteId: "",
+          pacoteNome: "",
+          valor: Number(atual.valor || 0),
+        };
+      }
+
+      if (campo === "pacoteClienteId") {
+        const pacote = pacotesDisponiveis.find((item) => item.id === valor);
+        return {
+          ...atual,
+          pacoteClienteId: valor,
+          pacoteNome: pacote?.nome || "",
+          formaPagamento: valor ? "pacote" : "avulso",
+          valor: valor ? 0 : Number(atual.valor || 0),
+        };
+      }
+
+      if (campo === "clienteId" || campo === "servicoId") {
+        return {
+          ...atual,
+          [campo]: valor,
+          ...(atual.formaPagamento === "pacote" ? { pacoteClienteId: "", pacoteNome: "" } : {}),
         };
       }
 
@@ -74,7 +135,24 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
 
   async function salvar(e) {
     e.preventDefault();
-    await onSalvar(formulario);
+    const dadosSalvar = {
+      ...formulario,
+      pacoteClienteId: formulario.formaPagamento === "pacote" ? formulario.pacoteClienteId || "" : "",
+      pacoteNome: formulario.formaPagamento === "pacote" ? formulario.pacoteNome || "" : "",
+      valor: formulario.formaPagamento === "pacote" ? 0 : Number(formulario.valor || 0),
+    };
+
+    if (dadosSalvar.formaPagamento === "pacote" && !dadosSalvar.pacoteClienteId) {
+      alert("Selecione um pacote da cliente para vincular este atendimento.");
+      return;
+    }
+
+    if (dadosSalvar.formaPagamento === "pacote" && saldoServicoSelecionado <= 0) {
+      alert("O pacote selecionado não possui saldo para este serviço.");
+      return;
+    }
+
+    await onSalvar(dadosSalvar);
   }
 
   return (
@@ -97,16 +175,28 @@ function AgendamentoEditModal({ agendamento, clientes, servicos, onSalvar, onCan
           <select value={formulario.status || "agendado"} onChange={(e) => alterarCampo("status", e.target.value)}>
             <option value="agendado">Agendado</option><option value="confirmado">Confirmado</option><option value="em_atendimento">Em atendimento</option><option value="finalizado">Finalizado</option><option value="cancelado">Cancelado</option>
           </select>
-          <select value={formulario.formaPagamento || "avulso"} onChange={(e) => alterarCampo("formaPagamento", e.target.value)} disabled={Boolean(formulario.pacoteClienteId)}>
+          <select value={formulario.formaPagamento || "avulso"} onChange={(e) => alterarCampo("formaPagamento", e.target.value)}>
             <option value="avulso">Avulso</option>
-            <option value="dinheiro">Dinheiro</option>
-            <option value="pix">PIX</option>
-            <option value="cartao">Cartão</option>
             <option value="pacote">Pacote</option>
           </select>
-          <select value={formulario.statusFinanceiro || "pendente"} onChange={(e) => alterarCampo("statusFinanceiro", e.target.value)}>
-            <option value="pendente">Pendente</option><option value="parcial">Parcial</option><option value="pago">Pago</option>
-          </select>
+          {formulario.formaPagamento === "pacote" && (
+            <>
+              <select value={formulario.pacoteClienteId || ""} onChange={(e) => alterarCampo("pacoteClienteId", e.target.value)}>
+                <option value="">Selecione o pacote da cliente</option>
+                {pacotesDisponiveis.map((pacote) => (
+                  <option key={pacote.id} value={pacote.id}>
+                    {pacote.nome}
+                  </option>
+                ))}
+              </select>
+              <small>Saldo restante para o serviço: {saldoServicoSelecionado}</small>
+            </>
+          )}
+          {formulario.formaPagamento === "avulso" && (
+            <select value={formulario.statusFinanceiro || "pendente"} onChange={(e) => alterarCampo("statusFinanceiro", e.target.value)}>
+              <option value="pendente">Pendente</option><option value="parcial">Parcial</option><option value="pago">Pago</option>
+            </select>
+          )}
           <textarea placeholder="Observação" value={formulario.observacoes || ""} onChange={(e) => alterarCampo("observacoes", e.target.value)} />
 
           <div className="modal-acoes-edicao">

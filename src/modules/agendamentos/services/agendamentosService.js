@@ -314,6 +314,8 @@ function construirHistoricoAlteracoes(anterior, proximo) {
     "status",
     "formaPagamento",
     "statusFinanceiro",
+    "pacoteClienteId",
+    "pacoteNome",
   ];
 
   const alteracoes = campos
@@ -383,7 +385,9 @@ export async function editarAgendamento({
     ...montarAgendamento(dados),
     status: texto(dados.status, original.status || "agendado"),
     desconto: numero(dados.desconto, 0),
-    statusFinanceiro: texto(dados.statusFinanceiro, original.statusFinanceiro || "pendente"),
+    statusFinanceiro: dados.pacoteClienteId
+      ? "pacote"
+      : texto(dados.statusFinanceiro, original.statusFinanceiro || "pendente"),
   };
 
   validarHorarioDisponivel(atualizado, configuracao);

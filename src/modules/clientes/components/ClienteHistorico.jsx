@@ -36,6 +36,13 @@ function statusPacote(pacote, calcularSaldoPacote) {
   return `${saldo} restante`;
 }
 
+function resumoUsoPacote(pacote, calcularSaldoPacote) {
+  const total = Number(pacote.quantidadeTotal || 0);
+  const saldo = calcularSaldoPacote(pacote);
+  const usados = Math.max(0, total - saldo);
+  return `${usados}/${total} serviços usados • ${saldo} restante`;
+}
+
 function ClienteHistorico({
   cliente,
   agendamentos,
@@ -79,7 +86,8 @@ function ClienteHistorico({
   }, 0);
 
   return (
-    <section className="lista-clientes historico-cliente">
+    <section className="overlay-historico-cliente" role="dialog" aria-modal="true" aria-label={`Histórico de ${cliente.nome}`}>
+      <div className="lista-clientes historico-cliente">
       <div className="topo-historico-cliente">
         <div>
           <h2>Histórico da cliente</h2>
@@ -146,7 +154,7 @@ function ClienteHistorico({
             {pacotesAtivos.map((pacote) => (
               <div className="item-historico-cliente" key={pacote.id}>
                 <strong>{pacote.nome}</strong>
-                <span>{statusPacote(pacote, calcularSaldoPacote)}</span>
+                <span>{resumoUsoPacote(pacote, calcularSaldoPacote)}</span>
               </div>
             ))}
           </div>
@@ -168,7 +176,7 @@ function ClienteHistorico({
             {historicoCliente.map((item) => (
               <div className="item-historico-cliente" key={item.id}>
                 <strong>{item.servicoNome}</strong>
-                <span>{item.pacoteNome} - {item.saldoAntes} para {item.saldoDepois}</span>
+                <span>{item.pacoteNome} • Uso {item.saldoDepois + 1} de {item.saldoAntes + 1} (restam {item.saldoDepois})</span>
               </div>
             ))}
           </div>
@@ -197,6 +205,7 @@ function ClienteHistorico({
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

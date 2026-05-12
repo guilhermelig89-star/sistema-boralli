@@ -95,6 +95,22 @@
   gap: 18px;
 }
 
+.overlay-historico-cliente {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px;
+  background: rgba(31, 23, 20, 0.28);
+  overflow-y: auto;
+}
+
+.overlay-historico-cliente .historico-cliente {
+  width: min(1080px, 100%);
+}
+
 .topo-historico-cliente {
   display: flex;
   align-items: flex-start;

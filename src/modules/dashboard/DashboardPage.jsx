@@ -151,6 +151,27 @@ function DashboardPage({ onNavigate }) {
   const recebidoDinheiro = somarFormasPagamento(totaisFiltro.porForma, ["dinheiro"]);
   const recebidoCartao = somarFormasPagamento(totaisFiltro.porForma, ["cartão", "cartao"]);
 
+  const destaquesOperacionais = useMemo(
+    () => [
+      {
+        titulo: "Taxa de conclusão",
+        valor: `${percentualConclusao}%`,
+        descricao: "Atendimentos finalizados dentro do período selecionado.",
+      },
+      {
+        titulo: "Receita avulsa prevista",
+        valor: formatarMoeda(receitaAvulsaPrevista),
+        descricao: "Valor potencial dos atendimentos sem pacote ainda pendentes.",
+      },
+      {
+        titulo: "Pacotes para renovação",
+        valor: String(pacotesBaixos.length),
+        descricao: "Clientes com saldo baixo e chance de nova venda.",
+      },
+    ],
+    [pacotesBaixos.length, percentualConclusao, receitaAvulsaPrevista]
+  );
+
   const radarInteligente = useMemo(() => {
     const itens = [];
 
@@ -401,32 +422,24 @@ function DashboardPage({ onNavigate }) {
         <div className="bloco bloco-dashboard">
           <div className="cabecalho-bloco-dashboard">
             <div>
-              <h2>Ações rápidas</h2>
-              <p>Acessos mais usados no dia a dia.</p>
+              <h2>Visão estratégica</h2>
+              <p>Indicadores-chave sem repetir o menu lateral.</p>
             </div>
           </div>
 
-          <div className="acoes-rapidas-dashboard">
-            <button onClick={() => onNavigate("clientes")}>
-              <strong>Adicionar cliente</strong>
-              <span>Novo cadastro para agendar depois.</span>
-            </button>
-            <button onClick={() => onNavigate("servicos")}>
-              <strong>Cadastrar serviço</strong>
-              <span>Atualize preços, duração e combos.</span>
-            </button>
-            <button onClick={() => onNavigate("pacotes")}>
-              <strong>Vender pacote</strong>
-              <span>Registre créditos consumíveis da cliente.</span>
-            </button>
-            <button onClick={() => onNavigate("agenda")}>
-              <strong>Agendar horário</strong>
-              <span>Veja encaixes e horários disponíveis.</span>
-            </button>
-            <button onClick={() => onNavigate("financeiro")}>
-              <strong>Ver financeiro</strong>
-              <span>Acompanhe receitas, despesas e DRE.</span>
-            </button>
+          <div className="destaques-operacionais-dashboard">
+            {destaquesOperacionais.map((destaque) => (
+              <article className="card-destaque-dashboard" key={destaque.titulo}>
+                <span>{destaque.titulo}</span>
+                <strong>{destaque.valor}</strong>
+                <p>{destaque.descricao}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="acoes-contextuais-dashboard">
+            <button className="botao-acao" onClick={() => onNavigate("agenda")}>Novo agendamento</button>
+            <button className="botao-acao-secundario" onClick={() => onNavigate("financeiro")}>Analisar financeiro</button>
           </div>
         </div>
       </div>

@@ -345,39 +345,51 @@
   font-weight: 700;
 }
 
-.acoes-rapidas-dashboard {
+.destaques-operacionais-dashboard {
   display: grid;
-  grid-template-columns: 1fr;
   gap: 10px;
 }
 
-.acoes-rapidas-dashboard button {
-  display: grid;
-  gap: 4px;
-  width: 100%;
-  border: 1px solid #d8c7b7;
+.card-destaque-dashboard {
+  border: 1px solid #eadcca;
   border-radius: 14px;
-  background: #fff;
-  color: #2b2420;
-  padding: 14px 16px;
-  text-align: left;
+  background: linear-gradient(165deg, #ffffff 0%, #fff8ee 100%);
+  padding: 14px;
 }
 
-.acoes-rapidas-dashboard button:hover {
-  border-color: #d7b56d;
-  background: #fffaf0;
-  transform: translateY(-1px);
-}
-
-.acoes-rapidas-dashboard button strong {
-  font-size: 15px;
+.card-destaque-dashboard span {
+  display: block;
+  color: #6f5a49;
+  font-size: 12px;
   font-weight: 900;
+  margin-bottom: 6px;
 }
 
-.acoes-rapidas-dashboard button span {
+.card-destaque-dashboard strong {
+  display: block;
+  color: #171717;
+  font-size: clamp(22px, 2.3vw, 28px);
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+
+.card-destaque-dashboard p {
+  margin: 0;
   color: #7b6b5d;
   font-size: 12px;
   font-weight: 700;
+}
+
+.acoes-contextuais-dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.acoes-contextuais-dashboard .botao-acao,
+.acoes-contextuais-dashboard .botao-acao-secundario {
+  flex: 1;
+  min-width: 160px;
 }
 
 .bloco-pacotes-dashboard,
@@ -417,6 +429,10 @@
   .atalhos-periodo-dashboard {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .acoes-contextuais-dashboard {
+    flex-direction: column;
   }
 
   .painel-operacao-dashboard,

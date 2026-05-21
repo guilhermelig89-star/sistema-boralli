@@ -5,6 +5,7 @@ import {
   iniciarAgendamentoRegistro,
   atualizarAgendamentoRegistro,
   excluirAgendamentoRegistro,
+  venderPacoteNoAtendimentoRegistro,
 } from "../repositories/agendamentosRepository";
 
 function texto(valor, padrao = "") {
@@ -410,4 +411,8 @@ export async function editarAgendamento({
 
 export function excluirAgendamento(id) {
   return excluirAgendamentoRegistro(id);
+}
+
+export function venderPacoteNoAtendimento(id, vendaPacote) {
+  return venderPacoteNoAtendimentoRegistro(id, vendaPacote);
 }

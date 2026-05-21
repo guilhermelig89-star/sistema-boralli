@@ -8,6 +8,7 @@ import {
   excluirAgendamento,
   finalizarAgendamento,
   iniciarAgendamento,
+  venderPacoteNoAtendimento,
 } from "../services/agendamentosService";
 
 export function useAgendamentos() {
@@ -60,6 +61,10 @@ export function useAgendamentos() {
     setErro(null);
     return editarAgendamento({ ...payload, agendamentosExistentes: agendamentos, configuracaoAgenda });
   }
+  async function venderPacoteDuranteAtendimento(id, vendaPacote) {
+    setErro(null);
+    return venderPacoteNoAtendimento(id, vendaPacote);
+  }
 
   async function excluirAgendamentoPorId(id) {
     setErro(null);
@@ -77,5 +82,6 @@ export function useAgendamentos() {
     cancelarAtendimento,
     salvarEdicaoAgendamento,
     excluirAgendamentoPorId,
+    venderPacoteDuranteAtendimento,
   };
 }

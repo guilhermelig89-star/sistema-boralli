@@ -275,3 +275,137 @@ export function finalizarAgendamentoRegistro(agendamentoId, fechamentoFinanceiro
     };
   });
 }
+
+export function venderPacoteNoAtendimentoRegistro(agendamentoId, vendaPacote = {}) {
+  return runTransaction(db, async (transaction) => {
+    const agendamentoRef = doc(db, "agendamentos", agendamentoId);
+    const agendamentoSnapshot = await transaction.get(agendamentoRef);
+
+    if (!agendamentoSnapshot.exists()) {
+      throw new Error("Agendamento não encontrado.");
+    }
+
+    const agendamento = agendamentoSnapshot.data();
+
+    if (agendamento.status !== "em_atendimento") {
+      throw new Error("A venda de pacote no atendimento só pode ser feita em atendimento em andamento.");
+    }
+
+    if (agendamento.pacoteClienteId) {
+      throw new Error("Este agendamento já está vinculado a um pacote.");
+    }
+
+    const comboId = texto(vendaPacote.comboId);
+    const comboNome = texto(vendaPacote.comboNome);
+    const nome = texto(vendaPacote.nome, comboNome ? `Pacote ${comboNome}` : "Pacote");
+    const formaPagamento = texto(vendaPacote.formaPagamento);
+    const valorPago = Math.max(0, numero(vendaPacote.valorPago, 0));
+    const itens = Array.isArray(vendaPacote.itens) ? vendaPacote.itens : [];
+
+    if (!comboId || !itens.length) {
+      throw new Error("Selecione um pacote válido para vender no atendimento.");
+    }
+    if (!formaPagamento) {
+      throw new Error("Informe a forma de pagamento da venda do pacote.");
+    }
+
+    const itemServicoAtual = itens.find((item) => item.servicoId === agendamento.servicoId);
+    if (!itemServicoAtual || numero(itemServicoAtual.quantidade, 0) <= 0) {
+      throw new Error("O pacote selecionado não possui saldo para o serviço do atendimento atual.");
+    }
+
+    const pacoteDoc = doc(pacotesRef);
+    const totalItens = itens.reduce((acc, item) => acc + Math.max(0, numero(item.quantidade, 0)), 0);
+    const itensPacote = itens
+      .map((item) => ({
+        servicoId: item.servicoId,
+        servicoNome: texto(item.servicoNome),
+        quantidadeTotal: Math.max(0, numero(item.quantidade, 0)),
+        quantidadeUtilizada: item.servicoId === agendamento.servicoId ? 1 : 0,
+        saldoRestante: Math.max(0, numero(item.quantidade, 0) - (item.servicoId === agendamento.servicoId ? 1 : 0)),
+      }))
+      .filter((item) => item.servicoId && item.quantidadeTotal > 0);
+    const quantidadeUtilizada = 1;
+    const saldoRestante = Math.max(0, totalItens - quantidadeUtilizada);
+    const historicoDoc = doc(historicoRef);
+    const movimentoDoc = doc(movimentosFinanceirosRef);
+
+    transaction.set(pacoteDoc, {
+      clienteId: agendamento.clienteId,
+      clienteNome: agendamento.clienteNome,
+      comboId,
+      comboNome,
+      servicoId: itensPacote[0]?.servicoId || "",
+      servicoNome: itensPacote.map((item) => item.servicoNome).join(", "),
+      nome,
+      itens: itensPacote,
+      quantidadeTotal: totalItens,
+      quantidadeUtilizada,
+      saldoRestante,
+      alertaSaldoMinimo: Math.max(1, numero(vendaPacote.alertaSaldoMinimo, 1)),
+      valorPago,
+      formaPagamento,
+      observacoes: texto(vendaPacote.observacoes),
+      totalAvulso: numero(vendaPacote.totalAvulso, 0),
+      economiaValor: numero(vendaPacote.economiaValor, 0),
+      economiaPercentual: numero(vendaPacote.economiaPercentual, 0),
+      fraseEconomia: texto(vendaPacote.fraseEconomia),
+      status: saldoRestante > 0 ? "ativo" : "esgotado",
+      criadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
+    });
+
+    transaction.set(historicoDoc, {
+      pacoteClienteId: pacoteDoc.id,
+      pacoteNome: nome,
+      clienteId: agendamento.clienteId,
+      clienteNome: agendamento.clienteNome,
+      servicoId: agendamento.servicoId,
+      servicoNome: agendamento.servicoNome,
+      quantidadeConsumida: 1,
+      saldoAntes: Math.max(0, numero(itemServicoAtual.quantidade, 0)),
+      saldoDepois: Math.max(0, numero(itemServicoAtual.quantidade, 0) - 1),
+      saldoTotalDepois: saldoRestante,
+      agendamentoId,
+      tipo: "consumo_atendimento_pacote_vendido_na_hora",
+      criadoEm: serverTimestamp(),
+    });
+
+    transaction.set(movimentoDoc, {
+      tipo: "receita",
+      origem: "venda_pacote",
+      pacoteClienteId: pacoteDoc.id,
+      agendamentoId,
+      clienteId: agendamento.clienteId,
+      clienteNome: agendamento.clienteNome,
+      descricao: `Venda do pacote ${nome}`,
+      data: dataHoje(),
+      valor: valorPago,
+      formaPagamento,
+      status: "confirmado",
+      criadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
+    });
+
+    transaction.update(agendamentoRef, {
+      pacoteClienteId: pacoteDoc.id,
+      pacoteNome: nome,
+      formaPagamento: "pacote",
+      valor: 0,
+      statusFinanceiro: "pacote",
+      vendaPacoteNoAtendimento: {
+        pacoteClienteId: pacoteDoc.id,
+        movimentoFinanceiroId: movimentoDoc.id,
+        convertidoEm: new Date().toISOString(),
+      },
+      atualizadoEm: serverTimestamp(),
+    });
+
+    return {
+      pacoteClienteId: pacoteDoc.id,
+      pacoteNome: nome,
+      saldoRestante,
+      saldoServicoRestante: Math.max(0, numero(itemServicoAtual.quantidade, 0) - 1),
+    };
+  });
+}

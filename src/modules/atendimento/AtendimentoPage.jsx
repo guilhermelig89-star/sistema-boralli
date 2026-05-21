@@ -6,7 +6,9 @@ import { useSugestoesTempoAtendimento } from "../agendamentos/hooks/useSugestoes
 import { useClientes } from "../clientes/hooks/useClientes";
 import { calcularSaldoItemPacote } from "../pacotes/domain/pacotesDomain";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
+import { useCombos } from "../servicos/hooks/useCombos";
 import FechamentoFinanceiroModal from "./components/FechamentoFinanceiroModal";
+import VendaPacoteAtendimentoModal from "./components/VendaPacoteAtendimentoModal";
 import "./atendimento.css";
 
 function obterHoje() {
@@ -104,6 +106,7 @@ function deveMostrarAlertaTempo(resultado) {
 function AtendimentoPage() {
   const [alertaTempo, setAlertaTempo] = useState(null);
   const [atendimentoFechamento, setAtendimentoFechamento] = useState(null);
+  const [atendimentoVendaPacote, setAtendimentoVendaPacote] = useState(null);
   const {
     agendamentos,
     carregando,
@@ -111,6 +114,7 @@ function AtendimentoPage() {
     iniciarAtendimento,
     finalizarAtendimento,
     cancelarAtendimento,
+    venderPacoteDuranteAtendimento,
   } = useAgendamentos();
   const {
     salvarAjusteClienteServico,
@@ -118,6 +122,7 @@ function AtendimentoPage() {
   } = useSugestoesTempoAtendimento();
   const { clientesAtivos } = useClientes();
   const { pacotes, calcularSaldoPacote, calcularSaldoServicoPacote } = usePacotesClientes();
+  const { combosAtivos } = useCombos();
   const hoje = obterHoje();
 
   const clientesPorId = useMemo(
@@ -207,6 +212,16 @@ function AtendimentoPage() {
       await cancelarAtendimento(agendamento.id);
     } catch (erroCancelar) {
       alert(erroCancelar.message || "Não foi possível cancelar o agendamento.");
+    }
+  }
+  async function confirmarVendaPacote(vendaPacote) {
+    if (!atendimentoVendaPacote) return;
+    try {
+      const resultado = await venderPacoteDuranteAtendimento(atendimentoVendaPacote.id, vendaPacote);
+      setAtendimentoVendaPacote(null);
+      alert(`Pacote vinculado com sucesso. Saldo restante do pacote: ${resultado.saldoRestante}.`);
+    } catch (erroVendaPacote) {
+      alert(erroVendaPacote.message || "Não foi possível vender o pacote durante o atendimento.");
     }
   }
 
@@ -375,9 +390,16 @@ function AtendimentoPage() {
                 </button>
               )}
               {emAtendimento && (
-                <button type="button" className="botao-principal-atendimento" onClick={() => finalizar(agendamento)}>
-                  Finalizar atendimento
-                </button>
+                <>
+                  {!agendamento.pacoteClienteId && (
+                    <button type="button" className="botao-secundario" onClick={() => setAtendimentoVendaPacote(agendamento)}>
+                      Cliente comprou pacote agora
+                    </button>
+                  )}
+                  <button type="button" className="botao-principal-atendimento" onClick={() => finalizar(agendamento)}>
+                    Finalizar atendimento
+                  </button>
+                </>
               )}
               <button type="button" className="botao-cancelar-atendimento" onClick={() => cancelar(agendamento)}>
                 Cancelar
@@ -462,6 +484,14 @@ function AtendimentoPage() {
           pacote={pacoteFechamento}
           onFechar={() => setAtendimentoFechamento(null)}
           onConfirmar={confirmarFechamento}
+        />
+      )}
+      {atendimentoVendaPacote && (
+        <VendaPacoteAtendimentoModal
+          agendamento={atendimentoVendaPacote}
+          combos={combosAtivos}
+          onFechar={() => setAtendimentoVendaPacote(null)}
+          onConfirmar={confirmarVendaPacote}
         />
       )}
 

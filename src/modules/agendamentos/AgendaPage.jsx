@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import FechamentoFinanceiroModal from "../atendimento/components/FechamentoFinanceiroModal";
 import { useClientes } from "../clientes/hooks/useClientes";
@@ -28,7 +28,8 @@ function deveMostrarAlertaTempo(resultado) {
 
 function AgendaPage() {
   const [filtros, setFiltros] = useState(filtrosIniciais);
-  const [abaAtual, setAbaAtual] = useState("agenda");
+  const [abaAtual, setAbaAtual] = useState(null);
+  const abasRef = useRef(null);
   const [alertaTempo, setAlertaTempo] = useState(null);
   const [agendamentoFechamento, setAgendamentoFechamento] = useState(null);
   const [agendamentoEmEdicao, setAgendamentoEmEdicao] = useState(null);
@@ -309,6 +310,17 @@ function AgendaPage() {
     }
   }
 
+  useEffect(() => {
+    function aoClicarFora(evento) {
+      if (!abasRef.current?.contains(evento.target)) {
+        setAbaAtual(null);
+      }
+    }
+
+    document.addEventListener("mousedown", aoClicarFora);
+    return () => document.removeEventListener("mousedown", aoClicarFora);
+  }, []);
+
   return (
     <div>
       <div className="topo-clientes topo-agenda">
@@ -317,18 +329,18 @@ function AgendaPage() {
           <p>Cadastre atendimentos respeitando a duração de cada serviço e as regras configuradas.</p>
         </div>
 
-        <div className="abas-agenda" role="tablist" aria-label="Seções de agendamentos">
+        <div className="abas-agenda" role="tablist" aria-label="Seções de agendamentos" ref={abasRef}>
           <button
             type="button"
             className={abaAtual === "agenda" ? "ativo" : ""}
-            onClick={() => setAbaAtual("agenda")}
+            onClick={() => setAbaAtual((atual) => (atual === "agenda" ? null : "agenda"))}
           >
             Agenda
           </button>
           <button
             type="button"
             className={abaAtual === "configuracoes" ? "ativo" : ""}
-            onClick={() => setAbaAtual("configuracoes")}
+            onClick={() => setAbaAtual((atual) => (atual === "configuracoes" ? null : "configuracoes"))}
           >
             Configurações
           </button>

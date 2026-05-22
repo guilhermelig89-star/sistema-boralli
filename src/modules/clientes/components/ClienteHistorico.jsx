@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -52,7 +52,19 @@ function ClienteHistorico({
   calcularSaldoPacote,
   onFechar,
 }) {
-  const [abaAtual, setAbaAtual] = useState("agenda");
+  const [abaAtual, setAbaAtual] = useState(null);
+  const abasRef = useRef(null);
+
+  useEffect(() => {
+    function aoClicarFora(evento) {
+      if (!abasRef.current?.contains(evento.target)) {
+        setAbaAtual(null);
+      }
+    }
+
+    document.addEventListener("mousedown", aoClicarFora);
+    return () => document.removeEventListener("mousedown", aoClicarFora);
+  }, []);
 
   if (!cliente) return null;
 
@@ -96,25 +108,25 @@ function ClienteHistorico({
         <button type="button" onClick={onFechar}>Fechar</button>
       </div>
 
-      <div className="abas-historico-cliente" role="tablist" aria-label="Histórico da cliente">
+      <div className="abas-historico-cliente" role="tablist" aria-label="Histórico da cliente" ref={abasRef}>
         <button
           type="button"
           className={abaAtual === "agenda" ? "ativo" : ""}
-          onClick={() => setAbaAtual("agenda")}
+          onClick={() => setAbaAtual((atual) => (atual === "agenda" ? null : "agenda"))}
         >
           Agenda
         </button>
         <button
           type="button"
           className={abaAtual === "pacotes" ? "ativo" : ""}
-          onClick={() => setAbaAtual("pacotes")}
+          onClick={() => setAbaAtual((atual) => (atual === "pacotes" ? null : "pacotes"))}
         >
           Pacotes
         </button>
         <button
           type="button"
           className={abaAtual === "financeiro" ? "ativo" : ""}
-          onClick={() => setAbaAtual("financeiro")}
+          onClick={() => setAbaAtual((atual) => (atual === "financeiro" ? null : "financeiro"))}
         >
           Financeiro
         </button>

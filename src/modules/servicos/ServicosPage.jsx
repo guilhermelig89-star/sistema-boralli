@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import "./servicos.css";
 import ComboForm from "./components/ComboForm";
@@ -12,7 +12,8 @@ function ServicosPage() {
   const [pesquisa, setPesquisa] = useState("");
   const [servicoEditando, setServicoEditando] = useState(null);
   const [comboEditando, setComboEditando] = useState(null);
-  const [abaAtual, setAbaAtual] = useState("servicos");
+  const [abaAtual, setAbaAtual] = useState(null);
+  const abasRef = useRef(null);
 
   const {
     servicosAtivos,
@@ -75,6 +76,17 @@ function ServicosPage() {
     }
   }
 
+  useEffect(() => {
+    function aoClicarFora(evento) {
+      if (!abasRef.current?.contains(evento.target)) {
+        setAbaAtual(null);
+      }
+    }
+
+    document.addEventListener("mousedown", aoClicarFora);
+    return () => document.removeEventListener("mousedown", aoClicarFora);
+  }, []);
+
   return (
     <div>
       <div className="topo-clientes topo-com-abas">
@@ -83,18 +95,18 @@ function ServicosPage() {
           <p>Cadastre o catálogo de serviços e monte combos para venda de pacotes.</p>
         </div>
 
-        <div className="abas-modulo" role="tablist" aria-label="Seções de serviços">
+        <div className="abas-modulo" role="tablist" aria-label="Seções de serviços" ref={abasRef}>
           <button
             type="button"
             className={abaAtual === "servicos" ? "ativo" : ""}
-            onClick={() => setAbaAtual("servicos")}
+            onClick={() => setAbaAtual((atual) => (atual === "servicos" ? null : "servicos"))}
           >
             Serviços
           </button>
           <button
             type="button"
             className={abaAtual === "combos" ? "ativo" : ""}
-            onClick={() => setAbaAtual("combos")}
+            onClick={() => setAbaAtual((atual) => (atual === "combos" ? null : "combos"))}
           >
             Combos
           </button>

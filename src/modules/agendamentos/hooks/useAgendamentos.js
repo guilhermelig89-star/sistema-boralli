@@ -6,12 +6,14 @@ import {
   criarAgendamento,
   editarAgendamento,
   excluirAgendamento,
-  finalizarAgendamento,
   iniciarAgendamento,
-  venderPacoteNoAtendimento,
   resolverPendenciaAgendamento,
-  corrigirConsumoPacoteFinalizado,
 } from "../services/agendamentosService";
+import {
+  consumirPacoteNoAtendimento,
+  corrigirConsumoPacoteFinalizado,
+  finalizarAtendimentoComFinanceiro,
+} from "../../../services/agendamentos";
 
 export function useAgendamentos() {
   const [agendamentos, setAgendamentos] = useState([]);
@@ -51,7 +53,7 @@ export function useAgendamentos() {
 
   async function finalizarAtendimento(id, fechamentoFinanceiro) {
     setErro(null);
-    return finalizarAgendamento(id, fechamentoFinanceiro);
+    return finalizarAtendimentoComFinanceiro(id, fechamentoFinanceiro);
   }
 
   async function cancelarAtendimento(id) {
@@ -65,7 +67,7 @@ export function useAgendamentos() {
   }
   async function venderPacoteDuranteAtendimento(id, vendaPacote) {
     setErro(null);
-    return venderPacoteNoAtendimento(id, vendaPacote);
+    return consumirPacoteNoAtendimento(id, vendaPacote);
   }
 
   async function excluirAgendamentoPorId(id) {

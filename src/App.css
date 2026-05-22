@@ -64,25 +64,71 @@ body {
   font-size: 12px;
 }
 
-.menu nav {
+.menu-nav {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.menu button {
+.menu-grupo {
+  border: 1px solid rgba(231, 209, 161, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.menu-grupo-toggle,
+.menu-subaba,
+.menu-painel {
   width: 100%;
   border: 0;
-  border-radius: 12px;
   background: transparent;
   color: #f8f3ec;
-  padding: 13px 14px;
   text-align: left;
+  font-size: 14px;
+}
+
+.menu-grupo-toggle {
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.menu-grupo-toggle.aberto {
+  color: #f5dfb0;
+}
+
+.menu-grupo-icone {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.menu-subabas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 8px 9px;
+}
+
+.menu-subaba {
+  border-radius: 10px;
+  padding: 10px 11px;
+  font-size: 13px;
+  color: #efe6da;
+}
+
+.menu-painel {
+  margin-top: 6px;
+  border-radius: 12px;
+  padding: 12px;
   font-size: 15px;
 }
 
-.menu button:hover,
-.menu button.ativo {
+.menu-subaba:hover,
+.menu-subaba.ativo,
+.menu-painel:hover,
+.menu-painel.ativo {
   background: #d7b56d;
   color: #1f1714;
   font-weight: 700;

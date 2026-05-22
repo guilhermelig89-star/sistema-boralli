@@ -13,7 +13,7 @@ import ServicosPage from "./modules/servicos/ServicosPage";
 import ConfiguracoesEmpresaPage from "./modules/configuracoes/ConfiguracoesEmpresaPage";
 
 function App() {
-  const [telaAtual, setTelaAtual] = useState("dashboard");
+  const [telaAtual, setTelaAtual] = useState("atendimento");
 
   function renderizarTela() {
     switch (telaAtual) {

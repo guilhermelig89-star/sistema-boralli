@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buscarConfiguracaoEmpresa } from "../modules/configuracoes/repositories/configuracaoEmpresaRepository";
+import { MENU_GROUPS } from "../navigation/menuConfig";
+import { SCREENS } from "../navigation/screens";
 
 const MARCA_PADRAO = {
   nomeFantasia: "Sistema Boralli",
@@ -8,49 +10,7 @@ const MARCA_PADRAO = {
   logoUrl: "",
 };
 
-const GRUPOS_MENU = [
-  {
-    id: "atendimentoGrupo",
-    nome: "Atendimento",
-    itens: [
-      { id: "agenda", nome: "Agenda" },
-      { id: "atendimento", nome: "Modo Atendimento" },
-      // Pendências e Histórico de atendimentos podem entrar aqui quando virarem telas dedicadas.
-    ],
-  },
-  {
-    id: "clientesGrupo",
-    nome: "Clientes",
-    itens: [
-      { id: "clientes", nome: "Cadastro de clientes" },
-      { id: "pacotesClientes", nome: "Pacotes/Combos do cliente" },
-      // Histórico do cliente já está dentro da tela de clientes (sem rota separada).
-    ],
-  },
-  {
-    id: "financeiroGrupo",
-    nome: "Financeiro",
-    itens: [
-      { id: "financeiro", nome: "Receitas e despesas" },
-      // Relatórios financeiros permanecem também no módulo Relatórios.
-    ],
-  },
-  {
-    id: "configuracoesGrupo",
-    nome: "Configurações",
-    itens: [
-      { id: "configuracoesEmpresa", nome: "Dados da empresa" },
-      { id: "servicos", nome: "Serviços" },
-      { id: "pacotesConfiguracoes", nome: "Pacotes/Combos" },
-      // Preferências do sistema podem entrar aqui quando houver tela dedicada.
-    ],
-  },
-  {
-    id: "relatoriosGrupo",
-    nome: "Relatórios",
-    itens: [{ id: "relatorios", nome: "Relatórios e impressões" }],
-  },
-];
+const GRUPOS_MENU = MENU_GROUPS;
 
 function Menu({ telaAtual, setTelaAtual }) {
   const [marcaEmpresa, setMarcaEmpresa] = useState(MARCA_PADRAO);
@@ -170,8 +130,8 @@ function Menu({ telaAtual, setTelaAtual }) {
 
         <button
           type="button"
-          className={`menu-painel ${telaAtual === "dashboard" ? "ativo" : ""}`}
-          onClick={() => setTelaAtual("dashboard")}
+          className={`menu-painel ${telaAtual === SCREENS.DASHBOARD ? "ativo" : ""}`}
+          onClick={() => setTelaAtual(SCREENS.DASHBOARD)}
         >
           Painel
         </button>

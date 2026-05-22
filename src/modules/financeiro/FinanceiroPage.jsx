@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
 import "./financeiro.css";
@@ -43,7 +43,8 @@ function criarFiltrosIniciais() {
 
 function FinanceiroPage() {
   const [filtros, setFiltros] = useState(criarFiltrosIniciais);
-  const [abaDespesa, setAbaDespesa] = useState("lancar");
+  const [abaDespesa, setAbaDespesa] = useState(null);
+  const abasDespesaRef = useRef(null);
   const [movimentosVisiveis, setMovimentosVisiveis] = useState(false);
   const { clientesAtivos } = useClientes();
   const {
@@ -66,6 +67,21 @@ function FinanceiroPage() {
     salvarDespesa,
     registrarPagamentoPendente,
   } = useFinanceiro(filtros);
+
+
+  useEffect(() => {
+    function fecharAbasAoClicarFora(evento) {
+      if (!abasDespesaRef.current?.contains(evento.target)) {
+        setAbaDespesa(null);
+      }
+    }
+
+    document.addEventListener("mousedown", fecharAbasAoClicarFora);
+
+    return () => {
+      document.removeEventListener("mousedown", fecharAbasAoClicarFora);
+    };
+  }, []);
 
   function alterarFiltro(campo, valor) {
     if (campo === "limpar") {
@@ -108,18 +124,18 @@ function FinanceiroPage() {
               <p>Lance custos e organize as categorias usadas no DRE.</p>
             </div>
 
-            <div className="abas-financeiro" role="tablist" aria-label="Opções de despesas">
+            <div className="abas-financeiro" role="tablist" aria-label="Opções de despesas" ref={abasDespesaRef}>
               <button
                 type="button"
                 className={abaDespesa === "lancar" ? "ativo" : ""}
-                onClick={() => setAbaDespesa("lancar")}
+                onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "lancar" ? null : "lancar"))}
               >
                 Lançar despesa
               </button>
               <button
                 type="button"
                 className={abaDespesa === "categorias" ? "ativo" : ""}
-                onClick={() => setAbaDespesa("categorias")}
+                onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "categorias" ? null : "categorias"))}
               >
                 Categorias
               </button>

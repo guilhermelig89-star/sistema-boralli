@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 
 import {
   buscarConfiguracaoEmpresa,
-  enviarLogoEmpresa,
   salvarConfiguracaoEmpresaRegistro,
 } from "../repositories/configuracaoEmpresaRepository";
 import { montarConfiguracaoEmpresa, validarConfiguracaoEmpresa } from "../services/configuracaoEmpresaService";
+
+const LOGO_FIXO_URL = "/logo-boralli.svg";
 
 const ESTADO_INICIAL = {
   nomeEmpresa: "",
@@ -18,8 +19,8 @@ const ESTADO_INICIAL = {
   documentoFiscal: "",
   textoRodape: "",
   corPrincipal: "#5b8def",
-  logoUrl: "",
-  logoPath: "",
+  logoUrl: LOGO_FIXO_URL,
+  logoPath: "configuracoes/empresa/logo-fixo-local",
 };
 
 export function useConfiguracaoEmpresa() {
@@ -37,6 +38,8 @@ export function useConfiguracaoEmpresa() {
             ...ESTADO_INICIAL,
             ...montarConfiguracaoEmpresa(dados),
             corPrincipal: dados.corPrincipal || "#5b8def",
+            logoUrl: LOGO_FIXO_URL,
+            logoPath: "configuracoes/empresa/logo-fixo-local",
           });
         }
       } catch (erroFirebase) {
@@ -54,18 +57,17 @@ export function useConfiguracaoEmpresa() {
     setConfiguracao((atual) => ({ ...atual, [campo]: valor }));
   }
 
-  async function salvarConfiguracao(arquivoLogo) {
+  async function salvarConfiguracao() {
     setErro(null);
     setSalvando(true);
 
     try {
       const base = validarConfiguracaoEmpresa(configuracao);
-      let dadosParaSalvar = { ...base };
-
-      if (arquivoLogo) {
-        const { logoUrl, logoPath } = await enviarLogoEmpresa(arquivoLogo, configuracao.logoPath);
-        dadosParaSalvar = { ...dadosParaSalvar, logoUrl, logoPath };
-      }
+      const dadosParaSalvar = {
+        ...base,
+        logoUrl: LOGO_FIXO_URL,
+        logoPath: "configuracoes/empresa/logo-fixo-local",
+      };
 
       await salvarConfiguracaoEmpresaRegistro(dadosParaSalvar);
       setConfiguracao((atual) => ({ ...atual, ...dadosParaSalvar }));

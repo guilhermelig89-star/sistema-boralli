@@ -5,7 +5,6 @@ import "./configuracoes.css";
 
 function ConfiguracoesEmpresaPage() {
   const { configuracao, carregando, salvando, erro, atualizarCampo, salvarConfiguracao } = useConfiguracaoEmpresa();
-  const [arquivoLogo, setArquivoLogo] = useState(null);
   const [mensagem, setMensagem] = useState("");
   const [erroFormulario, setErroFormulario] = useState("");
 
@@ -15,9 +14,8 @@ function ConfiguracoesEmpresaPage() {
     setErroFormulario("");
 
     try {
-      await salvarConfiguracao(arquivoLogo);
+      await salvarConfiguracao();
       setMensagem("Configurações salvas com sucesso.");
-      setArquivoLogo(null);
     } catch (erroSalvar) {
       setErroFormulario(erroSalvar.message || "Não foi possível salvar as configurações.");
     }
@@ -71,16 +69,11 @@ function ConfiguracoesEmpresaPage() {
           </label>
 
           <label className="campo-config-empresa campo-largo">
-            <span>Logotipo</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setArquivoLogo(e.target.files?.[0] || null)}
-            />
+            <span>Logotipo padrão</span>
             {configuracao.logoUrl && (
               <div className="preview-logo">
                 <img src={configuracao.logoUrl} alt="Logotipo da empresa" />
-                <small>Você pode substituir o logotipo a qualquer momento.</small>
+                <small>Logotipo fixo aplicado no sistema.</small>
               </div>
             )}
           </label>

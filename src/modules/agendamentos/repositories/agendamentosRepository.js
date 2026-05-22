@@ -464,6 +464,45 @@ export function resolverPendenciaAgendamentoRegistro(agendamentoId, resolucao = 
   });
 }
 
+export function corrigirConsumoPacoteFinalizadoRegistro(agendamentoId) {
+  return runTransaction(db, async (transaction) => {
+    const agendamentoRef = doc(db, "agendamentos", agendamentoId);
+    const agendamentoSnapshot = await transaction.get(agendamentoRef);
+
+    if (!agendamentoSnapshot.exists()) throw new Error("Agendamento não encontrado.");
+
+    const agendamento = agendamentoSnapshot.data();
+    if (agendamento.status !== "finalizado") throw new Error("A correção só pode ser feita em atendimento finalizado.");
+    if (!agendamento.pacoteClienteId) throw new Error("Este atendimento não possui pacote vinculado.");
+    if (agendamento.pacoteConsumido === true) throw new Error("Este atendimento já possui consumo de pacote.");
+    if (agendamento.consumoPacote?.agendamentoId) throw new Error("Consumo de pacote já registrado para este agendamento.");
+
+    const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
+    const pacoteSnapshot = await transaction.get(pacoteRef);
+    if (!pacoteSnapshot.exists()) throw new Error("Pacote do cliente não encontrado.");
+
+    const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
+    const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
+    const historicoDoc = doc(historicoRef);
+    const consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
+
+    transaction.update(pacoteRef, { ...resultadoConsumo.atualizacao, atualizadoEm: serverTimestamp() });
+    transaction.set(historicoDoc, {
+      ...consumoPacote,
+      tipo: "consumo_atendimento_ajuste_manual_finalizado",
+      criadoEm: serverTimestamp(),
+    });
+    transaction.update(agendamentoRef, {
+      pacoteConsumido: true,
+      consumoPacote,
+      ajusteManualPacote: true,
+      ajusteManualPacoteEm: serverTimestamp(),
+      statusFinanceiro: "pacote",
+      atualizadoEm: serverTimestamp(),
+    });
+  });
+}
+
 export function venderPacoteNoAtendimentoRegistro(agendamentoId, vendaPacote = {}) {
   return runTransaction(db, async (transaction) => {
     const agendamentoRef = doc(db, "agendamentos", agendamentoId);

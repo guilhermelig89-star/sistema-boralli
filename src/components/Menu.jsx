@@ -42,6 +42,7 @@ function Menu({ telaAtual, setTelaAtual }) {
   }, [marcaEmpresa.nomeFantasia]);
 
   const itens = [
+    { id: "atendimento", nome: "Atendimento" },
     { id: "dashboard", nome: "Painel" },
     { id: "clientes", nome: "Clientes" },
     { id: "servicos", nome: "Serviços" },
@@ -49,7 +50,6 @@ function Menu({ telaAtual, setTelaAtual }) {
     { id: "agenda", nome: "Agendamentos" },
     { id: "financeiro", nome: "Financeiro" },
     { id: "relatorios", nome: "Relatórios" },
-    { id: "atendimento", nome: "Atendimento" },
     { id: "configuracoesEmpresa", nome: "Configurações da Empresa" },
   ];
 

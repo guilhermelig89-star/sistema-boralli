@@ -156,16 +156,6 @@ function AtendimentoPage() {
     [atendimentoFechamento, pacotesPorId]
   );
 
-  const resumo = useMemo(
-    () => ({
-      total: atendimentosHoje.filter((item) => item.status !== "cancelado").length,
-      emAndamento: atendimentosEmAndamento.length,
-      pendentes: proximosAtendimentos.length,
-      finalizados: atendimentosHoje.filter((item) => item.status === "finalizado").length,
-    }),
-    [atendimentosHoje, atendimentosEmAndamento, proximosAtendimentos]
-  );
-
   function obterClienteAgendamento(agendamento) {
     return clientesPorId.get(agendamento.clienteId) || null;
   }
@@ -443,29 +433,6 @@ function AtendimentoPage() {
           <p>Agenda de hoje para acompanhar, iniciar e finalizar os atendimentos.</p>
         </div>
         <span className="data-atendimento">{formatarData(hoje)}</span>
-      </div>
-
-      <div className="card-grid resumo-atendimento">
-        <div className="card">
-          <span>Hoje</span>
-          <strong>{resumo.total}</strong>
-          <p>Atendimentos marcados</p>
-        </div>
-        <div className="card">
-          <span>Em atendimento</span>
-          <strong>{resumo.emAndamento}</strong>
-          <p>Atendimento iniciado</p>
-        </div>
-        <div className="card">
-          <span>Pendentes</span>
-          <strong>{resumo.pendentes}</strong>
-          <p>Aguardando chegada</p>
-        </div>
-        <div className="card">
-          <span>Finalizados</span>
-          <strong>{resumo.finalizados}</strong>
-          <p>Concluídos hoje</p>
-        </div>
       </div>
 
       <div className="cliente-layout atendimento-layout">

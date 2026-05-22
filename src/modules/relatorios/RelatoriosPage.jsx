@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useAgendamentos } from "../agendamentos/hooks/useAgendamentos";
 import { useClientes } from "../clientes/hooks/useClientes";
@@ -13,6 +13,7 @@ import {
 import { useFinanceiro } from "../financeiro/hooks/useFinanceiro";
 import { calcularSaldoPacote, obterResumoItensPacote } from "../pacotes/domain/pacotesDomain";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
+import { buscarConfiguracaoEmpresa } from "../configuracoes/repositories/configuracaoEmpresaRepository";
 import "./relatorios.css";
 
 function formatarDataChave(data) {
@@ -348,6 +349,31 @@ function RelatoriosPage() {
   const { agendamentos } = useAgendamentos();
   const { pacotes } = usePacotesClientes();
 
+  const [configuracaoEmpresa, setConfiguracaoEmpresa] = useState({
+    nomeEmpresa: "Boralli",
+    textoRodape: "Documento emitido para controle interno e conferência operacional.",
+    logoUrl: "",
+  });
+
+  useEffect(() => {
+    async function carregarConfiguracaoEmpresa() {
+      try {
+        const dados = await buscarConfiguracaoEmpresa();
+        if (!dados) return;
+        setConfiguracaoEmpresa((atual) => ({
+          ...atual,
+          nomeEmpresa: dados.nomeEmpresa || atual.nomeEmpresa,
+          textoRodape: dados.textoRodape || atual.textoRodape,
+          logoUrl: dados.logoUrl || "",
+        }));
+      } catch (erro) {
+        console.warn("Não foi possível carregar dados da empresa para o relatório.", erro);
+      }
+    }
+
+    carregarConfiguracaoEmpresa();
+  }, []);
+
   const filtrosFinanceiro = useMemo(
     () => ({
       dataInicio: filtros.dataInicio,
@@ -436,8 +462,9 @@ function RelatoriosPage() {
         <header className="relatorio-cabecalho">
           <div>
             <span className="relatorio-sistema">Sistema Boralli V1</span>
-            <h2>Boralli</h2>
+            <h2>{configuracaoEmpresa.nomeEmpresa}</h2>
             <p>Documento gerado automaticamente pelo sistema.</p>
+            {configuracaoEmpresa.logoUrl && <img className="relatorio-logo" src={configuracaoEmpresa.logoUrl} alt="Logotipo da empresa" />}
           </div>
           <div className="relatorio-titulo-oficial">
             <strong>{nomeRelatorio(filtros.tipo)}</strong>
@@ -449,7 +476,7 @@ function RelatoriosPage() {
           <div><span>Período</span><strong>{formatarData(filtros.dataInicio)} a {formatarData(filtros.dataFim)}</strong></div>
           <div><span>Cliente</span><strong>{clienteSelecionado?.nome || "Todos os clientes"}</strong></div>
           <div><span>Emissão</span><strong>{formatarEmissao()}</strong></div>
-          <div><span>Responsável</span><strong>Boralli</strong></div>
+          <div><span>Responsável</span><strong>{configuracaoEmpresa.nomeEmpresa}</strong></div>
         </section>
 
         {filtros.tipo === "financeiro" && <RelatorioFinanceiro dre={dreFiltro} movimentos={movimentosFiltrados} />}
@@ -457,7 +484,7 @@ function RelatoriosPage() {
         {filtros.tipo === "pacotes" && <RelatorioPacotes pacotes={pacotesRelatorio} />}
 
         <footer className="relatorio-rodape">
-          <p>Documento emitido para controle interno e conferência operacional.</p>
+          <p>{configuracaoEmpresa.textoRodape}</p>
           <div className="relatorio-assinatura">
             <span />
             <strong>Assinatura / conferência</strong>

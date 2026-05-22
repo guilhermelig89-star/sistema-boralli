@@ -8,6 +8,7 @@ function Menu({ telaAtual, setTelaAtual }) {
     { id: "financeiro", nome: "Financeiro" },
     { id: "relatorios", nome: "Relatórios" },
     { id: "atendimento", nome: "Atendimento" },
+    { id: "configuracoesEmpresa", nome: "Configurações da Empresa" },
   ];
 
   return (

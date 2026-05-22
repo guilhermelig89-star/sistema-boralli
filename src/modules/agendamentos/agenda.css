@@ -302,6 +302,41 @@
   color: #7b6b5d;
 }
 
+.pendencias-bloco {
+  margin-bottom: 12px;
+}
+
+.topo-pendencias {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topo-pendencias span {
+  min-width: 30px;
+  text-align: center;
+  border-radius: 999px;
+  background: #ead2a1;
+  color: #1f1714;
+  font-weight: 800;
+  padding: 4px 8px;
+}
+
+.linha-pendencia {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border-top: 1px solid #efe5d8;
+  padding: 10px 0;
+}
+
+.linha-pendencia p {
+  margin: 4px 0 0;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
 @media (max-width: 1100px) {
   .linha-config {
     grid-template-columns: 1fr;

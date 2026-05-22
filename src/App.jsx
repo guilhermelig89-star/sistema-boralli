@@ -21,7 +21,8 @@ function App() {
         return <ClientesPage />;
       case "servicos":
         return <ServicosPage />;
-      case "pacotes":
+      case "pacotesClientes":
+      case "pacotesConfiguracoes":
         return <PacotesPage />;
       case "agenda":
         return <AgendaPage />;

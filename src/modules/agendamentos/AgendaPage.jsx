@@ -36,6 +36,8 @@ function AgendaPage() {
   const [acaoPendencia, setAcaoPendencia] = useState("finalizar_real");
   const [horarioRealTermino, setHorarioRealTermino] = useState("");
   const [observacaoPendencia, setObservacaoPendencia] = useState("");
+  const [consumirPacoteManual, setConsumirPacoteManual] = useState(false);
+  const [lancarFinanceiroManual, setLancarFinanceiroManual] = useState(false);
   const { clientesAtivos } = useClientes();
   const { servicosAtivos } = useServicos();
   const {
@@ -123,6 +125,16 @@ function AgendaPage() {
       ...atuais,
       [campo]: valor,
     }));
+  }
+
+  function abrirModalPendencia(item) {
+    const possuiPacote = Boolean(item?.pacoteClienteId);
+    setPendenciaAtual(item);
+    setAcaoPendencia("finalizar_real");
+    setHorarioRealTermino("");
+    setObservacaoPendencia("");
+    setConsumirPacoteManual(possuiPacote);
+    setLancarFinanceiroManual(!possuiPacote);
   }
 
   async function salvarFormulario(dados) {
@@ -238,6 +250,8 @@ function AgendaPage() {
         motivoPendencia: pendenciaAtual.status === "em_atendimento" ? "pendente_finalizacao" : "agendamento_vencido",
         observacaoPendencia,
         horarioRealTermino: acaoPendencia === "finalizar_real" ? horarioRealTermino : "",
+        consumirPacote: acaoPendencia === "realizado_manual" ? consumirPacoteManual : undefined,
+        lancarFinanceiro: acaoPendencia === "realizado_manual" ? lancarFinanceiroManual : undefined,
       });
       setPendenciaAtual(null);
       setAcaoPendencia("finalizar_real");
@@ -324,7 +338,7 @@ function AgendaPage() {
                     <strong>{item.clienteNome}</strong>
                     <p>{item.data} {item.hora} • {item.servicoNome} • {item.status === "em_atendimento" ? "Atendimento aberto" : "Agendamento vencido"}</p>
                   </div>
-                  <button className="botao-editar" onClick={() => setPendenciaAtual(item)}>Resolver</button>
+                  <button className="botao-editar" onClick={() => abrirModalPendencia(item)}>Resolver</button>
                 </div>
               ))}
             </div>
@@ -420,6 +434,31 @@ function AgendaPage() {
                 <span>Horário real de término</span>
                 <input type="datetime-local" value={horarioRealTermino} onChange={(e) => setHorarioRealTermino(e.target.value)} />
               </div>
+            )}
+            {acaoPendencia === "realizado_manual" && (
+              <>
+                <div className="campo-config">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={consumirPacoteManual}
+                      onChange={(e) => setConsumirPacoteManual(e.target.checked)}
+                      disabled={!pendenciaAtual?.pacoteClienteId}
+                    />
+                    Consumir pacote/combo
+                  </label>
+                </div>
+                <div className="campo-config">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={lancarFinanceiroManual}
+                      onChange={(e) => setLancarFinanceiroManual(e.target.checked)}
+                    />
+                    Lançar financeiro
+                  </label>
+                </div>
+              </>
             )}
             <div className="campo-config">
               <span>Observação</span>

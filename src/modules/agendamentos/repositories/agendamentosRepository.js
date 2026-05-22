@@ -290,6 +290,7 @@ export function resolverPendenciaAgendamentoRegistro(agendamentoId, resolucao = 
     const motivoPendencia = texto(resolucao.motivoPendencia, agendamento.status === "em_atendimento" ? "atendimento_aberto" : "agendamento_vencido");
     const observacaoPendencia = texto(resolucao.observacaoPendencia);
     const resolvidoEmIso = new Date().toISOString();
+    const possuiPacote = Boolean(agendamento.pacoteClienteId);
 
     if (!acao) {
       throw new Error("Selecione uma ação para resolver a pendência.");
@@ -390,11 +391,73 @@ export function resolverPendenciaAgendamentoRegistro(agendamentoId, resolucao = 
     };
 
     if (acao === "realizado_manual") {
+      const consumirPacote = possuiPacote
+        ? resolucao.consumirPacote !== false
+        : false;
+      const lancarFinanceiro = possuiPacote
+        ? Boolean(resolucao.lancarFinanceiro)
+        : resolucao.lancarFinanceiro !== false;
+      let consumoPacote = null;
+      let fechamentoFinanceiro = null;
+      let movimentoFinanceiroId = "";
+
+      if (consumirPacote) {
+        if (agendamento.consumoPacote?.agendamentoId) {
+          throw new Error("Este atendimento já possui consumo de pacote registrado.");
+        }
+        const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
+        const pacoteSnapshot = await transaction.get(pacoteRef);
+        if (!pacoteSnapshot.exists()) throw new Error("Pacote do cliente não encontrado.");
+        const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
+        const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
+        const historicoDoc = doc(historicoRef);
+        consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
+
+        transaction.update(pacoteRef, { ...resultadoConsumo.atualizacao, atualizadoEm: serverTimestamp() });
+        transaction.set(historicoDoc, { ...consumoPacote, tipo: "consumo_atendimento_realizado_manual", criadoEm: serverTimestamp() });
+      }
+
+      if (lancarFinanceiro) {
+        const fechamento = normalizarFechamentoFinanceiro(agendamento, resolucao.fechamentoFinanceiro || {});
+        const movimentoDoc = doc(movimentosFinanceirosRef);
+        movimentoFinanceiroId = movimentoDoc.id;
+        fechamentoFinanceiro = fechamento;
+
+        transaction.set(movimentoDoc, {
+          tipo: "receita",
+          origem: "atendimento_avulso",
+          agendamentoId,
+          clienteId: agendamento.clienteId,
+          clienteNome: agendamento.clienteNome,
+          servicoId: agendamento.servicoId,
+          servicoNome: agendamento.servicoNome,
+          descricao: `Realizado manualmente - ${agendamento.servicoNome}`,
+          data: dataHoje(),
+          valor: fechamento.valorRecebido,
+          valorOriginal: fechamento.valorOriginal,
+          descontoValor: fechamento.descontoValor,
+          motivoDesconto: fechamento.motivoDesconto,
+          valorFinal: fechamento.valorFinal,
+          valorRecebido: fechamento.valorRecebido,
+          valorPendente: fechamento.valorPendente,
+          formaPagamento: fechamento.formaPagamento,
+          pagamentos: fechamento.pagamentos,
+          observacoesFinanceiras: fechamento.observacoesFinanceiras,
+          status: fechamento.statusFinanceiro,
+          statusFinanceiro: fechamento.statusFinanceiro,
+          criadoEm: serverTimestamp(),
+          atualizadoEm: serverTimestamp(),
+        });
+      }
+
       atualizacao.finalizadoEm = serverTimestamp();
-      atualizacao.pacoteConsumido = false;
-      atualizacao.consumoPacote = null;
-      atualizacao.fechamentoFinanceiro = null;
-      atualizacao.movimentoFinanceiroId = "";
+      atualizacao.pacoteConsumido = Boolean(consumoPacote);
+      atualizacao.consumoPacote = consumoPacote;
+      atualizacao.fechamentoFinanceiro = fechamentoFinanceiro;
+      atualizacao.movimentoFinanceiroId = movimentoFinanceiroId;
+      atualizacao.statusFinanceiro = consumoPacote
+        ? "pacote"
+        : fechamentoFinanceiro?.statusFinanceiro || "nao_lancar";
     }
 
     transaction.update(agendamentoRef, atualizacao);

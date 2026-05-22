@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buscarConfiguracaoEmpresa } from "../modules/configuracoes/repositories/configuracaoEmpresaRepository";
 
@@ -86,8 +86,27 @@ function Menu({ telaAtual, setTelaAtual }) {
   }, [marcaEmpresa.nomeFantasia]);
 
   const [gruposAbertos, setGruposAbertos] = useState(() =>
-    GRUPOS_MENU.reduce((acc, grupo) => ({ ...acc, [grupo.id]: true }), {})
+    GRUPOS_MENU.reduce((acc, grupo) => ({ ...acc, [grupo.id]: false }), {})
   );
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function fecharGruposAoClicarFora(evento) {
+      if (!menuRef.current || menuRef.current.contains(evento.target)) {
+        return;
+      }
+
+      setGruposAbertos((estadoAtual) =>
+        Object.fromEntries(Object.keys(estadoAtual).map((id) => [id, false]))
+      );
+    }
+
+    document.addEventListener("mousedown", fecharGruposAoClicarFora);
+
+    return () => {
+      document.removeEventListener("mousedown", fecharGruposAoClicarFora);
+    };
+  }, []);
 
   function alternarGrupo(grupoId) {
     setGruposAbertos((estadoAtual) => ({
@@ -97,7 +116,7 @@ function Menu({ telaAtual, setTelaAtual }) {
   }
 
   return (
-    <aside className="menu">
+    <aside className="menu" ref={menuRef}>
       <div className="menu-logo">
         {marcaEmpresa.logoUrl ? (
           <img className="menu-logo-imagem" src={marcaEmpresa.logoUrl} alt={`Logotipo ${marcaEmpresa.nomeFantasia}`} />

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useClientes } from "../clientes/hooks/useClientes";
 import { useCombos } from "../servicos/hooks/useCombos";
@@ -16,7 +16,8 @@ const filtrosPacotes = [
 
 function PacotesPage() {
   const [clienteFiltro, setClienteFiltro] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState("ativos");
+  const [statusFiltro, setStatusFiltro] = useState(null);
+  const abasRef = useRef(null);
   const { clientesAtivos } = useClientes();
   const { combosAtivos } = useCombos();
   const {
@@ -55,6 +56,10 @@ function PacotesPage() {
   }, [pacotesPorCliente, pacoteEstaFinalizado]);
 
   const pacotesFiltrados = useMemo(() => {
+    if (!statusFiltro) {
+      return [];
+    }
+
     if (statusFiltro === "finalizados") {
       return pacotesPorCliente.filter((pacote) => pacoteEstaFinalizado(pacote));
     }
@@ -72,6 +77,9 @@ function PacotesPage() {
   }, [historico, clienteFiltro]);
 
   const mensagemVazia =
+    !statusFiltro
+      ? "Selecione uma aba para visualizar os pacotes."
+      :
     statusFiltro === "finalizados"
       ? "Nenhum pacote finalizado encontrado."
       : "Nenhum pacote ativo encontrado para este filtro.";
@@ -83,6 +91,17 @@ function PacotesPage() {
       alert(erroSalvar.message || "Não foi possível salvar o pacote.");
     }
   }
+
+  useEffect(() => {
+    function aoClicarFora(evento) {
+      if (!abasRef.current?.contains(evento.target)) {
+        setStatusFiltro(null);
+      }
+    }
+
+    document.addEventListener("mousedown", aoClicarFora);
+    return () => document.removeEventListener("mousedown", aoClicarFora);
+  }, []);
 
   return (
     <div>
@@ -121,13 +140,13 @@ function PacotesPage() {
             </select>
           </div>
 
-          <div className="abas-pacotes" role="tablist" aria-label="Filtro de pacotes por status">
+          <div className="abas-pacotes" role="tablist" aria-label="Filtro de pacotes por status" ref={abasRef}>
             {filtrosPacotes.map((filtro) => (
               <button
                 key={filtro.id}
                 type="button"
                 className={statusFiltro === filtro.id ? "ativo" : ""}
-                onClick={() => setStatusFiltro(filtro.id)}
+                onClick={() => setStatusFiltro((atual) => (atual === filtro.id ? null : filtro.id))}
               >
                 {filtro.nome}
                 <span>{contadoresPacotes[filtro.id]}</span>

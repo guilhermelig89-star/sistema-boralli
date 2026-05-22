@@ -12,7 +12,7 @@ function statusTexto(status) {
   return "Agendado";
 }
 
-function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, onCancelar, onEditar }) {
+function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, onCancelar, onEditar, onCorrigirConsumoPacote }) {
   return (
     <div className="tabela-clientes">
       <div className="linha-agendamento cabecalho">
@@ -39,6 +39,10 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
         agendamentos.map((agendamento) => {
           const encerrado = agendamento.status === "finalizado" || agendamento.status === "cancelado";
           const emAtendimento = agendamento.status === "em_atendimento";
+          const podeCorrigirConsumoPacote =
+            agendamento.status === "finalizado" &&
+            Boolean(agendamento.pacoteClienteId) &&
+            agendamento.pacoteConsumido !== true;
 
           return (
             <div className="linha-agendamento" key={agendamento.id}>
@@ -90,6 +94,14 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                     }}
                   >
                     Cancelar
+                  </button>
+                )}
+                {podeCorrigirConsumoPacote && (
+                  <button
+                    className="botao-editar"
+                    onClick={() => onCorrigirConsumoPacote?.(agendamento)}
+                  >
+                    Corrigir consumo do pacote
                   </button>
                 )}
               </div>

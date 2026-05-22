@@ -10,6 +10,7 @@ import {
   iniciarAgendamento,
   venderPacoteNoAtendimento,
   resolverPendenciaAgendamento,
+  corrigirConsumoPacoteFinalizado,
 } from "../services/agendamentosService";
 
 export function useAgendamentos() {
@@ -75,6 +76,10 @@ export function useAgendamentos() {
     setErro(null);
     return resolverPendenciaAgendamento(id, resolucao);
   }
+  async function corrigirConsumoPacote(id) {
+    setErro(null);
+    return corrigirConsumoPacoteFinalizado(id);
+  }
 
   return {
     agendamentos,
@@ -89,5 +94,6 @@ export function useAgendamentos() {
     excluirAgendamentoPorId,
     venderPacoteDuranteAtendimento,
     resolverPendencia,
+    corrigirConsumoPacote,
   };
 }

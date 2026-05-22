@@ -115,6 +115,7 @@ function AtendimentoPage() {
     finalizarAtendimento,
     cancelarAtendimento,
     venderPacoteDuranteAtendimento,
+    corrigirConsumoPacote,
   } = useAgendamentos();
   const {
     salvarAjusteClienteServico,
@@ -222,6 +223,22 @@ function AtendimentoPage() {
       alert(`Pacote vinculado com sucesso. Saldo restante do pacote: ${resultado.saldoRestante}.`);
     } catch (erroVendaPacote) {
       alert(erroVendaPacote.message || "Não foi possível vender o pacote durante o atendimento.");
+    }
+  }
+
+  function podeCorrigirConsumoPacote(agendamento) {
+    return agendamento.status === "finalizado" && Boolean(agendamento.pacoteClienteId) && agendamento.pacoteConsumido !== true;
+  }
+
+  async function corrigirConsumo(agendamento) {
+    if (!podeCorrigirConsumoPacote(agendamento)) return;
+    if (!confirm("Confirmar correção de consumo do pacote para este atendimento finalizado?")) return;
+
+    try {
+      await corrigirConsumoPacote(agendamento.id);
+      alert("Consumo do pacote corrigido com sucesso.");
+    } catch (erroCorrecao) {
+      alert(erroCorrecao.message || "Não foi possível corrigir o consumo do pacote.");
     }
   }
 
@@ -403,6 +420,13 @@ function AtendimentoPage() {
               )}
               <button type="button" className="botao-cancelar-atendimento" onClick={() => cancelar(agendamento)}>
                 Cancelar
+              </button>
+            </div>
+          )}
+          {podeCorrigirConsumoPacote(agendamento) && (
+            <div className="acoes-atendimento">
+              <button type="button" className="botao-secundario" onClick={() => corrigirConsumo(agendamento)}>
+                Corrigir consumo do pacote
               </button>
             </div>
           )}

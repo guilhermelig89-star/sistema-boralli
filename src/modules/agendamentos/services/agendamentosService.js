@@ -7,6 +7,7 @@ import {
   excluirAgendamentoRegistro,
   venderPacoteNoAtendimentoRegistro,
   resolverPendenciaAgendamentoRegistro,
+  corrigirConsumoPacoteFinalizadoRegistro,
 } from "../repositories/agendamentosRepository";
 
 function texto(valor, padrao = "") {
@@ -420,4 +421,8 @@ export function venderPacoteNoAtendimento(id, vendaPacote) {
 
 export function resolverPendenciaAgendamento(id, resolucao) {
   return resolverPendenciaAgendamentoRegistro(id, resolucao);
+}
+
+export function corrigirConsumoPacoteFinalizado(id) {
+  return corrigirConsumoPacoteFinalizadoRegistro(id);
 }

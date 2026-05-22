@@ -70,6 +70,7 @@ function AgendaPage() {
     salvarEdicaoAgendamento,
     excluirAgendamentoPorId,
     resolverPendencia,
+    corrigirConsumoPacote,
   } = useAgendamentos();
 
   const pendencias = useMemo(() => {
@@ -296,6 +297,18 @@ function AgendaPage() {
     }
   }
 
+  async function corrigirConsumoPacoteFinalizado(agendamento) {
+    if (!agendamento) return;
+    if (!confirm("Confirmar correção de consumo do pacote para este atendimento finalizado?")) return;
+
+    try {
+      await corrigirConsumoPacote(agendamento.id);
+      alert("Consumo do pacote corrigido com sucesso.");
+    } catch (erroCorrecao) {
+      alert(erroCorrecao.message || "Não foi possível corrigir o consumo do pacote.");
+    }
+  }
+
   return (
     <div>
       <div className="topo-clientes topo-agenda">
@@ -367,6 +380,7 @@ function AgendaPage() {
                 onFinalizar={finalizar}
                 onCancelar={cancelar}
                 onEditar={setAgendamentoEmEdicao}
+                onCorrigirConsumoPacote={corrigirConsumoPacoteFinalizado}
               />
             </div>
           </>

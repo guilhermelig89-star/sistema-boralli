@@ -32,6 +32,10 @@ function AgendaPage() {
   const [alertaTempo, setAlertaTempo] = useState(null);
   const [agendamentoFechamento, setAgendamentoFechamento] = useState(null);
   const [agendamentoEmEdicao, setAgendamentoEmEdicao] = useState(null);
+  const [pendenciaAtual, setPendenciaAtual] = useState(null);
+  const [acaoPendencia, setAcaoPendencia] = useState("finalizar_real");
+  const [horarioRealTermino, setHorarioRealTermino] = useState("");
+  const [observacaoPendencia, setObservacaoPendencia] = useState("");
   const { clientesAtivos } = useClientes();
   const { servicosAtivos } = useServicos();
   const {
@@ -63,7 +67,21 @@ function AgendaPage() {
     cancelarAtendimento,
     salvarEdicaoAgendamento,
     excluirAgendamentoPorId,
+    resolverPendencia,
   } = useAgendamentos();
+
+  const pendencias = useMemo(() => {
+    const agora = new Date();
+    return agendamentos.filter((item) => {
+      const dataHora = new Date(`${item.data}T${item.hora || "00:00"}:00`);
+      if (item.status === "agendado" && dataHora < agora) return true;
+      if (item.status === "em_atendimento") {
+        const iniciouEm = item.atendimentoIniciadoEm ? new Date(item.atendimentoIniciadoEm) : dataHora;
+        return (agora.getTime() - iniciouEm.getTime()) / (1000 * 60 * 60) >= 6;
+      }
+      return false;
+    });
+  }, [agendamentos]);
 
   const pacotesPorId = useMemo(
     () => new Map(pacotes.map((pacote) => [pacote.id, pacote])),
@@ -212,6 +230,24 @@ function AgendaPage() {
     }
   }
 
+  async function confirmarResolucaoPendencia() {
+    if (!pendenciaAtual) return;
+    try {
+      await resolverPendencia(pendenciaAtual.id, {
+        acao: acaoPendencia,
+        motivoPendencia: pendenciaAtual.status === "em_atendimento" ? "pendente_finalizacao" : "agendamento_vencido",
+        observacaoPendencia,
+        horarioRealTermino: acaoPendencia === "finalizar_real" ? horarioRealTermino : "",
+      });
+      setPendenciaAtual(null);
+      setAcaoPendencia("finalizar_real");
+      setHorarioRealTermino("");
+      setObservacaoPendencia("");
+    } catch (erroResolucao) {
+      alert(erroResolucao.message || "Não foi possível resolver a pendência.");
+    }
+  }
+
   async function ajustarTempoCliente() {
     if (!alertaTempo) return;
 
@@ -276,6 +312,22 @@ function AgendaPage() {
         {abaAtual === "agenda" && (
           <>
             <AgendaResumo agendamentos={agendamentos} />
+            <div className="lista-clientes pendencias-bloco">
+              <div className="topo-pendencias">
+                <h2>Pendências</h2>
+                <span>{pendencias.length}</span>
+              </div>
+              {pendencias.length === 0 && <p>Nenhuma pendência no momento.</p>}
+              {pendencias.map((item) => (
+                <div className="linha-pendencia" key={item.id}>
+                  <div>
+                    <strong>{item.clienteNome}</strong>
+                    <p>{item.data} {item.hora} • {item.servicoNome} • {item.status === "em_atendimento" ? "Atendimento aberto" : "Agendamento vencido"}</p>
+                  </div>
+                  <button className="botao-editar" onClick={() => setPendenciaAtual(item)}>Resolver</button>
+                </div>
+              ))}
+            </div>
 
             <AgendamentoForm
               clientes={clientesAtivos}
@@ -347,6 +399,38 @@ function AgendaPage() {
         onAjustarCliente={ajustarTempoCliente}
         onRevisarServico={revisarTempoServico}
       />
+      {pendenciaAtual && (
+        <div className="modal-tempo-backdrop" role="presentation">
+          <section className="modal-tempo modal-tempo-leve" role="dialog" aria-modal="true">
+            <div className="modal-tempo-topo"><h2>Resolver pendência</h2><button onClick={() => setPendenciaAtual(null)}>Fechar</button></div>
+            <div className="campo-config">
+              <span>Ação</span>
+              <select value={acaoPendencia} onChange={(e) => setAcaoPendencia(e.target.value)}>
+                <option value="finalizar_real">Finalizar com horário real</option>
+                <option value="realizado_manual">Marcar como realizado manualmente</option>
+                <option value="nao_compareceu">Cliente não compareceu</option>
+                <option value="cliente_cancelou">Cliente cancelou</option>
+                <option value="remarcar">Remarcar</option>
+                <option value="cancelar_atendimento">Cancelar atendimento</option>
+                <option value="nao_realizado">Não realizado</option>
+              </select>
+            </div>
+            {acaoPendencia === "finalizar_real" && (
+              <div className="campo-config">
+                <span>Horário real de término</span>
+                <input type="datetime-local" value={horarioRealTermino} onChange={(e) => setHorarioRealTermino(e.target.value)} />
+              </div>
+            )}
+            <div className="campo-config">
+              <span>Observação</span>
+              <input value={observacaoPendencia} onChange={(e) => setObservacaoPendencia(e.target.value)} placeholder="Opcional" />
+            </div>
+            <div className="modal-tempo-acoes">
+              <button onClick={confirmarResolucaoPendencia}>Confirmar resolução</button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

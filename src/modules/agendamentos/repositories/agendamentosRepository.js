@@ -276,6 +276,131 @@ export function finalizarAgendamentoRegistro(agendamentoId, fechamentoFinanceiro
   });
 }
 
+export function resolverPendenciaAgendamentoRegistro(agendamentoId, resolucao = {}) {
+  return runTransaction(db, async (transaction) => {
+    const agendamentoRef = doc(db, "agendamentos", agendamentoId);
+    const agendamentoSnapshot = await transaction.get(agendamentoRef);
+
+    if (!agendamentoSnapshot.exists()) {
+      throw new Error("Agendamento não encontrado.");
+    }
+
+    const agendamento = agendamentoSnapshot.data();
+    const acao = texto(resolucao.acao);
+    const motivoPendencia = texto(resolucao.motivoPendencia, agendamento.status === "em_atendimento" ? "atendimento_aberto" : "agendamento_vencido");
+    const observacaoPendencia = texto(resolucao.observacaoPendencia);
+    const resolvidoEmIso = new Date().toISOString();
+
+    if (!acao) {
+      throw new Error("Selecione uma ação para resolver a pendência.");
+    }
+
+    if (acao === "finalizar_real") {
+      if (agendamento.status !== "em_atendimento") {
+        throw new Error("A finalização com horário real exige atendimento iniciado.");
+      }
+
+      const resumoTempo = calcularTempoFinalizacao(agendamento, { atendimentoFinalizadoEm: resolucao.horarioRealTermino });
+      if (!resumoTempo.tempoRealCalculado) {
+        throw new Error("Informe um horário real de término válido.");
+      }
+      const fechamento = normalizarFechamentoFinanceiro(agendamento, resolucao.fechamentoFinanceiro || {});
+      let consumoPacote = null;
+      let movimentoFinanceiroId = "";
+
+      if (agendamento.pacoteClienteId) {
+        const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
+        const pacoteSnapshot = await transaction.get(pacoteRef);
+        if (!pacoteSnapshot.exists()) throw new Error("Pacote do cliente não encontrado.");
+        const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
+        const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
+        const historicoDoc = doc(historicoRef);
+        consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
+
+        transaction.update(pacoteRef, { ...resultadoConsumo.atualizacao, atualizadoEm: serverTimestamp() });
+        transaction.set(historicoDoc, { ...consumoPacote, tipo: "consumo_atendimento_finalizado", criadoEm: serverTimestamp() });
+      } else {
+        const movimentoDoc = doc(movimentosFinanceirosRef);
+        movimentoFinanceiroId = movimentoDoc.id;
+        transaction.set(movimentoDoc, {
+          tipo: "receita",
+          origem: "atendimento_avulso",
+          agendamentoId,
+          clienteId: agendamento.clienteId,
+          clienteNome: agendamento.clienteNome,
+          servicoId: agendamento.servicoId,
+          servicoNome: agendamento.servicoNome,
+          descricao: `Fechamento manual de atendimento - ${agendamento.servicoNome}`,
+          data: dataHoje(),
+          valor: fechamento.valorRecebido,
+          valorOriginal: fechamento.valorOriginal,
+          descontoValor: fechamento.descontoValor,
+          motivoDesconto: fechamento.motivoDesconto,
+          valorFinal: fechamento.valorFinal,
+          valorRecebido: fechamento.valorRecebido,
+          valorPendente: fechamento.valorPendente,
+          formaPagamento: fechamento.formaPagamento,
+          pagamentos: fechamento.pagamentos,
+          observacoesFinanceiras: fechamento.observacoesFinanceiras,
+          status: fechamento.statusFinanceiro,
+          statusFinanceiro: fechamento.statusFinanceiro,
+          criadoEm: serverTimestamp(),
+          atualizadoEm: serverTimestamp(),
+        });
+      }
+
+      transaction.update(agendamentoRef, {
+        status: "finalizado",
+        pacoteConsumido: Boolean(consumoPacote),
+        consumoPacote,
+        fechamentoFinanceiro: agendamento.pacoteClienteId ? null : fechamento,
+        movimentoFinanceiroId,
+        statusFinanceiro: agendamento.pacoteClienteId ? "pacote" : fechamento.statusFinanceiro,
+        ...resumoTempo,
+        finalizadoEm: serverTimestamp(),
+        motivoPendencia,
+        observacaoPendencia,
+        resolvidoManual: true,
+        resolvidoEm: resolvidoEmIso,
+        atualizadoEm: serverTimestamp(),
+      });
+      return;
+    }
+
+    const mapaStatus = {
+      realizado_manual: "finalizado",
+      nao_compareceu: "nao_compareceu",
+      cliente_cancelou: "cancelado",
+      remarcar: "agendado",
+      cancelar_atendimento: "cancelado",
+      nao_realizado: "nao_realizado",
+    };
+    const proximoStatus = mapaStatus[acao];
+    if (!proximoStatus) throw new Error("Ação de resolução inválida.");
+    const atualizacao = {
+      status: proximoStatus,
+      motivoPendencia,
+      observacaoPendencia,
+      resolvidoManual: true,
+      resolvidoEm: resolvidoEmIso,
+      atualizadoEm: serverTimestamp(),
+      statusFinanceiro: ["nao_compareceu", "cancelado", "nao_realizado"].includes(proximoStatus)
+        ? "nao_lancar"
+        : agendamento.statusFinanceiro || "pendente",
+    };
+
+    if (acao === "realizado_manual") {
+      atualizacao.finalizadoEm = serverTimestamp();
+      atualizacao.pacoteConsumido = false;
+      atualizacao.consumoPacote = null;
+      atualizacao.fechamentoFinanceiro = null;
+      atualizacao.movimentoFinanceiroId = "";
+    }
+
+    transaction.update(agendamentoRef, atualizacao);
+  });
+}
+
 export function venderPacoteNoAtendimentoRegistro(agendamentoId, vendaPacote = {}) {
   return runTransaction(db, async (transaction) => {
     const agendamentoRef = doc(db, "agendamentos", agendamentoId);

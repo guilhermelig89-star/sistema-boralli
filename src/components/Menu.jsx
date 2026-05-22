@@ -23,7 +23,7 @@ const GRUPOS_MENU = [
     nome: "Clientes",
     itens: [
       { id: "clientes", nome: "Cadastro de clientes" },
-      { id: "pacotes", nome: "Pacotes/Combos do cliente" },
+      { id: "pacotesClientes", nome: "Pacotes/Combos do cliente" },
       // Histórico do cliente já está dentro da tela de clientes (sem rota separada).
     ],
   },
@@ -41,7 +41,7 @@ const GRUPOS_MENU = [
     itens: [
       { id: "configuracoesEmpresa", nome: "Dados da empresa" },
       { id: "servicos", nome: "Serviços" },
-      { id: "pacotes", nome: "Pacotes/Combos" },
+      { id: "pacotesConfiguracoes", nome: "Pacotes/Combos" },
       // Preferências do sistema podem entrar aqui quando houver tela dedicada.
     ],
   },
@@ -121,6 +121,8 @@ function Menu({ telaAtual, setTelaAtual }) {
               <button
                 type="button"
                 className={`menu-grupo-toggle ${aberto ? "aberto" : ""}`}
+                aria-expanded={aberto}
+                aria-controls={`${grupo.id}-subabas`}
                 onClick={() => alternarGrupo(grupo.id)}
               >
                 <span>{grupo.nome}</span>
@@ -130,9 +132,10 @@ function Menu({ telaAtual, setTelaAtual }) {
               </button>
 
               {aberto && (
-                <div className="menu-subabas">
+                <div className="menu-subabas" id={`${grupo.id}-subabas`}>
                   {grupo.itens.map((item) => (
                     <button
+                      type="button"
                       key={`${grupo.id}-${item.id}-${item.nome}`}
                       className={`menu-subaba ${telaAtual === item.id ? "ativo" : ""}`}
                       onClick={() => setTelaAtual(item.id)}
@@ -147,6 +150,7 @@ function Menu({ telaAtual, setTelaAtual }) {
         })}
 
         <button
+          type="button"
           className={`menu-painel ${telaAtual === "dashboard" ? "ativo" : ""}`}
           onClick={() => setTelaAtual("dashboard")}
         >

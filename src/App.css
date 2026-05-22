@@ -17,18 +17,51 @@ body {
 }
 
 .menu-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 32px;
+}
+
+.menu-logo-imagem,
+.menu-logo-placeholder {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.menu-logo-placeholder {
+  display: grid;
+  place-items: center;
+  background: rgba(231, 209, 161, 0.2);
+  border: 1px solid rgba(231, 209, 161, 0.5);
+  color: #f5dfb0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.menu-logo-texto {
+  min-width: 0;
 }
 
 .menu-logo h2 {
   margin: 0;
   color: #d7b56d;
-  font-size: 28px;
+  font-size: 20px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu-logo span {
+  display: inline-block;
+  margin-top: 4px;
   color: #e8d8c3;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .menu nav {
@@ -481,11 +514,23 @@ body {
   }
 
   .menu-logo {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
+  }
+
+  .menu-logo-imagem,
+  .menu-logo-placeholder {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
   }
 
   .menu-logo h2 {
-    font-size: 24px;
+    font-size: 17px;
+  }
+
+  .menu-logo span {
+    margin-top: 2px;
+    font-size: 11px;
   }
 
   .menu nav {

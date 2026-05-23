@@ -42,8 +42,8 @@ function consumoPacoteAtivo(consumo) {
 
 function resumoUsoPacote(pacote, calcularSaldoPacote) {
   const total = Number(pacote.quantidadeTotal || 0);
-  const saldo = calcularSaldoPacote(pacote);
-  const usados = Math.max(0, total - saldo);
+  const usados = historicoAtivoDoPacote.reduce((acc, item) => acc + Math.max(1, Number(item.quantidadeConsumida || 1)), 0);
+  const saldo = Math.max(0, total - usados);
   return `${usados}/${total} serviços usados • ${saldo} restante`;
 }
 
@@ -95,6 +95,12 @@ function ClienteHistorico({
     .filter((item) => item.clienteId === cliente.id)
     .slice();
   const historicoClienteAtivo = historicoCliente.filter(consumoPacoteAtivo);
+  const historicoAtivoPorPacote = historicoClienteAtivo.reduce((acc, item) => {
+    if (!item.pacoteClienteId) return acc;
+    if (!acc[item.pacoteClienteId]) acc[item.pacoteClienteId] = [];
+    acc[item.pacoteClienteId].push(item);
+    return acc;
+  }, {});
   const historicoClienteEstornado = historicoCliente.filter((item) => !consumoPacoteAtivo(item));
   const historicoClienteAtivoOrdenado = historicoClienteAtivo.slice().reverse();
   const ultimosUsosPacote = historicoClienteAtivoOrdenado.slice(0, 6).map((item) => {
@@ -186,7 +192,7 @@ function ClienteHistorico({
             {pacotesAtivos.map((pacote) => (
               <div className="item-historico-cliente" key={pacote.id}>
                 <strong>{pacote.nome}</strong>
-                <span>{resumoUsoPacote(pacote, calcularSaldoPacote)}</span>
+                <span>{resumoUsoPacote(pacote, historicoAtivoPorPacote[pacote.id] || [])}</span>
               </div>
             ))}
           </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { consumoEstaAtivo } from "../../pacotes/domain/consumoHistoricoDomain";
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -30,14 +31,15 @@ function statusTexto(status) {
   return "agendado";
 }
 
-function statusPacote(pacote, calcularSaldoPacote) {
-  const saldo = calcularSaldoPacote(pacote);
+function statusPacote(pacote, historicoAtivoDoPacote = []) {
+  const total = Number(pacote.quantidadeTotal || 0);
+  const usados = (Array.isArray(historicoAtivoDoPacote) ? historicoAtivoDoPacote : []).reduce(
+    (acc, item) => acc + Math.max(1, Number(item?.quantidadeConsumida || 1)),
+    0
+  );
+  const saldo = Math.max(0, total - usados);
   if (saldo <= 0 || pacote.status === "esgotado") return "Finalizado";
   return `${saldo} restante`;
-}
-
-function consumoPacoteAtivo(consumo) {
-  return consumo?.status !== "estornado" && consumo?.estornado !== true && consumo?.cancelado !== true;
 }
 
 function resumoUsoPacote(pacote, historicoAtivoDoPacote = []) {
@@ -54,7 +56,6 @@ function ClienteHistorico({
   pacotes,
   historicoPacotes,
   movimentos,
-  calcularSaldoPacote,
   onFechar,
 }) {
   const [abaAtual, setAbaAtual] = useState(null);
@@ -95,19 +96,19 @@ function ClienteHistorico({
     acc[pacote.id] = pacote;
     return acc;
   }, {});
-  const pacotesAtivos = pacotesCliente.filter((pacote) => calcularSaldoPacote(pacote) > 0 && pacote.status !== "esgotado");
-  const pacotesFinalizados = pacotesCliente.filter((pacote) => calcularSaldoPacote(pacote) <= 0 || pacote.status === "esgotado");
   const historicoCliente = historicoPacotesSeguro
     .filter((item) => item.clienteId === cliente.id)
     .slice();
-  const historicoClienteAtivo = historicoCliente.filter(consumoPacoteAtivo);
+  const historicoClienteAtivo = historicoCliente.filter(consumoEstaAtivo);
   const historicoAtivoPorPacote = historicoClienteAtivo.reduce((acc, item) => {
     if (!item.pacoteClienteId) return acc;
     if (!acc[item.pacoteClienteId]) acc[item.pacoteClienteId] = [];
     acc[item.pacoteClienteId].push(item);
     return acc;
   }, {});
-  const historicoClienteEstornado = historicoCliente.filter((item) => !consumoPacoteAtivo(item));
+  const historicoClienteEstornado = historicoCliente.filter((item) => !consumoEstaAtivo(item));
+  const pacotesAtivos = pacotesCliente.filter((pacote) => statusPacote(pacote, historicoAtivoPorPacote[pacote.id] || []) !== "Finalizado");
+  const pacotesFinalizados = pacotesCliente.filter((pacote) => statusPacote(pacote, historicoAtivoPorPacote[pacote.id] || []) === "Finalizado");
   const historicoClienteAtivoOrdenado = historicoClienteAtivo.slice().reverse();
   const ultimosUsosPacote = historicoClienteAtivoOrdenado.slice(0, 6).map((item) => {
     const usosDoPacote = historicoClienteAtivoOrdenado.filter((consumo) => consumo.pacoteClienteId === item.pacoteClienteId);
@@ -209,13 +210,13 @@ function ClienteHistorico({
             {pacotesFinalizados.map((pacote) => (
               <div className="item-historico-cliente" key={pacote.id}>
                 <strong>{pacote.nome}</strong>
-                <span>{statusPacote(pacote, calcularSaldoPacote)}</span>
+                <span>{statusPacote(pacote, historicoAtivoPorPacote[pacote.id] || [])}</span>
               </div>
             ))}
           </div>
 
           <div className="bloco-historico-cliente bloco-historico-largo">
-            <h3>Últimos usos de pacote</h3>
+            <h3>Últimos usos ativos de pacote</h3>
             {ultimosUsosPacote.length === 0 && <p>Nenhum consumo de pacote registrado.</p>}
             {ultimosUsosPacote.map((item) => (
               <div className="item-historico-cliente" key={item.id}>
@@ -223,9 +224,19 @@ function ClienteHistorico({
                 <span>{item.pacoteNome} • Uso {item.numeroUso} de {item.totalPacote} (restam {item.saldoDepois})</span>
               </div>
             ))}
-            {historicoClienteEstornado.length > 0 && (
-              <p>{historicoClienteEstornado.length} registro(s) estornado(s) mantido(s) apenas para auditoria.</p>
-            )}
+          </div>
+
+          <div className="bloco-historico-cliente bloco-historico-largo">
+            <h3>Auditoria de estornos/cancelamentos</h3>
+            {historicoClienteEstornado.length === 0 && <p>Nenhum estorno/cancelamento encontrado.</p>}
+            {historicoClienteEstornado.map((item) => (
+              <div className="item-historico-cliente" key={item.id}>
+                <strong>{item.servicoNome || "Consumo sem serviço"}</strong>
+                <span>
+                  {item.pacoteNome || "Pacote"} • {item.status || (item.estornado ? "estornado" : "cancelado")}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

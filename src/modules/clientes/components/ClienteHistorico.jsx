@@ -40,9 +40,10 @@ function consumoPacoteAtivo(consumo) {
   return consumo?.status !== "estornado" && consumo?.estornado !== true && consumo?.cancelado !== true;
 }
 
-function resumoUsoPacote(pacote, calcularSaldoPacote) {
+function resumoUsoPacote(pacote, historicoAtivoDoPacote = []) {
   const total = Number(pacote.quantidadeTotal || 0);
-  const usados = historicoAtivoDoPacote.reduce((acc, item) => acc + Math.max(1, Number(item.quantidadeConsumida || 1)), 0);
+  const historicoSeguro = Array.isArray(historicoAtivoDoPacote) ? historicoAtivoDoPacote : [];
+  const usados = historicoSeguro.reduce((acc, item) => acc + Math.max(1, Number(item?.quantidadeConsumida || 1)), 0);
   const saldo = Math.max(0, total - usados);
   return `${usados}/${total} serviços usados • ${saldo} restante`;
 }
@@ -72,8 +73,13 @@ function ClienteHistorico({
 
   if (!cliente) return null;
 
+  const agendamentosSeguro = Array.isArray(agendamentos) ? agendamentos : [];
+  const pacotesSeguro = Array.isArray(pacotes) ? pacotes : [];
+  const historicoPacotesSeguro = Array.isArray(historicoPacotes) ? historicoPacotes : [];
+  const movimentosSeguro = Array.isArray(movimentos) ? movimentos : [];
+
   const hoje = new Date().toISOString().slice(0, 10);
-  const agendamentosCliente = agendamentos
+  const agendamentosCliente = agendamentosSeguro
     .filter((item) => item.clienteId === cliente.id)
     .sort((a, b) => chaveDataHora(a).localeCompare(chaveDataHora(b)));
   const proximosAgendamentos = agendamentosCliente
@@ -84,14 +90,14 @@ function ClienteHistorico({
     .slice()
     .reverse()
     .slice(0, 5);
-  const pacotesCliente = pacotes.filter((item) => item.clienteId === cliente.id);
+  const pacotesCliente = pacotesSeguro.filter((item) => item.clienteId === cliente.id);
   const pacotesPorId = pacotesCliente.reduce((acc, pacote) => {
     acc[pacote.id] = pacote;
     return acc;
   }, {});
   const pacotesAtivos = pacotesCliente.filter((pacote) => calcularSaldoPacote(pacote) > 0 && pacote.status !== "esgotado");
   const pacotesFinalizados = pacotesCliente.filter((pacote) => calcularSaldoPacote(pacote) <= 0 || pacote.status === "esgotado");
-  const historicoCliente = historicoPacotes
+  const historicoCliente = historicoPacotesSeguro
     .filter((item) => item.clienteId === cliente.id)
     .slice();
   const historicoClienteAtivo = historicoCliente.filter(consumoPacoteAtivo);
@@ -114,7 +120,7 @@ function ClienteHistorico({
       totalPacote,
     };
   });
-  const movimentosCliente = movimentos
+  const movimentosCliente = movimentosSeguro
     .filter((item) => item.clienteId === cliente.id)
     .slice(0, 8);
   const totalRecebido = movimentosCliente.reduce((total, movimento) => {

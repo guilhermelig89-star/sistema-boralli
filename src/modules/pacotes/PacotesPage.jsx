@@ -46,20 +46,9 @@ function PacotesPage() {
     );
   }, []);
 
-  const consumoAtivoPorPacote = useMemo(() => {
-    return historico.reduce((mapa, consumo) => {
-      if (!consumoEstaAtivo(consumo) || !consumo.pacoteClienteId) return mapa;
-      const quantidade = Math.max(1, Number(consumo.quantidadeConsumida || 1));
-      mapa.set(consumo.pacoteClienteId, (mapa.get(consumo.pacoteClienteId) || 0) + quantidade);
-      return mapa;
-    }, new Map());
-  }, [historico, consumoEstaAtivo]);
-
   const pacoteEstaFinalizado = useCallback((pacote) => {
-    const contratado = Math.max(0, Number(pacote.quantidadeTotal || 0));
-    const consumosAtivos = consumoAtivoPorPacote.get(pacote.id) || 0;
-    return consumosAtivos >= contratado && contratado > 0;
-  }, [consumoAtivoPorPacote]);
+    return pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0;
+  }, [calcularSaldoPacote]);
 
   const pacotesPorCliente = useMemo(() => {
     if (!clienteFiltro) return pacotes;

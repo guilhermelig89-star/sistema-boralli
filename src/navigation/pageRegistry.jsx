@@ -7,6 +7,7 @@ import FinanceiroPage from "../modules/financeiro/FinanceiroPage";
 import PacotesPage from "../modules/pacotes/PacotesPage";
 import RelatoriosPage from "../modules/relatorios/RelatoriosPage";
 import ServicosPage from "../modules/servicos/ServicosPage";
+import RepararPacotesPage from "../modules/administracao/RepararPacotesPage";
 import { SCREENS } from "./screens";
 
 export const PAGE_REGISTRY = Object.freeze({
@@ -20,4 +21,5 @@ export const PAGE_REGISTRY = Object.freeze({
   [SCREENS.ATENDIMENTO]: AtendimentoPage,
   [SCREENS.CONFIGURACOES_EMPRESA]: ConfiguracoesEmpresaPage,
   [SCREENS.DASHBOARD]: DashboardPage,
+  [SCREENS.ADMIN_REPARAR_PACOTES]: RepararPacotesPage,
 });

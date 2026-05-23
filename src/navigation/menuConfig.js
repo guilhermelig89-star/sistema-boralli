@@ -32,6 +32,11 @@ export const MENU_GROUPS = [
     ],
   },
   {
+    id: "administracaoGrupo",
+    nome: "Administração",
+    itens: [{ id: SCREENS.ADMIN_REPARAR_PACOTES, nome: "Reparar pacotes" }],
+  },
+  {
     id: "relatoriosGrupo",
     nome: "Relatórios",
     itens: [{ id: SCREENS.RELATORIOS, nome: "Relatórios e impressões" }],

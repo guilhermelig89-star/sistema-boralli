@@ -9,6 +9,7 @@ export const SCREENS = Object.freeze({
   RELATORIOS: "relatorios",
   SERVICOS: "servicos",
   CONFIGURACOES_EMPRESA: "configuracoesEmpresa",
+  ADMIN_REPARAR_PACOTES: "adminRepararPacotes",
 });
 
 export const DEFAULT_SCREEN = SCREENS.ATENDIMENTO;

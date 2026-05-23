@@ -11,6 +11,7 @@ const addServicoSaldo = (map, hist) => {
   const key = hist.servicoId || hist.servicoNome || "sem_servico";
   map.set(key, (map.get(key) || 0) + Math.max(1, n(hist.quantidadeConsumida, 1)));
 };
+const keyInconsistencia = (item = {}) => `${item.pacoteId || ""}__${item.agendamentoId || ""}__${item.problema || ""}`;
 
 export async function listarInconsistenciasPacotes() { /* simplified below */
   const [aS, pS, hS] = await Promise.all([getDocs(agendamentosRef), getDocs(pacotesRef), getDocs(historicoRef)]);
@@ -53,9 +54,15 @@ export async function corrigirPacoteInconsistente({ pacoteId, simulacao = true }
   const pacote = rows(pS).find((p) => p.id === pacoteId);
   if (!pacote) throw new Error("Pacote não encontrado.");
   const dup = new Map();
-  hist.forEach((h) => dup.set(h.agendamentoId || "", [...(dup.get(h.agendamentoId || "") || []), h]));
+  hist.forEach((h) => {
+    if (!h.agendamentoId) return;
+    dup.set(h.agendamentoId, [...(dup.get(h.agendamentoId) || []), h]);
+  });
   const cancelarIds = [];
-  dup.forEach((l) => l.slice(1).forEach((h) => cancelarIds.push(h.id)));
+  dup.forEach((l) => {
+    const ativosMesmoAgendamento = l.filter((h) => !inativo(h));
+    ativosMesmoAgendamento.slice(1).forEach((h) => cancelarIds.push(h.id));
+  });
   const ativosAntes = hist.filter((h) => !inativo(h));
   const ativos = hist.filter((h) => !cancelarIds.includes(h.id) && !inativo(h) && ag.get(h.agendamentoId)?.status !== "cancelado");
   const usadoDepois = Math.min(n(pacote.quantidadeTotal, 0), ativos.reduce((s, h) => s + Math.max(1, n(h.quantidadeConsumida, 1)), 0));
@@ -75,15 +82,50 @@ export async function corrigirPacoteInconsistente({ pacoteId, simulacao = true }
     saldoPorServicoAntes: Object.fromEntries(saldoServicoAntes),
     saldoPorServicoDepois: Object.fromEntries(saldoServicoDepois),
     historicosAjustar,
+    duplicadosJaInativos: hist.filter((h) => h.agendamentoId && inativo(h)).map((h) => h.id),
   };
   if (simulacao) return preview;
 
   return runTransaction(db, async (tx) => {
-    tx.update(doc(pacotesRef, pacoteId), { quantidadeUtilizada: usadoDepois, saldoRestante: saldoDepois, status: saldoDepois > 0 ? "ativo" : "esgotado", atualizadoEm: serverTimestamp() });
+    const itensOriginais = Array.isArray(pacote.itens) ? pacote.itens : [];
+    const consumoAtivoPorServico = new Map();
+    ativos.forEach((h) => addServicoSaldo(consumoAtivoPorServico, h));
+    const itensRecalculados = itensOriginais.map((item) => {
+      const key = item.servicoId || item.servicoNome || "sem_servico";
+      const usadoItem = Math.min(n(item.quantidade, 0), consumoAtivoPorServico.get(key) || 0);
+      return {
+        ...item,
+        quantidadeUtilizada: usadoItem,
+        saldoRestante: Math.max(0, n(item.quantidade, 0) - usadoItem),
+      };
+    });
+    tx.update(doc(pacotesRef, pacoteId), {
+      quantidadeUtilizada: usadoDepois,
+      saldoRestante: saldoDepois,
+      status: saldoDepois > 0 ? "ativo" : "esgotado",
+      itens: itensRecalculados,
+      atualizadoEm: serverTimestamp(),
+    });
     preview.historicosAjustar.forEach((id) => tx.update(doc(historicoRef, id), { cancelado: true, estornado: true, status: "estornado", valido: false, estornadoMotivo: "reparo_administrativo", estornadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() }));
     tx.set(doc(auditoriaRef), { tipo: "reparo_pacote_admin", pacoteClienteId: pacoteId, ...preview, criadoEm: serverTimestamp() });
     return preview;
   });
+}
+
+export async function aplicarCorrecaoPacoteERecarregar({ pacoteId }) {
+  const resumo = await corrigirPacoteInconsistente({ pacoteId, simulacao: false });
+  const inconsistenciasAtualizadas = await listarInconsistenciasPacotes();
+  const aindaPendentes = inconsistenciasAtualizadas.filter((item) => item.pacoteId === pacoteId);
+  const mudouSaldo = resumo.usadoAntes !== resumo.usadoDepois || resumo.saldoAntes !== resumo.saldoDepois;
+  const motivos = [];
+  if (aindaPendentes.length) {
+    motivos.push("Ainda existem inconsistências para o pacote após o reparo.");
+  }
+  if (!mudouSaldo) {
+    motivos.push("Usado/saldo não mudou: o duplicado já não estava contando no saldo, mas permanecia no histórico e foi marcado como estornado/cancelado.");
+  }
+  const pendencias = aindaPendentes.map((i) => ({ chave: keyInconsistencia(i), problema: i.problema, agendamentoId: i.agendamentoId || "-", acao: i.acao }));
+  return { ...resumo, inconsistenciasAtualizadas, pendencias, mensagemPosCorrecao: motivos.join(" ") };
 }
 
 export async function recalcularTodosPacotes({ simulacao = true }) {

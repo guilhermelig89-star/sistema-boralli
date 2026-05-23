@@ -18,6 +18,8 @@ function PacotesTable({
   mensagemVazia,
   calcularSaldoPacote,
   pacoteEstaAcabando,
+  onRecalcularPacote,
+  recalculandoPacoteId,
 }) {
   return (
     <div className="tabela-clientes">
@@ -27,6 +29,7 @@ function PacotesTable({
         <span>Itens do pacote</span>
         <span>Saldo</span>
         <span>Status</span>
+        <span>Ações</span>
       </div>
 
       {carregando && (
@@ -52,6 +55,18 @@ function PacotesTable({
               <span>{pacote.servicoNome}</span>
               <span>{obterResumoItensPacote(pacote)}</span>
               <span className={status.classe}>{status.texto}</span>
+              <span>
+                <button
+                  type="button"
+                  className="botao-secundario"
+                  onClick={() => onRecalcularPacote?.(pacote)}
+                  disabled={recalculandoPacoteId === pacote.id}
+                >
+                  {recalculandoPacoteId === pacote.id
+                    ? "Recalculando..."
+                    : "Reativar pacote e recalcular saldo"}
+                </button>
+              </span>
             </div>
           );
         })}

@@ -1,4 +1,8 @@
-import { criarPacoteClienteRegistro, estornarConsumoPacoteRegistro } from "../repositories/pacotesRepository";
+import {
+  criarPacoteClienteRegistro,
+  estornarConsumoPacoteRegistro,
+  recalcularPacotePorHistoricoAtivoRegistro,
+} from "../repositories/pacotesRepository";
 import {
   calcularSaldoPacote,
   calcularSaldoServicoPacote,
@@ -29,4 +33,8 @@ export async function criarPacoteCliente(dados) {
 
 export async function estornarConsumoPacote(dados) {
   return estornarConsumoPacoteRegistro(dados);
+}
+
+export async function recalcularPacotePorHistoricoAtivo(dados) {
+  return recalcularPacotePorHistoricoAtivoRegistro(dados);
 }

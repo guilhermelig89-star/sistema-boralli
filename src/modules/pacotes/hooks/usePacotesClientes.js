@@ -7,6 +7,7 @@ import {
 import {
   criarPacoteCliente,
   estornarConsumoPacote,
+  recalcularPacotePorHistoricoAtivo,
   calcularSaldoPacote,
   calcularSaldoServicoPacote,
   pacoteEstaAcabando,
@@ -60,6 +61,11 @@ export function usePacotesClientes() {
     return estornarConsumoPacote(dados);
   }
 
+  async function recalcularPacote(dados) {
+    setErro(null);
+    return recalcularPacotePorHistoricoAtivo(dados);
+  }
+
   return {
     pacotes,
     pacotesAtivos,
@@ -68,6 +74,7 @@ export function usePacotesClientes() {
     erro,
     salvarPacote,
     estornarConsumo,
+    recalcularPacote,
     calcularSaldoPacote,
     calcularSaldoServicoPacote,
     pacoteEstaAcabando,

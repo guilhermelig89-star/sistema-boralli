@@ -177,3 +177,86 @@ export async function estornarConsumoPacoteRegistro({ historicoId, motivo = "" }
     });
   });
 }
+
+function historicoEstaAtivo(historico = {}) {
+  return !(
+    historico.estornado === true ||
+    historico.cancelado === true ||
+    historico.valido === false ||
+    historico.status === "estornado" ||
+    historico.status === "cancelado" ||
+    historico.removido === true
+  );
+}
+
+function numeroSeguro(valor, padrao = 0) {
+  const convertido = Number(valor);
+  return Number.isFinite(convertido) ? convertido : padrao;
+}
+
+export async function recalcularPacotePorHistoricoAtivoRegistro({ pacoteId }) {
+  if (!pacoteId) throw new Error("Pacote inválido para recálculo.");
+
+  return runTransaction(db, async (transaction) => {
+    const pacoteDocRef = doc(pacotesRef, pacoteId);
+    const pacoteSnap = await transaction.get(pacoteDocRef);
+
+    if (!pacoteSnap.exists()) {
+      throw new Error("Pacote não encontrado para recálculo.");
+    }
+
+    const pacote = pacoteSnap.data();
+    const historicoSnap = await transaction.get(historicoRef);
+    const historicosAtivos = historicoSnap.docs
+      .map((documento) => ({ id: documento.id, ...documento.data() }))
+      .filter((historico) => historico.pacoteClienteId === pacoteId && historicoEstaAtivo(historico));
+
+    const quantidadeTotal = Math.max(0, numeroSeguro(pacote.quantidadeTotal, 0));
+    const quantidadeUtilizada = Math.min(
+      quantidadeTotal,
+      historicosAtivos.reduce((total, historico) => total + Math.max(1, numeroSeguro(historico.quantidadeConsumida, 1)), 0)
+    );
+    const saldoRestante = Math.max(0, quantidadeTotal - quantidadeUtilizada);
+
+    const atualizacaoPacote = {
+      quantidadeUtilizada,
+      saldoRestante,
+      status: saldoRestante > 0 ? "ativo" : "esgotado",
+      atualizadoEm: serverTimestamp(),
+    };
+
+    if (Array.isArray(pacote.itens) && pacote.itens.length > 0) {
+      const consumoPorServico = new Map();
+      historicosAtivos.forEach((historico) => {
+        const chave = historico.servicoId || historico.servicoNome || "sem_servico";
+        consumoPorServico.set(chave, (consumoPorServico.get(chave) || 0) + Math.max(1, numeroSeguro(historico.quantidadeConsumida, 1)));
+      });
+
+      atualizacaoPacote.itens = pacote.itens.map((item) => {
+        const quantidadeItem = Math.max(0, numeroSeguro(item.quantidadeTotal ?? item.quantidade, 0));
+        const chave = item.servicoId || item.servicoNome || "sem_servico";
+        const quantidadeUtilizadaItem = Math.min(quantidadeItem, consumoPorServico.get(chave) || 0);
+
+        return {
+          ...item,
+          quantidadeUtilizada: quantidadeUtilizadaItem,
+          saldoRestante: Math.max(0, quantidadeItem - quantidadeUtilizadaItem),
+        };
+      });
+    }
+
+    transaction.update(pacoteDocRef, atualizacaoPacote);
+
+    transaction.set(doc(auditoriaRef), {
+      tipo: "recalculo_manual_pacote",
+      pacoteClienteId: pacoteId,
+      clienteId: pacote.clienteId || "",
+      clienteNome: pacote.clienteNome || "",
+      quantidadeTotal,
+      quantidadeUtilizada,
+      saldoRestante,
+      historicoAtivoConsiderado: historicosAtivos.length,
+      criadoEm: serverTimestamp(),
+    });
+  });
+}

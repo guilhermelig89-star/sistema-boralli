@@ -37,10 +37,10 @@ function statusPacote(pacote, calcularSaldoPacote) {
 }
 
 function consumoPacoteAtivo(consumo) {
-  return consumo?.status !== "estornado" && consumo?.estornado !== true && consumo?.estornadoEm == null && consumo?.cancelado !== true;
+  return consumo?.status !== "estornado" && consumo?.estornado !== true && consumo?.cancelado !== true;
 }
 
-function resumoUsoPacote(pacote, historicoAtivoDoPacote) {
+function resumoUsoPacote(pacote, calcularSaldoPacote) {
   const total = Number(pacote.quantidadeTotal || 0);
   const usados = historicoAtivoDoPacote.reduce((acc, item) => acc + Math.max(1, Number(item.quantidadeConsumida || 1)), 0);
   const saldo = Math.max(0, total - usados);

@@ -22,6 +22,57 @@ const historicoRef = collection(db, "pacotesHistorico");
 const movimentosFinanceirosRef = collection(db, "movimentosFinanceiros");
 const temposAtendimentoHistoricoRef = collection(db, "temposAtendimentoHistorico");
 
+const consumoLocksRef = collection(db, "pacotesConsumoLocks");
+
+function buildConsumoLockId(agendamentoId, contexto = "finalizacao") {
+  return `${contexto}__${agendamentoId}`;
+}
+
+async function validarESinalizarConsumoPacote(transaction, { agendamento, agendamentoId, tipoHistorico, contextoLock = "finalizacao" }) {
+  if (!agendamento.pacoteClienteId) return null;
+  if (agendamento.pacoteConsumido === true || agendamento.consumoPacote?.agendamentoId) {
+    throw new Error("Este atendimento já possui consumo de pacote registrado.");
+  }
+
+  const lockId = buildConsumoLockId(agendamentoId, contextoLock);
+  const lockRef = doc(consumoLocksRef, lockId);
+  const lockSnapshot = await transaction.get(lockRef);
+
+  if (lockSnapshot.exists()) {
+    throw new Error("Consumo de pacote já processado para este agendamento.");
+  }
+
+  const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
+  const pacoteSnapshot = await transaction.get(pacoteRef);
+
+  if (!pacoteSnapshot.exists()) {
+    throw new Error("Pacote do cliente não encontrado.");
+  }
+
+  const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
+  const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
+  const consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
+  const historicoDocRef = doc(historicoRef, `${agendamentoId}__${tipoHistorico}`);
+  const historicoSnapshot = await transaction.get(historicoDocRef);
+
+  if (historicoSnapshot.exists()) {
+    throw new Error("Histórico de consumo já registrado para este agendamento.");
+  }
+
+  transaction.update(pacoteRef, { ...resultadoConsumo.atualizacao, atualizadoEm: serverTimestamp() });
+  transaction.set(historicoDocRef, { ...consumoPacote, tipo: tipoHistorico, criadoEm: serverTimestamp() });
+  transaction.set(lockRef, {
+    agendamentoId,
+    pacoteClienteId: agendamento.pacoteClienteId,
+    clienteId: agendamento.clienteId || "",
+    tipoHistorico,
+    contexto: contextoLock,
+    criadoEm: serverTimestamp(),
+  });
+
+  return consumoPacote;
+}
+
 function mapDocumento(documento) {
   return {
     id: documento.id,
@@ -175,34 +226,11 @@ export function finalizarAgendamentoRegistro(agendamentoId, fechamentoFinanceiro
     let movimentoFinanceiroId = "";
 
     if (agendamento.pacoteClienteId) {
-      const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
-      const pacoteSnapshot = await transaction.get(pacoteRef);
-
-      if (!pacoteSnapshot.exists()) {
-        throw new Error("Pacote do cliente não encontrado.");
-      }
-
-      const pacote = {
-        id: pacoteSnapshot.id,
-        ...pacoteSnapshot.data(),
-      };
-      const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
-      const historicoDoc = doc(historicoRef);
-
-      consumoPacote = {
-        ...resultadoConsumo.consumoPacote,
+      consumoPacote = await validarESinalizarConsumoPacote(transaction, {
+        agendamento,
         agendamentoId,
-      };
-
-      transaction.update(pacoteRef, {
-        ...resultadoConsumo.atualizacao,
-        atualizadoEm: serverTimestamp(),
-      });
-
-      transaction.set(historicoDoc, {
-        ...consumoPacote,
-        tipo: "consumo_atendimento_finalizado",
-        criadoEm: serverTimestamp(),
+        tipoHistorico: "consumo_atendimento_finalizado",
+        contextoLock: "finalizacao",
       });
     } else {
       const movimentoDoc = doc(movimentosFinanceirosRef);
@@ -310,16 +338,12 @@ export function resolverPendenciaAgendamentoRegistro(agendamentoId, resolucao = 
       let movimentoFinanceiroId = "";
 
       if (agendamento.pacoteClienteId) {
-        const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
-        const pacoteSnapshot = await transaction.get(pacoteRef);
-        if (!pacoteSnapshot.exists()) throw new Error("Pacote do cliente não encontrado.");
-        const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
-        const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
-        const historicoDoc = doc(historicoRef);
-        consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
-
-        transaction.update(pacoteRef, { ...resultadoConsumo.atualizacao, atualizadoEm: serverTimestamp() });
-        transaction.set(historicoDoc, { ...consumoPacote, tipo: "consumo_atendimento_finalizado", criadoEm: serverTimestamp() });
+        consumoPacote = await validarESinalizarConsumoPacote(transaction, {
+          agendamento,
+          agendamentoId,
+          tipoHistorico: "consumo_atendimento_finalizado",
+          contextoLock: "pendencia_finalizacao_real",
+        });
       } else {
         const movimentoDoc = doc(movimentosFinanceirosRef);
         movimentoFinanceiroId = movimentoDoc.id;
@@ -405,16 +429,12 @@ export function resolverPendenciaAgendamentoRegistro(agendamentoId, resolucao = 
         if (agendamento.consumoPacote?.agendamentoId) {
           throw new Error("Este atendimento já possui consumo de pacote registrado.");
         }
-        const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
-        const pacoteSnapshot = await transaction.get(pacoteRef);
-        if (!pacoteSnapshot.exists()) throw new Error("Pacote do cliente não encontrado.");
-        const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
-        const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
-        const historicoDoc = doc(historicoRef);
-        consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
-
-        transaction.update(pacoteRef, { ...resultadoConsumo.atualizacao, atualizadoEm: serverTimestamp() });
-        transaction.set(historicoDoc, { ...consumoPacote, tipo: "consumo_atendimento_realizado_manual", criadoEm: serverTimestamp() });
+        consumoPacote = await validarESinalizarConsumoPacote(transaction, {
+          agendamento,
+          agendamentoId,
+          tipoHistorico: "consumo_atendimento_realizado_manual",
+          contextoLock: "pendencia_realizado_manual",
+        });
       }
 
       if (lancarFinanceiro) {
@@ -477,20 +497,11 @@ export function corrigirConsumoPacoteFinalizadoRegistro(agendamentoId) {
     if (agendamento.pacoteConsumido === true) throw new Error("Este atendimento já possui consumo de pacote.");
     if (agendamento.consumoPacote?.agendamentoId) throw new Error("Consumo de pacote já registrado para este agendamento.");
 
-    const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
-    const pacoteSnapshot = await transaction.get(pacoteRef);
-    if (!pacoteSnapshot.exists()) throw new Error("Pacote do cliente não encontrado.");
-
-    const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
-    const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
-    const historicoDoc = doc(historicoRef);
-    const consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
-
-    transaction.update(pacoteRef, { ...resultadoConsumo.atualizacao, atualizadoEm: serverTimestamp() });
-    transaction.set(historicoDoc, {
-      ...consumoPacote,
-      tipo: "consumo_atendimento_ajuste_manual_finalizado",
-      criadoEm: serverTimestamp(),
+    const consumoPacote = await validarESinalizarConsumoPacote(transaction, {
+      agendamento,
+      agendamentoId,
+      tipoHistorico: "consumo_atendimento_ajuste_manual_finalizado",
+      contextoLock: "correcao_manual",
     });
     transaction.update(agendamentoRef, {
       pacoteConsumido: true,

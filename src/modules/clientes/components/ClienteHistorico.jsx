@@ -36,10 +36,14 @@ function statusPacote(pacote, calcularSaldoPacote) {
   return `${saldo} restante`;
 }
 
-function resumoUsoPacote(pacote, calcularSaldoPacote) {
+function consumoPacoteAtivo(consumo) {
+  return consumo?.status !== "estornado" && consumo?.estornado !== true && consumo?.estornadoEm == null && consumo?.cancelado !== true;
+}
+
+function resumoUsoPacote(pacote, historicoAtivoDoPacote) {
   const total = Number(pacote.quantidadeTotal || 0);
-  const saldo = calcularSaldoPacote(pacote);
-  const usados = Math.max(0, total - saldo);
+  const usados = historicoAtivoDoPacote.reduce((acc, item) => acc + Math.max(1, Number(item.quantidadeConsumida || 1)), 0);
+  const saldo = Math.max(0, total - usados);
   return `${usados}/${total} serviços usados • ${saldo} restante`;
 }
 
@@ -81,13 +85,35 @@ function ClienteHistorico({
     .reverse()
     .slice(0, 5);
   const pacotesCliente = pacotes.filter((item) => item.clienteId === cliente.id);
+  const pacotesPorId = pacotesCliente.reduce((acc, pacote) => {
+    acc[pacote.id] = pacote;
+    return acc;
+  }, {});
   const pacotesAtivos = pacotesCliente.filter((pacote) => calcularSaldoPacote(pacote) > 0 && pacote.status !== "esgotado");
   const pacotesFinalizados = pacotesCliente.filter((pacote) => calcularSaldoPacote(pacote) <= 0 || pacote.status === "esgotado");
   const historicoCliente = historicoPacotes
     .filter((item) => item.clienteId === cliente.id)
-    .slice()
-    .reverse()
-    .slice(0, 6);
+    .slice();
+  const historicoClienteAtivo = historicoCliente.filter(consumoPacoteAtivo);
+  const historicoAtivoPorPacote = historicoClienteAtivo.reduce((acc, item) => {
+    if (!item.pacoteClienteId) return acc;
+    if (!acc[item.pacoteClienteId]) acc[item.pacoteClienteId] = [];
+    acc[item.pacoteClienteId].push(item);
+    return acc;
+  }, {});
+  const historicoClienteEstornado = historicoCliente.filter((item) => !consumoPacoteAtivo(item));
+  const historicoClienteAtivoOrdenado = historicoClienteAtivo.slice().reverse();
+  const ultimosUsosPacote = historicoClienteAtivoOrdenado.slice(0, 6).map((item) => {
+    const usosDoPacote = historicoClienteAtivoOrdenado.filter((consumo) => consumo.pacoteClienteId === item.pacoteClienteId);
+    const numeroUso = usosDoPacote.findIndex((consumo) => consumo.id === item.id) + 1;
+    const totalPacote = Number(pacotesPorId[item.pacoteClienteId]?.quantidadeTotal || item.saldoAntes || 0);
+
+    return {
+      ...item,
+      numeroUso,
+      totalPacote,
+    };
+  });
   const movimentosCliente = movimentos
     .filter((item) => item.clienteId === cliente.id)
     .slice(0, 8);
@@ -166,7 +192,7 @@ function ClienteHistorico({
             {pacotesAtivos.map((pacote) => (
               <div className="item-historico-cliente" key={pacote.id}>
                 <strong>{pacote.nome}</strong>
-                <span>{resumoUsoPacote(pacote, calcularSaldoPacote)}</span>
+                <span>{resumoUsoPacote(pacote, historicoAtivoPorPacote[pacote.id] || [])}</span>
               </div>
             ))}
           </div>
@@ -184,13 +210,16 @@ function ClienteHistorico({
 
           <div className="bloco-historico-cliente bloco-historico-largo">
             <h3>Últimos usos de pacote</h3>
-            {historicoCliente.length === 0 && <p>Nenhum consumo de pacote registrado.</p>}
-            {historicoCliente.map((item) => (
+            {ultimosUsosPacote.length === 0 && <p>Nenhum consumo de pacote registrado.</p>}
+            {ultimosUsosPacote.map((item) => (
               <div className="item-historico-cliente" key={item.id}>
                 <strong>{item.servicoNome}</strong>
-                <span>{item.pacoteNome} • Uso {item.saldoDepois + 1} de {item.saldoAntes + 1} (restam {item.saldoDepois})</span>
+                <span>{item.pacoteNome} • Uso {item.numeroUso} de {item.totalPacote} (restam {item.saldoDepois})</span>
               </div>
             ))}
+            {historicoClienteEstornado.length > 0 && (
+              <p>{historicoClienteEstornado.length} registro(s) estornado(s) mantido(s) apenas para auditoria.</p>
+            )}
           </div>
         </div>
       )}

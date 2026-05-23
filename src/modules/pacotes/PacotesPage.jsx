@@ -35,22 +35,25 @@ function PacotesPage() {
     pacoteEstaAcabando,
   } = usePacotesClientes();
 
+  const consumoEstaAtivo = useCallback((consumo = {}) => {
+    return !(
+      consumo.estornado === true ||
+      consumo.cancelado === true ||
+      consumo.valido === false ||
+      consumo.status === "estornado" ||
+      consumo.status === "cancelado" ||
+      consumo.removido === true
+    );
+  }, []);
+
   const consumoAtivoPorPacote = useMemo(() => {
     return historico.reduce((mapa, consumo) => {
-      const inativo =
-        consumo.estornado === true ||
-        consumo.cancelado === true ||
-        consumo.valido === false ||
-        consumo.status === "estornado" ||
-        consumo.status === "cancelado" ||
-        consumo.removido === true;
-
-      if (inativo || !consumo.pacoteClienteId) return mapa;
+      if (!consumoEstaAtivo(consumo) || !consumo.pacoteClienteId) return mapa;
       const quantidade = Math.max(1, Number(consumo.quantidadeConsumida || 1));
       mapa.set(consumo.pacoteClienteId, (mapa.get(consumo.pacoteClienteId) || 0) + quantidade);
       return mapa;
     }, new Map());
-  }, [historico]);
+  }, [historico, consumoEstaAtivo]);
 
   const pacoteEstaFinalizado = useCallback((pacote) => {
     const contratado = Math.max(0, Number(pacote.quantidadeTotal || 0));
@@ -95,9 +98,20 @@ function PacotesPage() {
   }, [pacotesPorCliente, statusFiltro, pacoteEstaFinalizado]);
 
   const historicoFiltrado = useMemo(() => {
-    if (!clienteFiltro) return historico;
-    return historico.filter((item) => item.clienteId === clienteFiltro);
-  }, [historico, clienteFiltro]);
+    const historicoDoCliente = clienteFiltro
+      ? historico.filter((item) => item.clienteId === clienteFiltro)
+      : historico;
+
+    const historicoAtivo = historicoDoCliente.filter(consumoEstaAtivo);
+    const auditoriaEstornosCancelamentos = historicoDoCliente.filter(
+      (item) => !consumoEstaAtivo(item)
+    );
+
+    return {
+      historicoAtivo,
+      auditoriaEstornosCancelamentos,
+    };
+  }, [historico, clienteFiltro, consumoEstaAtivo]);
 
   const mensagemVazia =
     !statusFiltro
@@ -223,7 +237,8 @@ function PacotesPage() {
         </div>
 
         <HistoricoPacotes
-          historico={historicoFiltrado}
+          historico={historicoFiltrado.historicoAtivo}
+          auditoria={historicoFiltrado.auditoriaEstornosCancelamentos}
           consumoSelecionadoId={consumoSelecionadoId}
           onSelecionarConsumo={setConsumoSelecionadoId}
           onEstornarConsumo={estornarConsumoSelecionado}

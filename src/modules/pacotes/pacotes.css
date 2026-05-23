@@ -185,3 +185,16 @@
 .linha-historico-selecionada {
   background: #fff9ef;
 }
+
+.auditoria-historico-pacotes {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auditoria-historico-pacotes h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #4a3a31;
+}

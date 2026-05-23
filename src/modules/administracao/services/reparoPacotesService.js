@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, runTransaction, serverTimestamp, writeBatch } from "firebase/firestore";
+import { collection, doc, getDocs, runTransaction, serverTimestamp } from "firebase/firestore";
 import { db } from "../../../shared/firebase/firebaseConfig";
 const agendamentosRef = collection(db, "agendamentos");
 const pacotesRef = collection(db, "pacotesClientes");
@@ -7,6 +7,10 @@ const auditoriaRef = collection(db, "pacotesConsumoAuditoria");
 const n = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const rows = (s) => s.docs.map((d) => ({ id: d.id, ...d.data() }));
 const inativo = (h) => h.estornado || h.cancelado || h.status === "cancelado" || h.valido === false;
+const addServicoSaldo = (map, hist) => {
+  const key = hist.servicoId || hist.servicoNome || "sem_servico";
+  map.set(key, (map.get(key) || 0) + Math.max(1, n(hist.quantidadeConsumida, 1)));
+};
 
 export async function listarInconsistenciasPacotes() { /* simplified below */
   const [aS, pS, hS] = await Promise.all([getDocs(agendamentosRef), getDocs(pacotesRef), getDocs(historicoRef)]);
@@ -52,29 +56,39 @@ export async function corrigirPacoteInconsistente({ pacoteId, simulacao = true }
   hist.forEach((h) => dup.set(h.agendamentoId || "", [...(dup.get(h.agendamentoId || "") || []), h]));
   const cancelarIds = [];
   dup.forEach((l) => l.slice(1).forEach((h) => cancelarIds.push(h.id)));
+  const ativosAntes = hist.filter((h) => !inativo(h));
   const ativos = hist.filter((h) => !cancelarIds.includes(h.id) && !inativo(h) && ag.get(h.agendamentoId)?.status !== "cancelado");
   const usadoDepois = Math.min(n(pacote.quantidadeTotal, 0), ativos.reduce((s, h) => s + Math.max(1, n(h.quantidadeConsumida, 1)), 0));
   const saldoDepois = Math.max(0, n(pacote.quantidadeTotal, 0) - usadoDepois);
-  const preview = { pacoteId, usadoAntes: n(pacote.quantidadeUtilizada, 0), saldoAntes: n(pacote.saldoRestante, 0), usadoDepois, saldoDepois, historicosAjustar: hist.filter((h) => cancelarIds.includes(h.id) || (ag.get(h.agendamentoId)?.status === "cancelado" && !inativo(h)) || (h.estornado && h.valido !== false)).map((h) => h.id) };
+  const saldoServicoAntes = new Map();
+  const saldoServicoDepois = new Map();
+  ativosAntes.forEach((h) => addServicoSaldo(saldoServicoAntes, h));
+  ativos.forEach((h) => addServicoSaldo(saldoServicoDepois, h));
+  const historicosAjustar = hist.filter((h) => cancelarIds.includes(h.id) || (ag.get(h.agendamentoId)?.status === "cancelado" && !inativo(h)) || (h.estornado && h.valido !== false)).map((h) => h.id);
+  const preview = {
+    pacoteId,
+    usadoAntes: n(pacote.quantidadeUtilizada, 0),
+    saldoAntes: n(pacote.saldoRestante, 0),
+    usadoDepois,
+    saldoDepois,
+    consumosCorrigidos: historicosAjustar.length,
+    saldoPorServicoAntes: Object.fromEntries(saldoServicoAntes),
+    saldoPorServicoDepois: Object.fromEntries(saldoServicoDepois),
+    historicosAjustar,
+  };
   if (simulacao) return preview;
 
   return runTransaction(db, async (tx) => {
     tx.update(doc(pacotesRef, pacoteId), { quantidadeUtilizada: usadoDepois, saldoRestante: saldoDepois, status: saldoDepois > 0 ? "ativo" : "esgotado", atualizadoEm: serverTimestamp() });
-    preview.historicosAjustar.forEach((id) => tx.update(doc(historicoRef, id), { cancelado: true, estornado: true, status: "cancelado", valido: false, estornadoMotivo: "reparo_administrativo", estornadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() }));
+    preview.historicosAjustar.forEach((id) => tx.update(doc(historicoRef, id), { cancelado: true, estornado: true, status: "estornado", valido: false, estornadoMotivo: "reparo_administrativo", estornadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() }));
     tx.set(doc(auditoriaRef), { tipo: "reparo_pacote_admin", pacoteClienteId: pacoteId, ...preview, criadoEm: serverTimestamp() });
     return preview;
   });
 }
 
 export async function recalcularTodosPacotes({ simulacao = true }) {
-  const [pS, hS] = await Promise.all([getDocs(pacotesRef), getDocs(historicoRef)]);
-  const pacotes = rows(pS), hist = rows(hS);
-  const ativos = new Map();
-  hist.forEach((h) => { if (!inativo(h)) ativos.set(h.pacoteClienteId, (ativos.get(h.pacoteClienteId) || 0) + Math.max(1, n(h.quantidadeConsumida, 1))); });
-  const preview = pacotes.map((p) => ({ pacoteId: p.id, cliente: p.clienteNome, pacote: p.nome, usadoAntes: n(p.quantidadeUtilizada, 0), saldoAntes: n(p.saldoRestante, 0), usadoDepois: Math.min(n(p.quantidadeTotal, 0), ativos.get(p.id) || 0), saldoDepois: Math.max(0, n(p.quantidadeTotal, 0) - Math.min(n(p.quantidadeTotal, 0), ativos.get(p.id) || 0)) }));
-  if (simulacao) return preview;
-  const b = writeBatch(db);
-  preview.forEach((x) => { b.update(doc(pacotesRef, x.pacoteId), { quantidadeUtilizada: x.usadoDepois, saldoRestante: x.saldoDepois, status: x.saldoDepois > 0 ? "ativo" : "esgotado", atualizadoEm: serverTimestamp() }); b.set(doc(auditoriaRef), { tipo: "recalculo_global_admin", ...x, criadoEm: serverTimestamp() }); });
-  await b.commit();
+  const pS = await getDocs(pacotesRef);
+  const pacotes = rows(pS);
+  const preview = await Promise.all(pacotes.map((p) => corrigirPacoteInconsistente({ pacoteId: p.id, simulacao })));
   return preview;
 }

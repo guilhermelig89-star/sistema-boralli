@@ -110,43 +110,41 @@ export async function estornarConsumoPacoteRegistro({ historicoId, motivo = "" }
 
     const pacote = pacoteSnap.data();
     const quantidadeConsumida = Math.max(1, Number(historico.quantidadeConsumida || 1));
+    const historicoColecaoSnap = await transaction.get(historicoRef);
+    const historicosAtivos = historicoColecaoSnap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((item) => item.pacoteClienteId === pacoteClienteId && item.id !== historicoId && historicoEstaAtivo(item));
+    const quantidadeTotal = Math.max(0, numeroSeguro(pacote.quantidadeTotal, 0));
+    const quantidadeUtilizadaDepois = Math.min(
+      quantidadeTotal,
+      historicosAtivos.reduce((total, item) => total + Math.max(1, numeroSeguro(item.quantidadeConsumida, 1)), 0)
+    );
+    const saldoRestanteDepois = Math.max(0, quantidadeTotal - quantidadeUtilizadaDepois);
     const quantidadeUtilizadaAtual = Number(pacote.quantidadeUtilizada || 0);
-    const quantidadeUtilizadaDepois = quantidadeUtilizadaAtual - quantidadeConsumida;
-
-    if (quantidadeUtilizadaDepois < 0) {
-      throw new Error("Inconsistência detectada: quantidade utilizada ficaria negativa.");
-    }
-
     const saldoRestanteAtual = Number(pacote.saldoRestante || 0);
-    const saldoRestanteDepois = saldoRestanteAtual + quantidadeConsumida;
     const atualizacaoPacote = {
       quantidadeUtilizada: quantidadeUtilizadaDepois,
       saldoRestante: saldoRestanteDepois,
-      status: saldoRestanteDepois > 0 ? "ativo" : "esgotado",
+      status: calcularStatusPacotePorHistorico({ saldoRestante: saldoRestanteDepois, historicosAtivos: historicosAtivos.length }),
       atualizadoEm: serverTimestamp(),
     };
 
-    if (Array.isArray(pacote.itens) && pacote.itens.length > 0 && historico.servicoId) {
-      const indiceItem = pacote.itens.findIndex((item) => item.servicoId === historico.servicoId);
-      if (indiceItem >= 0) {
-        const itemAtual = pacote.itens[indiceItem];
-        const itemUtilizadoAtual = Number(itemAtual.quantidadeUtilizada || 0);
-        const itemUtilizadoDepois = itemUtilizadoAtual - quantidadeConsumida;
-        if (itemUtilizadoDepois < 0) {
-          throw new Error("Inconsistência detectada no item do pacote após estorno.");
-        }
-
-        const itensAtualizados = pacote.itens.map((item, indice) => {
-          if (indice !== indiceItem) return item;
-          return {
-            ...item,
-            quantidadeUtilizada: itemUtilizadoDepois,
-            saldoRestante: Number(item.saldoRestante || 0) + quantidadeConsumida,
-          };
-        });
-
-        atualizacaoPacote.itens = itensAtualizados;
-      }
+    if (Array.isArray(pacote.itens) && pacote.itens.length > 0) {
+      const consumoPorServico = new Map();
+      historicosAtivos.forEach((item) => {
+        const chave = item.servicoId || item.servicoNome || "sem_servico";
+        consumoPorServico.set(chave, (consumoPorServico.get(chave) || 0) + Math.max(1, numeroSeguro(item.quantidadeConsumida, 1)));
+      });
+      atualizacaoPacote.itens = pacote.itens.map((item) => {
+        const quantidadeItem = Math.max(0, numeroSeguro(item.quantidadeTotal ?? item.quantidade, 0));
+        const chave = item.servicoId || item.servicoNome || "sem_servico";
+        const utilizada = Math.min(quantidadeItem, consumoPorServico.get(chave) || 0);
+        return {
+          ...item,
+          quantidadeUtilizada: utilizada,
+          saldoRestante: Math.max(0, quantidadeItem - utilizada),
+        };
+      });
     }
 
     transaction.update(pacoteDocRef, atualizacaoPacote);
@@ -189,6 +187,12 @@ function historicoEstaAtivo(historico = {}) {
   );
 }
 
+function calcularStatusPacotePorHistorico({ saldoRestante, historicosAtivos }) {
+  if (saldoRestante > 0) return "ativo";
+  if (historicosAtivos <= 0) return "ativo";
+  return "esgotado";
+}
+
 function numeroSeguro(valor, padrao = 0) {
   const convertido = Number(valor);
   return Number.isFinite(convertido) ? convertido : padrao;
@@ -218,10 +222,11 @@ export async function recalcularPacotePorHistoricoAtivoRegistro({ pacoteId }) {
     );
     const saldoRestante = Math.max(0, quantidadeTotal - quantidadeUtilizada);
 
+    const status = calcularStatusPacotePorHistorico({ saldoRestante, historicosAtivos: historicosAtivos.length });
     const atualizacaoPacote = {
       quantidadeUtilizada,
       saldoRestante,
-      status: saldoRestante > 0 ? "ativo" : "esgotado",
+      status,
       atualizadoEm: serverTimestamp(),
     };
 
@@ -256,6 +261,7 @@ export async function recalcularPacotePorHistoricoAtivoRegistro({ pacoteId }) {
       quantidadeUtilizada,
       saldoRestante,
       historicoAtivoConsiderado: historicosAtivos.length,
+      historicoAuditoriaIgnorado: historicoSnap.docs.length - historicosAtivos.length,
       criadoEm: serverTimestamp(),
     });
   });

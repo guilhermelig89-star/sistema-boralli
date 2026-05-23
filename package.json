@@ -12,7 +12,8 @@
     "importar:pacotes": "node scripts/importacao/importarPacotes.js",
     "importar:agendamentos": "node scripts/importacao/importarAgendamentos.js",
     "preview": "vite preview",
-    "corrigir:pacote-joana": "node scripts/corrigirPacoteJoana.js"
+    "corrigir:pacote-joana": "node scripts/corrigirPacoteJoana.js",
+    "corrigir:saldos-reais-pacotes": "node scripts/corrigirSaldosReaisPacotes.js --preview"
   },
   "dependencies": {
     "firebase": "^12.12.1",

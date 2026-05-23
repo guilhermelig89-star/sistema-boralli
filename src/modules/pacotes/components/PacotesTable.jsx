@@ -1,7 +1,7 @@
-import { obterResumoItensPacote } from "../domain/pacotesDomain";
+import { obterResumoItensPacote, pacoteEstaFinalizado } from "../domain/pacotesDomain";
 
 function obterStatusPacote(pacote, calcularSaldoPacote, pacoteEstaAcabando) {
-  if (pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0) {
+  if (pacoteEstaFinalizado(pacote)) {
     return { texto: "Finalizado", classe: "badge-tipo badge-finalizado" };
   }
 

@@ -19,6 +19,7 @@ function PacotesPage() {
   const [statusFiltro, setStatusFiltro] = useState(null);
   const [consumoSelecionadoId, setConsumoSelecionadoId] = useState("");
   const [estornando, setEstornando] = useState(false);
+  const [recalculandoPacoteId, setRecalculandoPacoteId] = useState("");
   const abasRef = useRef(null);
   const { clientesAtivos } = useClientes();
   const { combosAtivos } = useCombos();
@@ -29,14 +30,33 @@ function PacotesPage() {
     erro,
     salvarPacote,
     estornarConsumo,
+    recalcularPacote,
     calcularSaldoPacote,
     pacoteEstaAcabando,
   } = usePacotesClientes();
 
-  const pacoteEstaFinalizado = useCallback(
-    (pacote) => pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0,
-    [calcularSaldoPacote]
-  );
+  const consumoAtivoPorPacote = useMemo(() => {
+    return historico.reduce((mapa, consumo) => {
+      const inativo =
+        consumo.estornado === true ||
+        consumo.cancelado === true ||
+        consumo.valido === false ||
+        consumo.status === "estornado" ||
+        consumo.status === "cancelado" ||
+        consumo.removido === true;
+
+      if (inativo || !consumo.pacoteClienteId) return mapa;
+      const quantidade = Math.max(1, Number(consumo.quantidadeConsumida || 1));
+      mapa.set(consumo.pacoteClienteId, (mapa.get(consumo.pacoteClienteId) || 0) + quantidade);
+      return mapa;
+    }, new Map());
+  }, [historico]);
+
+  const pacoteEstaFinalizado = useCallback((pacote) => {
+    const contratado = Math.max(0, Number(pacote.quantidadeTotal || 0));
+    const consumosAtivos = consumoAtivoPorPacote.get(pacote.id) || 0;
+    return consumosAtivos >= contratado && contratado > 0;
+  }, [consumoAtivoPorPacote]);
 
   const pacotesPorCliente = useMemo(() => {
     if (!clienteFiltro) return pacotes;
@@ -113,6 +133,20 @@ function PacotesPage() {
     }
   }
 
+  async function reativarPacoteERecalcular(pacote) {
+    if (!pacote?.id) return;
+    if (!confirm("Reativar pacote e recalcular saldo com base no histórico ativo?")) return;
+
+    try {
+      setRecalculandoPacoteId(pacote.id);
+      await recalcularPacote({ pacoteId: pacote.id });
+    } catch (erroRecalculo) {
+      alert(erroRecalculo.message || "Não foi possível recalcular o pacote.");
+    } finally {
+      setRecalculandoPacoteId("");
+    }
+  }
+
   useEffect(() => {
     function aoClicarFora(evento) {
       if (!abasRef.current?.contains(evento.target)) {
@@ -183,6 +217,8 @@ function PacotesPage() {
             mensagemVazia={mensagemVazia}
             calcularSaldoPacote={calcularSaldoPacote}
             pacoteEstaAcabando={pacoteEstaAcabando}
+            onRecalcularPacote={reativarPacoteERecalcular}
+            recalculandoPacoteId={recalculandoPacoteId}
           />
         </div>
 

@@ -28,6 +28,32 @@ function buildConsumoLockId(agendamentoId, contexto = "finalizacao") {
   return `${contexto}__${agendamentoId}`;
 }
 
+function historicoConsumoAtivo(historico = {}) {
+  return !(
+    historico.estornado === true ||
+    historico.cancelado === true ||
+    historico.valido === false ||
+    historico.status === "estornado" ||
+    historico.status === "cancelado"
+  );
+}
+
+async function buscarConsumoAtivoPorAgendamento(transaction, agendamentoId) {
+  const historicoSnapshot = await transaction.get(historicoRef);
+  const ativos = historicoSnapshot.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((item) => item.agendamentoId === agendamentoId && historicoConsumoAtivo(item));
+
+  if (ativos.length === 0) return null;
+
+  ativos.sort((a, b) => {
+    const aCriado = a.criadoEm?.seconds || 0;
+    const bCriado = b.criadoEm?.seconds || 0;
+    return bCriado - aCriado;
+  });
+  return ativos[0];
+}
+
 async function validarESinalizarConsumoPacote(transaction, { agendamento, agendamentoId, tipoHistorico, contextoLock = "finalizacao" }) {
   if (!agendamento.pacoteClienteId) return null;
   if (agendamento.pacoteConsumido === true || agendamento.consumoPacote?.agendamentoId) {
@@ -197,22 +223,14 @@ export function cancelarAgendamentoRegistro(agendamentoId) {
       atualizadoEm: serverTimestamp(),
     };
 
-    if (agendamento.pacoteConsumido === true && agendamento.pacoteClienteId) {
-      const consumoStatus = texto(agendamento.consumoPacote?.status);
-      if (consumoStatus === "cancelado" || consumoStatus === "estornado") {
-        throw new Error("O consumo deste agendamento já foi estornado.");
+    if (agendamento.pacoteClienteId) {
+      const historicoAtivo = await buscarConsumoAtivoPorAgendamento(transaction, agendamentoId);
+      if (!historicoAtivo) {
+        transaction.update(agendamentoRef, atualizacaoAgendamento);
+        return;
       }
-
-      const historicoDocRef = doc(historicoRef, `${agendamentoId}__consumo_atendimento_finalizado`);
-      const historicoSnapshot = await transaction.get(historicoDocRef);
-      if (!historicoSnapshot.exists()) {
-        throw new Error("Histórico de consumo do pacote não encontrado para este agendamento.");
-      }
-
-      const historico = historicoSnapshot.data();
-      if (historico.estornado === true || historico.estornadoEm || historico.cancelado === true || historico.status === "cancelado") {
-        throw new Error("O consumo deste agendamento já foi estornado.");
-      }
+      const historicoDocRef = doc(historicoRef, historicoAtivo.id);
+      const historico = historicoAtivo;
 
       const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
       const pacoteSnapshot = await transaction.get(pacoteRef);
@@ -277,6 +295,7 @@ export function cancelarAgendamentoRegistro(agendamentoId) {
         status: "cancelado",
         cancelado: true,
         estornado: true,
+        historicoId: historicoAtivo.id,
         estornadoEm: new Date().toISOString(),
       };
     }

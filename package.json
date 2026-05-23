@@ -11,7 +11,8 @@
     "limpar:dados": "node scripts/limparDadosTeste.js",
     "importar:pacotes": "node scripts/importacao/importarPacotes.js",
     "importar:agendamentos": "node scripts/importacao/importarAgendamentos.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "corrigir:pacote-joana": "node scripts/corrigirPacoteJoana.js"
   },
   "dependencies": {
     "firebase": "^12.12.1",

@@ -182,10 +182,106 @@ export function iniciarAgendamentoRegistro(agendamentoId) {
 }
 
 export function cancelarAgendamentoRegistro(agendamentoId) {
-  return updateDoc(doc(db, "agendamentos", agendamentoId), {
-    status: "cancelado",
-    canceladoEm: serverTimestamp(),
-    atualizadoEm: serverTimestamp(),
+  return runTransaction(db, async (transaction) => {
+    const agendamentoRef = doc(db, "agendamentos", agendamentoId);
+    const agendamentoSnapshot = await transaction.get(agendamentoRef);
+
+    if (!agendamentoSnapshot.exists()) {
+      throw new Error("Agendamento não encontrado.");
+    }
+
+    const agendamento = agendamentoSnapshot.data();
+    const atualizacaoAgendamento = {
+      status: "cancelado",
+      canceladoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
+    };
+
+    if (agendamento.pacoteConsumido === true && agendamento.pacoteClienteId) {
+      const consumoStatus = texto(agendamento.consumoPacote?.status);
+      if (consumoStatus === "cancelado" || consumoStatus === "estornado") {
+        throw new Error("O consumo deste agendamento já foi estornado.");
+      }
+
+      const historicoDocRef = doc(historicoRef, `${agendamentoId}__consumo_atendimento_finalizado`);
+      const historicoSnapshot = await transaction.get(historicoDocRef);
+      if (!historicoSnapshot.exists()) {
+        throw new Error("Histórico de consumo do pacote não encontrado para este agendamento.");
+      }
+
+      const historico = historicoSnapshot.data();
+      if (historico.estornado === true || historico.estornadoEm || historico.cancelado === true || historico.status === "cancelado") {
+        throw new Error("O consumo deste agendamento já foi estornado.");
+      }
+
+      const pacoteRef = doc(pacotesRef, agendamento.pacoteClienteId);
+      const pacoteSnapshot = await transaction.get(pacoteRef);
+      if (!pacoteSnapshot.exists()) {
+        throw new Error("Pacote do cliente não encontrado para estorno do cancelamento.");
+      }
+
+      const pacote = pacoteSnapshot.data();
+      const quantidadeConsumida = Math.max(1, numero(historico.quantidadeConsumida || 1));
+      const quantidadeUtilizadaAtual = numero(pacote.quantidadeUtilizada, 0);
+      const quantidadeUtilizadaDepois = quantidadeUtilizadaAtual - quantidadeConsumida;
+
+      if (quantidadeUtilizadaDepois < 0) {
+        throw new Error("Inconsistência detectada no estorno do pacote.");
+      }
+
+      const saldoRestanteAtual = numero(pacote.saldoRestante, 0);
+      const saldoRestanteDepois = saldoRestanteAtual + quantidadeConsumida;
+      const atualizacaoPacote = {
+        quantidadeUtilizada: quantidadeUtilizadaDepois,
+        saldoRestante: saldoRestanteDepois,
+        status: saldoRestanteDepois > 0 ? "ativo" : "esgotado",
+        atualizadoEm: serverTimestamp(),
+      };
+
+      if (Array.isArray(pacote.itens) && pacote.itens.length > 0 && historico.servicoId) {
+        const indiceItem = pacote.itens.findIndex((item) => item.servicoId === historico.servicoId);
+        if (indiceItem >= 0) {
+          const itemAtual = pacote.itens[indiceItem];
+          const itemUtilizadoAtual = numero(itemAtual.quantidadeUtilizada, 0);
+          const itemUtilizadoDepois = itemUtilizadoAtual - quantidadeConsumida;
+          if (itemUtilizadoDepois < 0) {
+            throw new Error("Inconsistência detectada no item do pacote após cancelamento.");
+          }
+
+          atualizacaoPacote.itens = pacote.itens.map((item, indice) => {
+            if (indice !== indiceItem) return item;
+            return {
+              ...item,
+              quantidadeUtilizada: itemUtilizadoDepois,
+              saldoRestante: numero(item.saldoRestante, 0) + quantidadeConsumida,
+            };
+          });
+        }
+      }
+
+      transaction.update(pacoteRef, atualizacaoPacote);
+      transaction.update(historicoDocRef, {
+        estornado: true,
+        estornadoEm: serverTimestamp(),
+        estornadoMotivo: "cancelamento_agendamento",
+        cancelado: true,
+        status: "cancelado",
+        valido: false,
+        atualizadoEm: serverTimestamp(),
+      });
+
+      atualizacaoAgendamento.pacoteConsumido = false;
+      atualizacaoAgendamento.statusFinanceiro = "nao_lancar";
+      atualizacaoAgendamento.consumoPacote = {
+        ...(agendamento.consumoPacote || {}),
+        status: "cancelado",
+        cancelado: true,
+        estornado: true,
+        estornadoEm: new Date().toISOString(),
+      };
+    }
+
+    transaction.update(agendamentoRef, atualizacaoAgendamento);
   });
 }
 

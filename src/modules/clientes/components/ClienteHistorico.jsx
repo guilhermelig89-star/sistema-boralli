@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { consumoEstaAtivo } from "../../pacotes/domain/consumoHistoricoDomain";
+import { calcularSaldoPacote, obterResumoItensPacote, pacoteEstaFinalizado } from "../../pacotes/domain/pacotesDomain";
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -31,23 +32,13 @@ function statusTexto(status) {
   return "agendado";
 }
 
-function statusPacote(pacote, historicoAtivoDoPacote = []) {
-  const total = Number(pacote.quantidadeTotal || 0);
-  const usados = (Array.isArray(historicoAtivoDoPacote) ? historicoAtivoDoPacote : []).reduce(
-    (acc, item) => acc + Math.max(1, Number(item?.quantidadeConsumida || 1)),
-    0
-  );
-  const saldo = Math.max(0, total - usados);
-  if (saldo <= 0 || pacote.status === "esgotado") return "Finalizado";
-  return `${saldo} restante`;
+function statusPacote(pacote) {
+  if (pacoteEstaFinalizado(pacote)) return "Finalizado";
+  return `${calcularSaldoPacote(pacote)} restante`;
 }
 
-function resumoUsoPacote(pacote, historicoAtivoDoPacote = []) {
-  const total = Number(pacote.quantidadeTotal || 0);
-  const historicoSeguro = Array.isArray(historicoAtivoDoPacote) ? historicoAtivoDoPacote : [];
-  const usados = historicoSeguro.reduce((acc, item) => acc + Math.max(1, Number(item?.quantidadeConsumida || 1)), 0);
-  const saldo = Math.max(0, total - usados);
-  return `${usados}/${total} serviços usados • ${saldo} restante`;
+function resumoUsoPacote(pacote) {
+  return obterResumoItensPacote(pacote);
 }
 
 function ClienteHistorico({
@@ -100,15 +91,9 @@ function ClienteHistorico({
     .filter((item) => item.clienteId === cliente.id)
     .slice();
   const historicoClienteAtivo = historicoCliente.filter(consumoEstaAtivo);
-  const historicoAtivoPorPacote = historicoClienteAtivo.reduce((acc, item) => {
-    if (!item.pacoteClienteId) return acc;
-    if (!acc[item.pacoteClienteId]) acc[item.pacoteClienteId] = [];
-    acc[item.pacoteClienteId].push(item);
-    return acc;
-  }, {});
   const historicoClienteEstornado = historicoCliente.filter((item) => !consumoEstaAtivo(item));
-  const pacotesAtivos = pacotesCliente.filter((pacote) => statusPacote(pacote, historicoAtivoPorPacote[pacote.id] || []) !== "Finalizado");
-  const pacotesFinalizados = pacotesCliente.filter((pacote) => statusPacote(pacote, historicoAtivoPorPacote[pacote.id] || []) === "Finalizado");
+  const pacotesAtivos = pacotesCliente.filter((pacote) => !pacoteEstaFinalizado(pacote));
+  const pacotesFinalizados = pacotesCliente.filter((pacote) => pacoteEstaFinalizado(pacote));
   const historicoClienteAtivoOrdenado = historicoClienteAtivo.slice().reverse();
   const ultimosUsosPacote = historicoClienteAtivoOrdenado.slice(0, 6).map((item) => {
     const usosDoPacote = historicoClienteAtivoOrdenado.filter((consumo) => consumo.pacoteClienteId === item.pacoteClienteId);
@@ -199,7 +184,7 @@ function ClienteHistorico({
             {pacotesAtivos.map((pacote) => (
               <div className="item-historico-cliente" key={pacote.id}>
                 <strong>{pacote.nome}</strong>
-                <span>{resumoUsoPacote(pacote, historicoAtivoPorPacote[pacote.id] || [])}</span>
+                <span>{resumoUsoPacote(pacote)}</span>
               </div>
             ))}
           </div>
@@ -210,7 +195,7 @@ function ClienteHistorico({
             {pacotesFinalizados.map((pacote) => (
               <div className="item-historico-cliente" key={pacote.id}>
                 <strong>{pacote.nome}</strong>
-                <span>{statusPacote(pacote, historicoAtivoPorPacote[pacote.id] || [])}</span>
+                <span>{statusPacote(pacote)}</span>
               </div>
             ))}
           </div>

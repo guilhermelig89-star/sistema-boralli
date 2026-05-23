@@ -45,6 +45,10 @@ export function calcularSaldoPacote(pacote = {}) {
   return Math.max(0, numero(saldo, 0));
 }
 
+export function pacoteEstaFinalizado(pacote = {}) {
+  return calcularSaldoPacote(pacote) <= 0;
+}
+
 export function calcularSaldoServicoPacote(pacote = {}, servicoId) {
   if (!servicoId) return 0;
 

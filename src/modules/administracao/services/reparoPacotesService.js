@@ -12,6 +12,7 @@ const addServicoSaldo = (map, hist) => {
   map.set(key, (map.get(key) || 0) + Math.max(1, n(hist.quantidadeConsumida, 1)));
 };
 const keyInconsistencia = (item = {}) => `${item.pacoteId || ""}__${item.agendamentoId || ""}__${item.problema || ""}`;
+const isJoana = (nome = "") => String(nome).trim().toLowerCase() === "joana";
 
 export async function listarInconsistenciasPacotes() { /* simplified below */
   const [aS, pS, hS] = await Promise.all([getDocs(agendamentosRef), getDocs(pacotesRef), getDocs(historicoRef)]);
@@ -133,4 +134,97 @@ export async function recalcularTodosPacotes({ simulacao = true }) {
   const pacotes = rows(pS);
   const preview = await Promise.all(pacotes.map((p) => corrigirPacoteInconsistente({ pacoteId: p.id, simulacao })));
   return preview;
+}
+
+export async function limparConsumosJoana({ simulacao = true }) {
+  const [hS, aS, pS] = await Promise.all([getDocs(historicoRef), getDocs(agendamentosRef), getDocs(pacotesRef)]);
+  const historicos = rows(hS);
+  const agendamentos = rows(aS);
+  const pacotes = rows(pS);
+
+  const pacotesJoana = pacotes.filter((p) => isJoana(p.clienteNome));
+  const pacoteIds = new Set(pacotesJoana.map((p) => p.id));
+  const historicosJoana = historicos.filter((h) => pacoteIds.has(h.pacoteClienteId) || isJoana(h.clienteNome));
+  const historicoIds = new Set(historicosJoana.map((h) => h.id));
+
+  const agendamentosJoanaComConsumo = agendamentos.filter((a) => {
+    if (!isJoana(a.clienteNome)) return false;
+    if (a.pacoteConsumido === true) return true;
+    const historicoAgendamento = historicosJoana.some((h) => h.agendamentoId && h.agendamentoId === a.id && !inativo(h));
+    return Boolean(a.consumoPacote?.agendamentoId) || historicoAgendamento;
+  });
+
+  const previewPacotes = pacotesJoana.map((p) => {
+    const itens = Array.isArray(p.itens) ? p.itens : [];
+    return {
+      pacoteId: p.id,
+      pacoteNome: p.nome || "Pacote",
+      saldoAtual: n(p.saldoRestante, 0),
+      usadoAtual: n(p.quantidadeUtilizada, 0),
+      saldoFinalEsperado: n(p.quantidadeTotal, 0),
+      usadoFinalEsperado: 0,
+      itens: itens.map((item) => ({
+        servicoId: item.servicoId || null,
+        servicoNome: item.servicoNome || null,
+        saldoAtual: n(item.saldoRestante, n(item.quantidade, 0)),
+        saldoFinalEsperado: n(item.quantidade, 0),
+      })),
+    };
+  });
+
+  const preview = {
+    cliente: "Joana",
+    totalPacotes: pacotesJoana.length,
+    totalHistoricosParaRemover: historicosJoana.length,
+    totalAgendamentosParaDesvincular: agendamentosJoanaComConsumo.length,
+    historicosParaRemover: historicosJoana.map((h) => ({ id: h.id, pacoteClienteId: h.pacoteClienteId || null, agendamentoId: h.agendamentoId || null, status: h.status || null, cancelado: Boolean(h.cancelado), estornado: Boolean(h.estornado), valido: h.valido !== false })),
+    agendamentosParaDesvincular: agendamentosJoanaComConsumo.map((a) => ({ id: a.id, status: a.status || null, pacoteConsumido: Boolean(a.pacoteConsumido), statusFinanceiroAtual: a.statusFinanceiro || null, consumoPacoteAgendamentoId: a.consumoPacote?.agendamentoId || null })),
+    pacotes: previewPacotes,
+  };
+
+  if (simulacao) return preview;
+
+  return runTransaction(db, async (tx) => {
+    pacotesJoana.forEach((p) => {
+      const itens = Array.isArray(p.itens) ? p.itens : [];
+      tx.update(doc(pacotesRef, p.id), {
+        quantidadeUtilizada: 0,
+        saldoRestante: n(p.quantidadeTotal, 0),
+        status: "ativo",
+        itens: itens.map((item) => ({ ...item, quantidadeUtilizada: 0, saldoRestante: n(item.quantidade, 0) })),
+        atualizadoEm: serverTimestamp(),
+      });
+    });
+
+    historicosJoana.forEach((h) => {
+      tx.update(doc(historicoRef, h.id), {
+        removido: true,
+        cancelado: true,
+        estornado: true,
+        valido: false,
+        status: "estornado",
+        estornadoMotivo: "limpeza_consumo_joana",
+        estornadoEm: serverTimestamp(),
+        atualizadoEm: serverTimestamp(),
+      });
+    });
+
+    agendamentosJoanaComConsumo.forEach((a) => {
+      tx.update(doc(agendamentosRef, a.id), {
+        pacoteConsumido: false,
+        consumoPacote: null,
+        statusFinanceiro: "nao_lancar",
+        atualizadoEm: serverTimestamp(),
+      });
+    });
+
+    tx.set(doc(auditoriaRef), {
+      tipo: "limpeza_consumo_cliente_joana",
+      ...preview,
+      historicoIdsAjustados: Array.from(historicoIds),
+      criadoEm: serverTimestamp(),
+    });
+
+    return preview;
+  });
 }

@@ -6,6 +6,7 @@ import "./pacotes.css";
 import HistoricoPacotes from "./components/HistoricoPacotes";
 import PacoteForm from "./components/PacoteForm";
 import PacotesTable from "./components/PacotesTable";
+import { pacoteEstaFinalizado } from "./domain/pacotesDomain";
 import { usePacotesClientes } from "./hooks/usePacotesClientes";
 
 const filtrosPacotes = [
@@ -46,10 +47,6 @@ function PacotesPage() {
     );
   }, []);
 
-  const pacoteEstaFinalizado = useCallback((pacote) => {
-    return pacote.status === "esgotado" || calcularSaldoPacote(pacote) <= 0;
-  }, [calcularSaldoPacote]);
-
   const pacotesPorCliente = useMemo(() => {
     if (!clienteFiltro) return pacotes;
     return pacotes.filter((pacote) => pacote.clienteId === clienteFiltro);
@@ -68,7 +65,7 @@ function PacotesPage() {
       },
       { ativos: 0, finalizados: 0, todos: 0 }
     );
-  }, [pacotesPorCliente, pacoteEstaFinalizado]);
+  }, [pacotesPorCliente]);
 
   const pacotesFiltrados = useMemo(() => {
     if (!statusFiltro) {
@@ -84,7 +81,7 @@ function PacotesPage() {
     }
 
     return pacotesPorCliente.filter((pacote) => !pacoteEstaFinalizado(pacote));
-  }, [pacotesPorCliente, statusFiltro, pacoteEstaFinalizado]);
+  }, [pacotesPorCliente, statusFiltro]);
 
   const historicoFiltrado = useMemo(() => {
     const historicoDoCliente = clienteFiltro

@@ -12,7 +12,10 @@
     "importar:pacotes": "node scripts/importacao/importarPacotes.js",
     "importar:agendamentos": "node scripts/importacao/importarAgendamentos.js",
     "preview": "vite preview",
-    "corrigir:pacote-joana": "node scripts/corrigirPacoteJoana.js"
+    "corrigir:pacote-joana": "node scripts/corrigirPacoteJoana.js",
+    "corrigir:saldos-reais-pacotes": "node scripts/corrigirSaldosReaisPacotes.js --preview",
+    "corrigir:saldos-reais-pacotes:aplicar": "node scripts/corrigirSaldosReaisPacotes.js --aplicar",
+    "corrigir:saldos-reais-pacotes:ajuda": "node scripts/corrigirSaldosReaisPacotes.js --help"
   },
   "dependencies": {
     "firebase": "^12.12.1",

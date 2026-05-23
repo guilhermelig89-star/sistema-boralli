@@ -121,7 +121,7 @@ function AgendamentoForm({
   }
 
   return (
-    <form className="form-cliente" onSubmit={salvar}>
+    <form className="form-cliente" onSubmit={salvar} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
       <div className="cabecalho-form-agendamento">
         <h2>Novo agendamento</h2>
         <button

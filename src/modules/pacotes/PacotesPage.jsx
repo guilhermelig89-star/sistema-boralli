@@ -17,6 +17,8 @@ const filtrosPacotes = [
 function PacotesPage() {
   const [clienteFiltro, setClienteFiltro] = useState("");
   const [statusFiltro, setStatusFiltro] = useState(null);
+  const [consumoSelecionadoId, setConsumoSelecionadoId] = useState("");
+  const [estornando, setEstornando] = useState(false);
   const abasRef = useRef(null);
   const { clientesAtivos } = useClientes();
   const { combosAtivos } = useCombos();
@@ -26,6 +28,7 @@ function PacotesPage() {
     carregando,
     erro,
     salvarPacote,
+    estornarConsumo,
     calcularSaldoPacote,
     pacoteEstaAcabando,
   } = usePacotesClientes();
@@ -89,6 +92,24 @@ function PacotesPage() {
       await salvarPacote(dados);
     } catch (erroSalvar) {
       alert(erroSalvar.message || "Não foi possível salvar o pacote.");
+    }
+  }
+
+  async function estornarConsumoSelecionado(consumo) {
+    if (!consumo?.id) return;
+    if (!confirm("Confirmar estorno do consumo selecionado? Essa ação ajusta saldo e auditoria.")) return;
+
+    try {
+      setEstornando(true);
+      await estornarConsumo({
+        historicoId: consumo.id,
+        motivo: "Correção administrativa manual",
+      });
+      setConsumoSelecionadoId("");
+    } catch (erroEstorno) {
+      alert(erroEstorno.message || "Não foi possível estornar o consumo.");
+    } finally {
+      setEstornando(false);
     }
   }
 
@@ -165,7 +186,13 @@ function PacotesPage() {
           />
         </div>
 
-        <HistoricoPacotes historico={historicoFiltrado} />
+        <HistoricoPacotes
+          historico={historicoFiltrado}
+          consumoSelecionadoId={consumoSelecionadoId}
+          onSelecionarConsumo={setConsumoSelecionadoId}
+          onEstornarConsumo={estornarConsumoSelecionado}
+          estornando={estornando}
+        />
       </div>
     </div>
   );

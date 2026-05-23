@@ -1,4 +1,4 @@
-function HistoricoPacotes({ historico }) {
+function HistoricoPacotes({ historico, consumoSelecionadoId, onSelecionarConsumo, onEstornarConsumo, estornando }) {
   return (
     <div className="lista-clientes bloco-pacotes">
       <h2>Histórico de uso</h2>
@@ -11,6 +11,7 @@ function HistoricoPacotes({ historico }) {
           <span>Serviço utilizado</span>
           <span>Quantidade</span>
           <span>Saldo após uso</span>
+          <span>Ação</span>
         </div>
 
         {historico.length === 0 && (
@@ -20,7 +21,7 @@ function HistoricoPacotes({ historico }) {
         )}
 
         {historico.map((item) => (
-          <div className="linha-historico" key={item.id}>
+          <div className={`linha-historico ${consumoSelecionadoId === item.id ? "linha-historico-selecionada" : ""}`} key={item.id}>
             <strong>{item.clienteNome}</strong>
             <span>{item.pacoteNome}</span>
             <span>{item.servicoNome}</span>
@@ -28,6 +29,25 @@ function HistoricoPacotes({ historico }) {
             <span>
               {item.saldoAntes} para {item.saldoDepois}
             </span>
+            <div className="acoes-historico-pacotes">
+              {item.estornado ? (
+                <span className="badge-finalizado">Estornado</span>
+              ) : (
+                <>
+                  <button type="button" onClick={() => onSelecionarConsumo(item.id)}>
+                    {consumoSelecionadoId === item.id ? "Selecionado" : "Selecionar"}
+                  </button>
+                  <button
+                    type="button"
+                    className="botao-estorno"
+                    disabled={consumoSelecionadoId !== item.id || estornando}
+                    onClick={() => onEstornarConsumo(item)}
+                  >
+                    Estornar consumo
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>

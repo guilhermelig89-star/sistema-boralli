@@ -6,6 +6,7 @@ import {
   onSnapshot,
   serverTimestamp,
   writeBatch,
+  runTransaction,
 } from "firebase/firestore";
 
 import { db } from "../../../shared/firebase/firebaseConfig";
@@ -13,6 +14,7 @@ import { db } from "../../../shared/firebase/firebaseConfig";
 const pacotesRef = collection(db, "pacotesClientes");
 const historicoRef = collection(db, "pacotesHistorico");
 const movimentosFinanceirosRef = collection(db, "movimentosFinanceiros");
+const auditoriaRef = collection(db, "pacotesConsumoAuditoria");
 
 function mapDocumento(documento) {
   return {
@@ -73,4 +75,105 @@ export function criarPacoteClienteRegistro(dados) {
   }
 
   return batch.commit();
+}
+
+export async function estornarConsumoPacoteRegistro({ historicoId, motivo = "" }) {
+  if (!historicoId) {
+    throw new Error("Selecione um consumo para estornar.");
+  }
+
+  return runTransaction(db, async (transaction) => {
+    const historicoDocRef = doc(historicoRef, historicoId);
+    const historicoSnap = await transaction.get(historicoDocRef);
+
+    if (!historicoSnap.exists()) {
+      throw new Error("Histórico de consumo não encontrado.");
+    }
+
+    const historico = historicoSnap.data();
+
+    if (historico.estornadoEm) {
+      throw new Error("Este consumo já foi estornado.");
+    }
+
+    const pacoteClienteId = historico.pacoteClienteId;
+    if (!pacoteClienteId) {
+      throw new Error("Consumo sem pacote vinculado.");
+    }
+
+    const pacoteDocRef = doc(pacotesRef, pacoteClienteId);
+    const pacoteSnap = await transaction.get(pacoteDocRef);
+
+    if (!pacoteSnap.exists()) {
+      throw new Error("Pacote não encontrado para estorno.");
+    }
+
+    const pacote = pacoteSnap.data();
+    const quantidadeConsumida = Math.max(1, Number(historico.quantidadeConsumida || 1));
+    const quantidadeUtilizadaAtual = Number(pacote.quantidadeUtilizada || 0);
+    const quantidadeUtilizadaDepois = quantidadeUtilizadaAtual - quantidadeConsumida;
+
+    if (quantidadeUtilizadaDepois < 0) {
+      throw new Error("Inconsistência detectada: quantidade utilizada ficaria negativa.");
+    }
+
+    const saldoRestanteAtual = Number(pacote.saldoRestante || 0);
+    const saldoRestanteDepois = saldoRestanteAtual + quantidadeConsumida;
+    const atualizacaoPacote = {
+      quantidadeUtilizada: quantidadeUtilizadaDepois,
+      saldoRestante: saldoRestanteDepois,
+      status: saldoRestanteDepois > 0 ? "ativo" : "esgotado",
+      atualizadoEm: serverTimestamp(),
+    };
+
+    if (Array.isArray(pacote.itens) && pacote.itens.length > 0 && historico.servicoId) {
+      const indiceItem = pacote.itens.findIndex((item) => item.servicoId === historico.servicoId);
+      if (indiceItem >= 0) {
+        const itemAtual = pacote.itens[indiceItem];
+        const itemUtilizadoAtual = Number(itemAtual.quantidadeUtilizada || 0);
+        const itemUtilizadoDepois = itemUtilizadoAtual - quantidadeConsumida;
+        if (itemUtilizadoDepois < 0) {
+          throw new Error("Inconsistência detectada no item do pacote após estorno.");
+        }
+
+        const itensAtualizados = pacote.itens.map((item, indice) => {
+          if (indice !== indiceItem) return item;
+          return {
+            ...item,
+            quantidadeUtilizada: itemUtilizadoDepois,
+            saldoRestante: Number(item.saldoRestante || 0) + quantidadeConsumida,
+          };
+        });
+
+        atualizacaoPacote.itens = itensAtualizados;
+      }
+    }
+
+    transaction.update(pacoteDocRef, atualizacaoPacote);
+
+    transaction.update(historicoDocRef, {
+      estornadoEm: serverTimestamp(),
+      estornadoMotivo: String(motivo || "").trim(),
+      estornado: true,
+      valido: false,
+    });
+
+    const auditoriaDocRef = doc(auditoriaRef);
+    transaction.set(auditoriaDocRef, {
+      tipo: "estorno_consumo_pacote",
+      historicoId,
+      pacoteClienteId,
+      clienteId: historico.clienteId || "",
+      clienteNome: historico.clienteNome || "",
+      servicoId: historico.servicoId || "",
+      servicoNome: historico.servicoNome || "",
+      quantidadeEstornada: quantidadeConsumida,
+      saldoPacoteAntes: saldoRestanteAtual,
+      saldoPacoteDepois: saldoRestanteDepois,
+      quantidadeUtilizadaAntes: quantidadeUtilizadaAtual,
+      quantidadeUtilizadaDepois,
+      motivo: String(motivo || "").trim(),
+      criadoEm: serverTimestamp(),
+    });
+  });
 }

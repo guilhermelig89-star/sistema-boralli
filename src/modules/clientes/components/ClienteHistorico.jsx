@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { consumoEstaAtivo } from "../../pacotes/domain/consumoHistoricoDomain";
-import { calcularSaldoPacote, obterResumoItensPacote, pacoteEstaFinalizado } from "../../pacotes/domain/pacotesDomain";
+import { pacoteEstaFinalizado } from "../../pacotes/domain/pacotesDomain";
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -32,13 +32,90 @@ function statusTexto(status) {
   return "agendado";
 }
 
-function statusPacote(pacote) {
-  if (pacoteEstaFinalizado(pacote)) return "Finalizado";
-  return `${calcularSaldoPacote(pacote)} restante`;
+function iconeServico(nome = "") {
+  const nomeNormalizado = nome.toLowerCase();
+  if (nomeNormalizado.includes("pé") || nomeNormalizado.includes("pe ") || nomeNormalizado.includes("pedicure")) return "🦶";
+  if (nomeNormalizado.includes("mão") || nomeNormalizado.includes("mao") || nomeNormalizado.includes("manicure")) return "💅";
+  return "✨";
 }
 
-function resumoUsoPacote(pacote) {
-  return obterResumoItensPacote(pacote);
+function limitarNumero(valor, minimo, maximo) {
+  const convertido = Number(valor);
+  const numeroSeguro = Number.isFinite(convertido) ? convertido : minimo;
+  return Math.min(maximo, Math.max(minimo, numeroSeguro));
+}
+
+function obterItensSaldoCombo(pacote = {}) {
+  if (Array.isArray(pacote.itens) && pacote.itens.length > 0) {
+    return pacote.itens.map((item) => {
+      const total = Math.max(0, Number(item.quantidadeTotal ?? item.quantidade ?? 0));
+      const utilizado = limitarNumero(item.quantidadeUtilizada, 0, total);
+
+      return {
+        id: item.servicoId || item.servicoNome,
+        nome: item.servicoNome || "Serviço",
+        total,
+        utilizado,
+        restante: Math.max(0, total - utilizado),
+      };
+    });
+  }
+
+  const total = Math.max(0, Number(pacote.quantidadeTotal || 0));
+  const utilizado = limitarNumero(pacote.quantidadeUtilizada, 0, total);
+
+  return [
+    {
+      id: pacote.servicoId || pacote.nome,
+      nome: pacote.servicoNome || pacote.nome || "Serviço",
+      total,
+      utilizado,
+      restante: Math.max(0, total - utilizado),
+    },
+  ];
+}
+
+function QuadradinhosSaldo({ item }) {
+  return (
+    <div className="quadradinhos-saldo-combo" aria-label={`${item.utilizado} utilizado, ${item.restante} disponível`}>
+      {Array.from({ length: item.total }).map((_, indice) => (
+        <span
+          className={indice < item.utilizado ? "quadradinho-combo quadradinho-combo-usado" : "quadradinho-combo quadradinho-combo-disponivel"}
+          key={`${item.id}-${indice}`}
+          aria-hidden="true"
+        />
+      ))}
+    </div>
+  );
+}
+
+function CardSaldoCombo({ pacote }) {
+  const itens = obterItensSaldoCombo(pacote);
+  const finalizado = itens.every((item) => item.restante <= 0);
+
+  return (
+    <article className={`card-saldo-combo ${finalizado ? "card-saldo-combo-finalizado" : ""}`}>
+      <header className="cabecalho-card-saldo-combo">
+        <span aria-hidden="true">📦</span>
+        <strong>{pacote.nome}</strong>
+      </header>
+
+      <div className="servicos-saldo-combo">
+        {itens.map((item) => (
+          <section className="servico-saldo-combo" key={item.id}>
+            <div className="nome-servico-saldo-combo">
+              <span aria-hidden="true">{iconeServico(item.nome)}</span>
+              <strong>{item.nome}</strong>
+            </div>
+            <QuadradinhosSaldo item={item} />
+            <strong className={item.restante <= 0 ? "restante-combo restante-combo-finalizado" : "restante-combo"}>
+              {item.restante <= 0 ? "Finalizado" : `Restante: ${item.restante}`}
+            </strong>
+          </section>
+        ))}
+      </div>
+    </article>
+  );
 }
 
 function ClienteHistorico({
@@ -178,26 +255,24 @@ function ClienteHistorico({
 
       {abaAtual === "pacotes" && (
         <div className="grade-historico-cliente">
-          <div className="bloco-historico-cliente">
-            <h3>Pacotes ativos</h3>
-            {pacotesAtivos.length === 0 && <p>Nenhum pacote ativo para esta cliente.</p>}
-            {pacotesAtivos.map((pacote) => (
-              <div className="item-historico-cliente" key={pacote.id}>
-                <strong>{pacote.nome}</strong>
-                <span>{resumoUsoPacote(pacote)}</span>
-              </div>
-            ))}
+          <div className="bloco-historico-cliente bloco-historico-largo bloco-combos-cliente">
+            <h3>Combos ativos</h3>
+            {pacotesAtivos.length === 0 && <p>Nenhum combo ativo para esta cliente.</p>}
+            <div className="grade-saldo-combos">
+              {pacotesAtivos.map((pacote) => (
+                <CardSaldoCombo pacote={pacote} key={pacote.id} />
+              ))}
+            </div>
           </div>
 
-          <div className="bloco-historico-cliente">
-            <h3>Pacotes finalizados</h3>
-            {pacotesFinalizados.length === 0 && <p>Nenhum pacote finalizado.</p>}
-            {pacotesFinalizados.map((pacote) => (
-              <div className="item-historico-cliente" key={pacote.id}>
-                <strong>{pacote.nome}</strong>
-                <span>{statusPacote(pacote)}</span>
-              </div>
-            ))}
+          <div className="bloco-historico-cliente bloco-historico-largo bloco-combos-cliente">
+            <h3>Combos finalizados</h3>
+            {pacotesFinalizados.length === 0 && <p>Nenhum combo finalizado.</p>}
+            <div className="grade-saldo-combos">
+              {pacotesFinalizados.map((pacote) => (
+                <CardSaldoCombo pacote={pacote} key={pacote.id} />
+              ))}
+            </div>
           </div>
 
           <div className="bloco-historico-cliente bloco-historico-largo">

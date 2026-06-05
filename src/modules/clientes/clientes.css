@@ -253,3 +253,130 @@
     width: 100%;
   }
 }
+
+.bloco-combos-cliente {
+  background: #fffaf0;
+}
+
+.grade-saldo-combos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.card-saldo-combo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #eadfce;
+  border-radius: 18px;
+  background: #fff;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(79, 54, 36, 0.06);
+}
+
+.card-saldo-combo-finalizado {
+  background: #faf7f2;
+}
+
+.cabecalho-card-saldo-combo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  background: #2b2420;
+  color: #fff;
+  padding: 12px 14px;
+}
+
+.cabecalho-card-saldo-combo span {
+  font-size: 20px;
+}
+
+.cabecalho-card-saldo-combo strong {
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.servicos-saldo-combo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.servico-saldo-combo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #faf7f2;
+  padding: 12px;
+}
+
+.nome-servico-saldo-combo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nome-servico-saldo-combo span {
+  font-size: 18px;
+}
+
+.nome-servico-saldo-combo strong {
+  color: #2b2420;
+  font-size: 15px;
+}
+
+.quadradinhos-saldo-combo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quadradinho-combo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.quadradinho-combo-usado {
+  background: #2b2420;
+  box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.18);
+}
+
+.quadradinho-combo-disponivel {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #d8c7b7;
+}
+
+.restante-combo {
+  align-self: flex-start;
+  border-radius: 999px;
+  background: #dfbb67;
+  color: #1f1714;
+  padding: 7px 11px;
+  font-size: 13px;
+}
+
+.restante-combo-finalizado {
+  background: #eee7df;
+  color: #6b5c50;
+}
+
+@media (max-width: 760px) {
+  .grade-saldo-combos {
+    grid-template-columns: 1fr;
+  }
+
+  .card-saldo-combo {
+    padding: 12px;
+  }
+
+  .quadradinho-combo {
+    width: 20px;
+    height: 20px;
+  }
+}

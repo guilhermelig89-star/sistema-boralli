@@ -77,7 +77,12 @@ async function validarESinalizarConsumoPacote(transaction, { agendamento, agenda
 
   const pacote = { id: pacoteSnapshot.id, ...pacoteSnapshot.data() };
   const resultadoConsumo = consumirServicoDoPacote(pacote, agendamento.servicoId);
-  const consumoPacote = { ...resultadoConsumo.consumoPacote, agendamentoId };
+  const consumoPacote = {
+    ...resultadoConsumo.consumoPacote,
+    agendamentoId,
+    agendamentoData: agendamento.data || "",
+    agendamentoHora: agendamento.hora || "",
+  };
   const historicoDocRef = doc(historicoRef, `${agendamentoId}__${tipoHistorico}`);
   const historicoSnapshot = await transaction.get(historicoDocRef);
 

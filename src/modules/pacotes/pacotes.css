@@ -198,3 +198,118 @@
   font-size: 16px;
   color: #4a3a31;
 }
+
+.lista-usos-pacotes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-uso-pacote {
+  display: grid;
+  grid-template-columns: minmax(130px, 170px) 1fr auto;
+  gap: 14px;
+  align-items: stretch;
+  border: 1px solid #eadfce;
+  border-radius: 18px;
+  background: #fff;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(79, 54, 36, 0.06);
+}
+
+.card-uso-pacote-selecionado {
+  border-color: #dfbb67;
+  background: #fff9ef;
+}
+
+.card-uso-pacote-vazio {
+  display: block;
+  color: #7b6b5d;
+  font-weight: 700;
+}
+
+.quando-uso-pacote {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 14px;
+  background: #2b2420;
+  color: #fff;
+  padding: 14px;
+}
+
+.quando-uso-pacote span,
+.quando-uso-pacote small {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.quando-uso-pacote strong {
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.detalhes-uso-pacote {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.detalhes-uso-pacote > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detalhes-uso-pacote strong {
+  color: #2b2420;
+  overflow-wrap: anywhere;
+}
+
+.rotulo-uso-pacote {
+  color: #8a7667;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.resumo-saldo-uso-pacote {
+  grid-column: 1 / -1;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.resumo-saldo-uso-pacote span {
+  border-radius: 999px;
+  background: #faf7f2;
+  color: #5a4639;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.resumo-saldo-uso-pacote small {
+  color: #8a7667;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 1050px) {
+  .card-uso-pacote {
+    grid-template-columns: 1fr;
+  }
+
+  .acoes-historico-pacotes {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .detalhes-uso-pacote {
+    grid-template-columns: 1fr;
+  }
+}

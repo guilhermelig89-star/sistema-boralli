@@ -275,8 +275,31 @@
   box-shadow: 0 10px 24px rgba(79, 54, 36, 0.06);
 }
 
-.card-saldo-combo-finalizado {
-  background: #faf7f2;
+.grade-combos-finalizados {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-combo-finalizado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fff;
+  color: #2b2420;
+  padding: 12px 14px;
+  box-shadow: 0 8px 18px rgba(79, 54, 36, 0.05);
+}
+
+.card-combo-finalizado span {
+  font-size: 20px;
+}
+
+.card-combo-finalizado strong {
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 .cabecalho-card-saldo-combo {

@@ -91,10 +91,9 @@ function QuadradinhosSaldo({ item }) {
 
 function CardSaldoCombo({ pacote }) {
   const itens = obterItensSaldoCombo(pacote);
-  const finalizado = itens.every((item) => item.restante <= 0);
 
   return (
-    <article className={`card-saldo-combo ${finalizado ? "card-saldo-combo-finalizado" : ""}`}>
+    <article className="card-saldo-combo">
       <header className="cabecalho-card-saldo-combo">
         <span aria-hidden="true">📦</span>
         <strong>{pacote.nome}</strong>
@@ -114,6 +113,15 @@ function CardSaldoCombo({ pacote }) {
           </section>
         ))}
       </div>
+    </article>
+  );
+}
+
+function CardComboFinalizado({ pacote }) {
+  return (
+    <article className="card-combo-finalizado">
+      <span aria-hidden="true">📦</span>
+      <strong>{pacote.nome}</strong>
     </article>
   );
 }
@@ -268,9 +276,9 @@ function ClienteHistorico({
           <div className="bloco-historico-cliente bloco-historico-largo bloco-combos-cliente">
             <h3>Combos finalizados</h3>
             {pacotesFinalizados.length === 0 && <p>Nenhum combo finalizado.</p>}
-            <div className="grade-saldo-combos">
+            <div className="grade-combos-finalizados">
               {pacotesFinalizados.map((pacote) => (
-                <CardSaldoCombo pacote={pacote} key={pacote.id} />
+                <CardComboFinalizado pacote={pacote} key={pacote.id} />
               ))}
             </div>
           </div>

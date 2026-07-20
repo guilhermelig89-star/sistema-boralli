@@ -99,6 +99,34 @@ body {
   color: #f5dfb0;
 }
 
+.menu-grupo-nome {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-pendencias-badge {
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: #b42318;
+  color: #fff;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(180, 35, 24, 0.35);
+}
+
+.menu-pendencias-badge > span {
+  font-size: 12px;
+}
+
 .menu-grupo-icone {
   font-size: 18px;
   line-height: 1;

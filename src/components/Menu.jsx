@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buscarConfiguracaoEmpresa } from "../modules/configuracoes/repositories/configuracaoEmpresaRepository";
+import { useAgendamentos } from "../modules/agendamentos/hooks/useAgendamentos";
+import { filtrarPendenciasAgendamentos } from "../modules/agendamentos/services/pendenciasAgendamentosService";
 import { MENU_GROUPS } from "../navigation/menuConfig";
 import { SCREENS } from "../navigation/screens";
 
@@ -14,6 +16,11 @@ const GRUPOS_MENU = MENU_GROUPS;
 
 function Menu({ telaAtual, setTelaAtual }) {
   const [marcaEmpresa, setMarcaEmpresa] = useState(MARCA_PADRAO);
+  const { agendamentos } = useAgendamentos();
+  const totalPendenciasAtendimento = useMemo(
+    () => filtrarPendenciasAgendamentos(agendamentos).length,
+    [agendamentos]
+  );
 
   useEffect(() => {
     async function carregarMarca() {
@@ -104,7 +111,19 @@ function Menu({ telaAtual, setTelaAtual }) {
                 aria-controls={`${grupo.id}-subabas`}
                 onClick={() => alternarGrupo(grupo.id)}
               >
-                <span>{grupo.nome}</span>
+                <span className="menu-grupo-nome">
+                  {grupo.nome}
+                  {grupo.id === "atendimentoGrupo" && totalPendenciasAtendimento > 0 && (
+                    <span
+                      className="menu-pendencias-badge"
+                      title={`${totalPendenciasAtendimento} pendência${totalPendenciasAtendimento === 1 ? "" : "s"} no atendimento`}
+                      aria-label={`${totalPendenciasAtendimento} pendência${totalPendenciasAtendimento === 1 ? "" : "s"}`}
+                    >
+                      <span aria-hidden="true">!</span>
+                      {totalPendenciasAtendimento}
+                    </span>
+                  )}
+                </span>
                 <span className="menu-grupo-icone" aria-hidden="true">
                   {aberto ? "−" : "+"}
                 </span>

@@ -15,6 +15,7 @@ import AlertaTempoAtendimento from "./components/AlertaTempoAtendimento";
 import { useAgendaConfiguracao } from "./hooks/useAgendaConfiguracao";
 import { useAgendamentos } from "./hooks/useAgendamentos";
 import { useSugestoesTempoAtendimento } from "./hooks/useSugestoesTempoAtendimento";
+import { filtrarPendenciasAgendamentos } from "./services/pendenciasAgendamentosService";
 
 const filtrosIniciais = {
   data: "",
@@ -74,16 +75,7 @@ function AgendaPage() {
   } = useAgendamentos();
 
   const pendencias = useMemo(() => {
-    const agora = new Date();
-    return agendamentos.filter((item) => {
-      const dataHora = new Date(`${item.data}T${item.hora || "00:00"}:00`);
-      if (item.status === "agendado" && dataHora < agora) return true;
-      if (item.status === "em_atendimento") {
-        const iniciouEm = item.atendimentoIniciadoEm ? new Date(item.atendimentoIniciadoEm) : dataHora;
-        return (agora.getTime() - iniciouEm.getTime()) / (1000 * 60 * 60) >= 6;
-      }
-      return false;
-    });
+    return filtrarPendenciasAgendamentos(agendamentos);
   }, [agendamentos]);
 
   const pacotesPorId = useMemo(

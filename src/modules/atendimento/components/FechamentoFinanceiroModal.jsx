@@ -14,8 +14,8 @@ function formatarMoeda(valor) {
   });
 }
 
-function criarPagamentoInicial() {
-  return [{ forma: "Pendente", valor: 0 }];
+function criarPagamentoInicial(valor) {
+  return [{ forma: "Pix", valor }];
 }
 
 function formaEhPendente(forma) {
@@ -47,7 +47,7 @@ function FechamentoFinanceiroModal({ agendamento, pacote, onFechar, onConfirmar 
   const [descontoValor, setDescontoValor] = useState(0);
   const [valorFinalCobrado, setValorFinalCobrado] = useState(valorBase);
   const [motivoDesconto, setMotivoDesconto] = useState("");
-  const [pagamentos, setPagamentos] = useState(criarPagamentoInicial);
+  const [pagamentos, setPagamentos] = useState(() => criarPagamentoInicial(valorBase));
   const [observacoesFinanceiras, setObservacoesFinanceiras] = useState("");
   const [salvando, setSalvando] = useState(false);
 

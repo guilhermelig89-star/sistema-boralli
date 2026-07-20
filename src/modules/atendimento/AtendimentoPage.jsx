@@ -147,9 +147,22 @@ function AtendimentoPage() {
   );
 
   const proximosAtendimentos = useMemo(
-    () => atendimentosHoje.filter((item) => item.status === "agendado" || !item.status),
+    () => atendimentosHoje
+      .filter((item) => item.status === "agendado" || !item.status)
+      .sort((a, b) => String(a.hora || "").localeCompare(String(b.hora || ""))),
     [atendimentosHoje]
   );
+
+  const atendimentosFinalizados = useMemo(
+    () => atendimentosHoje.filter((item) => item.status === "finalizado"),
+    [atendimentosHoje]
+  );
+
+  const proximoAtendimento = proximosAtendimentos[0] || null;
+  const totalAtendimentosValidos = atendimentosHoje.filter((item) => item.status !== "cancelado").length;
+  const percentualConcluido = totalAtendimentosValidos > 0
+    ? Math.round((atendimentosFinalizados.length / totalAtendimentosValidos) * 100)
+    : 0;
 
   const pacoteFechamento = useMemo(
     () => (atendimentoFechamento?.pacoteClienteId ? pacotesPorId.get(atendimentoFechamento.pacoteClienteId) || null : null),
@@ -434,6 +447,55 @@ function AtendimentoPage() {
         </div>
         <span className="data-atendimento">{formatarData(hoje)}</span>
       </div>
+
+      <section className="painel-pendencias-atendimento" aria-labelledby="titulo-pendencias-atendimento">
+        <div className="chamada-pendencias-atendimento">
+          <div>
+            <span className="rotulo-pendencias-atendimento">Fila de hoje</span>
+            <h2 id="titulo-pendencias-atendimento">
+              {proximosAtendimentos.length === 1
+                ? "1 atendimento pendente"
+                : `${proximosAtendimentos.length} atendimentos pendentes`}
+            </h2>
+            <p>
+              {proximoAtendimento
+                ? `Próxima cliente: ${proximoAtendimento.clienteNome}, às ${proximoAtendimento.hora}.`
+                : "Tudo em dia por aqui. Não há clientes aguardando atendimento."}
+            </p>
+          </div>
+          {proximoAtendimento && (
+            <button
+              type="button"
+              className="botao-iniciar-proximo"
+              onClick={() => iniciar(proximoAtendimento)}
+            >
+              Iniciar próximo
+            </button>
+          )}
+        </div>
+
+        <div className="indicadores-atendimento" aria-label="Resumo dos atendimentos de hoje">
+          <div className="indicador-atendimento indicador-pendente">
+            <span>Pendentes</span>
+            <strong>{proximosAtendimentos.length}</strong>
+            <small>Aguardando início</small>
+          </div>
+          <div className="indicador-atendimento indicador-andamento">
+            <span>Em andamento</span>
+            <strong>{atendimentosEmAndamento.length}</strong>
+            <small>Com atendimento ativo</small>
+          </div>
+          <div className="indicador-atendimento indicador-finalizado">
+            <span>Finalizados</span>
+            <strong>{atendimentosFinalizados.length}</strong>
+            <small>{percentualConcluido}% da agenda concluída</small>
+          </div>
+        </div>
+
+        <div className="progresso-agenda-atendimento">
+          <div style={{ width: `${percentualConcluido}%` }} />
+        </div>
+      </section>
 
       <div className="cliente-layout atendimento-layout">
         {erro && <p>{erro}</p>}

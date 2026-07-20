@@ -12,4 +12,4 @@ export const SCREENS = Object.freeze({
   ADMIN_REPARAR_PACOTES: "adminRepararPacotes",
 });
 
-export const DEFAULT_SCREEN = SCREENS.ATENDIMENTO;
+export const DEFAULT_SCREEN = SCREENS.DASHBOARD;

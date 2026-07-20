@@ -29,6 +29,106 @@
   color: #1f1714;
 }
 
+.cabecalho-lista-agenda {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.cabecalho-lista-agenda h2,
+.cabecalho-lista-agenda p {
+  margin: 0;
+}
+
+.cabecalho-lista-agenda p {
+  margin-top: 5px;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
+.cabecalho-lista-agenda > strong {
+  border-radius: 999px;
+  background: #f3e8d8;
+  color: #6a4a38;
+  padding: 7px 11px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.filtros-agenda-container {
+  margin-top: 18px;
+}
+
+.atalhos-data {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.atalhos-data button {
+  border: 1px solid #dfd1c1;
+  border-radius: 999px;
+  background: #fff;
+  color: #6a4a38;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.atalhos-data button:hover,
+.atalhos-data button.ativo {
+  border-color: #d7b56d;
+  background: #ead2a1;
+  color: #1f1714;
+}
+
+.grupo-dia-agenda {
+  display: contents;
+}
+
+.divisor-data-agenda {
+  margin: 0;
+  border-top: 1px solid #efe5d8;
+  background: #fcfaf7;
+  color: #6a4a38;
+  padding: 11px 18px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.horario-agendamento {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-left: 3px solid #d7b56d;
+  padding-left: 10px;
+}
+
+.horario-agendamento strong {
+  font-size: 17px;
+}
+
+.horario-agendamento small {
+  color: #927e6c;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.linha-agendamento.linha-status-em_atendimento {
+  background: #fff9ec;
+}
+
+.linha-agendamento.linha-status-finalizado {
+  opacity: 0.78;
+}
+
+.linha-agendamento.linha-status-cancelado {
+  background: #fbf7f5;
+  opacity: 0.68;
+}
+
 .sugestoes-horario {
   grid-column: 1 / -1;
   display: flex;
@@ -371,6 +471,24 @@
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .cabecalho-lista-agenda {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .linha-agendamento:not(.cabecalho) > span::before {
+    display: block;
+    margin-bottom: 3px;
+    color: #9b8877;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .linha-agendamento:not(.cabecalho) > span:nth-of-type(1)::before { content: "Cliente"; }
+  .linha-agendamento:not(.cabecalho) > span:nth-of-type(2)::before { content: "Serviço"; }
+  .linha-agendamento:not(.cabecalho) > span:nth-of-type(3)::before { content: "Pagamento"; }
 }
 
 .form-edicao-agendamento {

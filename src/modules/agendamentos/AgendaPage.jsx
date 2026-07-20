@@ -28,7 +28,7 @@ function deveMostrarAlertaTempo(resultado) {
 
 function AgendaPage() {
   const [filtros, setFiltros] = useState(filtrosIniciais);
-  const [abaAtual, setAbaAtual] = useState(null);
+  const [abaAtual, setAbaAtual] = useState("agenda");
   const [alertaTempo, setAlertaTempo] = useState(null);
   const [agendamentoFechamento, setAgendamentoFechamento] = useState(null);
   const [agendamentoEmEdicao, setAgendamentoEmEdicao] = useState(null);
@@ -113,6 +113,10 @@ function AgendaPage() {
         agendamento.status === filtros.status;
 
       return correspondeData && correspondePesquisa && correspondeStatus;
+    }).sort((a, b) => {
+      const dataHoraA = `${a.data || ""}T${a.hora || "00:00"}`;
+      const dataHoraB = `${b.data || ""}T${b.hora || "00:00"}`;
+      return dataHoraA.localeCompare(dataHoraB);
     });
   }, [agendamentos, filtros]);
 
@@ -372,7 +376,13 @@ function AgendaPage() {
             />
 
             <div className="lista-clientes">
-              <h2>Lista de agendamentos</h2>
+              <div className="cabecalho-lista-agenda">
+                <div>
+                  <h2>Agenda</h2>
+                  <p>Visualize os próximos horários e acompanhe cada atendimento.</p>
+                </div>
+                <strong>{agendamentosFiltrados.length} horário{agendamentosFiltrados.length === 1 ? "" : "s"}</strong>
+              </div>
               <AgendaFiltros filtros={filtros} onAlterar={alterarFiltro} />
               {erro && <p>{erro}</p>}
               <AgendamentosTable

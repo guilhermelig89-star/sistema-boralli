@@ -6,6 +6,7 @@ import { formatarMoeda } from "../financeiro/services/financeiroService";
 import { useFinanceiro } from "../financeiro/hooks/useFinanceiro";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
 import { useServicos } from "../servicos/hooks/useServicos";
+import { SCREENS } from "../../navigation/screens";
 import "./dashboard.css";
 
 function formatarDataChave(data) {
@@ -56,6 +57,14 @@ function periodoEhDia(periodo) {
   return Boolean(periodo.inicio && periodo.fim && periodo.inicio === periodo.fim);
 }
 
+function periodoEhValido(periodo) {
+  return !periodo.inicio || !periodo.fim || periodo.inicio <= periodo.fim;
+}
+
+function obterChaveDataHora(agendamento) {
+  return `${agendamento.data || ""} ${agendamento.hora || "00:00"}`;
+}
+
 function descreverPeriodo(periodo) {
   if (periodoEhDia(periodo)) return formatarData(periodo.inicio);
   if (periodo.inicio && periodo.fim) return `${formatarData(periodo.inicio)} a ${formatarData(periodo.fim)}`;
@@ -87,10 +96,16 @@ function somarFormasPagamento(porForma = {}, termos = []) {
 function DashboardPage({ onNavigate }) {
   const hoje = obterHoje();
   const [periodo, setPeriodo] = useState(() => ({ inicio: hoje, fim: hoje }));
-  const { clientesAtivos } = useClientes();
-  const { servicosAtivos } = useServicos();
-  const { agendamentos } = useAgendamentos();
-  const { pacotesAtivos, pacoteEstaAcabando, calcularSaldoPacote } = usePacotesClientes();
+  const { clientesAtivos, carregando: carregandoClientes, erro: erroClientes } = useClientes();
+  const { servicosAtivos, carregando: carregandoServicos, erro: erroServicos } = useServicos();
+  const { agendamentos, carregando: carregandoAgenda, erro: erroAgenda } = useAgendamentos();
+  const {
+    pacotesAtivos,
+    pacoteEstaAcabando,
+    calcularSaldoPacote,
+    carregando: carregandoPacotes,
+    erro: erroPacotes,
+  } = usePacotesClientes();
 
   const filtrosFinanceiroDashboard = useMemo(
     () => ({
@@ -104,18 +119,28 @@ function DashboardPage({ onNavigate }) {
     [periodo.fim, periodo.inicio]
   );
 
-  const { totaisFiltro } = useFinanceiro(filtrosFinanceiroDashboard);
+  const {
+    totaisFiltro,
+    movimentosFiltrados,
+    carregando: carregandoFinanceiro,
+    erro: erroFinanceiro,
+  } = useFinanceiro(filtrosFinanceiroDashboard);
   const painelDoDia = periodoEhDia(periodo);
   const periodoDescricao = descreverPeriodo(periodo);
+  const periodoValido = periodoEhValido(periodo);
+  const agora = new Date();
+  const chaveAgora = `${hoje} ${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
+  const carregando = carregandoClientes || carregandoServicos || carregandoAgenda || carregandoPacotes || carregandoFinanceiro;
+  const erros = [erroClientes, erroServicos, erroAgenda, erroPacotes, erroFinanceiro].filter(Boolean);
 
   const agendaPeriodo = useMemo(
     () =>
-      agendamentos
+      (periodoValido ? agendamentos : [])
         .filter((agendamento) => dataEstaNoPeriodo(agendamento.data, periodo) && agendamento.status !== "cancelado")
         .sort((a, b) =>
           `${a.data || ""} ${a.hora || ""}`.localeCompare(`${b.data || ""} ${b.hora || ""}`)
         ),
-    [agendamentos, periodo]
+    [agendamentos, periodo, periodoValido]
   );
 
   const proximosAtendimentos = useMemo(
@@ -126,15 +151,28 @@ function DashboardPage({ onNavigate }) {
     [agendaPeriodo]
   );
 
-  const pacotesBaixos = useMemo(
-    () => pacotesAtivos.filter((pacote) => pacoteEstaAcabando(pacote)).slice(0, 5),
+  const todosPacotesBaixos = useMemo(
+    () => pacotesAtivos.filter((pacote) => pacoteEstaAcabando(pacote)),
     [pacotesAtivos, pacoteEstaAcabando]
   );
+  const pacotesBaixosExibidos = todosPacotesBaixos.slice(0, 5);
+
+  const atendimentosEmCurso = proximosAtendimentos.filter((item) => item.status === "em_atendimento");
+  const atendimentosAtrasados = proximosAtendimentos.filter(
+    (item) => item.status !== "em_atendimento" && obterChaveDataHora(item) < chaveAgora
+  );
+  const atendimentosFuturos = proximosAtendimentos.filter((item) => obterChaveDataHora(item) >= chaveAgora);
 
   const finalizadosPeriodo = useMemo(
     () => agendaPeriodo.filter((agendamento) => agendamento.status === "finalizado").length,
     [agendaPeriodo]
   );
+
+  const atendimentosAteAgora = agendaPeriodo.filter((item) => obterChaveDataHora(item) <= chaveAgora);
+  const finalizadosAteAgora = atendimentosAteAgora.filter((item) => item.status === "finalizado").length;
+  const percentualConclusao = atendimentosAteAgora.length > 0
+    ? Math.round((finalizadosAteAgora / atendimentosAteAgora.length) * 100)
+    : 0;
 
   const receitaAvulsaPrevista = useMemo(
     () =>
@@ -145,11 +183,21 @@ function DashboardPage({ onNavigate }) {
     [proximosAtendimentos]
   );
 
-  const proximoAtendimento = proximosAtendimentos[0];
-  const percentualConclusao = agendaPeriodo.length > 0 ? Math.round((finalizadosPeriodo / agendaPeriodo.length) * 100) : 0;
+  const atendimentoDestaque = atendimentosEmCurso[0] || atendimentosAtrasados[0] || atendimentosFuturos[0];
+  const contextoAtendimento = atendimentosEmCurso[0]
+    ? "Em atendimento agora"
+    : atendimentosAtrasados[0]
+      ? "Atendimento atrasado"
+      : atendimentosFuturos[0]
+        ? "Próximo atendimento"
+        : "Agenda em dia";
   const recebidoPix = somarFormasPagamento(totaisFiltro.porForma, ["pix"]);
   const recebidoDinheiro = somarFormasPagamento(totaisFiltro.porForma, ["dinheiro"]);
   const recebidoCartao = somarFormasPagamento(totaisFiltro.porForma, ["cartão", "cartao"]);
+  const pendenteParcial = movimentosFiltrados.reduce(
+    (total, movimento) => movimento.status === "parcial" ? total + Number(movimento.valorPendente || 0) : total,
+    0
+  );
 
   const destaquesOperacionais = useMemo(
     () => [
@@ -165,22 +213,22 @@ function DashboardPage({ onNavigate }) {
       },
       {
         titulo: "Pacotes para renovação",
-        valor: String(pacotesBaixos.length),
+        valor: String(todosPacotesBaixos.length),
         descricao: "Clientes com saldo baixo e chance de nova venda.",
       },
     ],
-    [pacotesBaixos.length, percentualConclusao, receitaAvulsaPrevista]
+    [todosPacotesBaixos.length, percentualConclusao, receitaAvulsaPrevista]
   );
 
   const radarInteligente = useMemo(() => {
     const itens = [];
 
-    if (proximoAtendimento) {
+    if (atendimentoDestaque) {
       itens.push({
-        titulo: "Próximo atendimento",
-        texto: `${proximoAtendimento.hora} - ${proximoAtendimento.clienteNome} para ${proximoAtendimento.servicoNome}.`,
+        titulo: contextoAtendimento,
+        texto: `${atendimentoDestaque.hora} - ${atendimentoDestaque.clienteNome} para ${atendimentoDestaque.servicoNome}.`,
         acao: "Abrir atendimento",
-        destino: "atendimento",
+        destino: SCREENS.ATENDIMENTO,
       });
     }
 
@@ -189,16 +237,16 @@ function DashboardPage({ onNavigate }) {
         titulo: "Valores pendentes",
         texto: `${formatarMoeda(totaisFiltro.pendente)} ainda em aberto no período.`,
         acao: "Ver financeiro",
-        destino: "financeiro",
+        destino: SCREENS.FINANCEIRO,
       });
     }
 
-    if (pacotesBaixos.length > 0) {
+    if (todosPacotesBaixos.length > 0) {
       itens.push({
         titulo: "Pacotes perto de acabar",
-        texto: `${pacotesBaixos.length} cliente(s) com saldo baixo. Bom momento para oferecer renovação.`,
+        texto: `${todosPacotesBaixos.length} cliente(s) com saldo baixo. Bom momento para oferecer renovação.`,
         acao: "Ver pacotes",
-        destino: "pacotes",
+        destino: SCREENS.PACOTES_CLIENTES,
       });
     }
 
@@ -207,7 +255,7 @@ function DashboardPage({ onNavigate }) {
         titulo: "Previsão avulsa",
         texto: `${formatarMoeda(receitaAvulsaPrevista)} em atendimentos avulsos ainda pendentes.`,
         acao: "Ver agenda",
-        destino: "agenda",
+        destino: SCREENS.AGENDA,
       });
     }
 
@@ -216,7 +264,7 @@ function DashboardPage({ onNavigate }) {
         titulo: "Agenda livre",
         texto: "Nenhum horário marcado no período. Você pode encaixar novos atendimentos.",
         acao: "Agendar horário",
-        destino: "agenda",
+        destino: SCREENS.AGENDA,
       });
     }
 
@@ -225,12 +273,12 @@ function DashboardPage({ onNavigate }) {
         titulo: "Operação tranquila",
         texto: "Nenhuma pendência importante encontrada para este período.",
         acao: "Ver atendimento",
-        destino: "atendimento",
+        destino: SCREENS.ATENDIMENTO,
       });
     }
 
     return itens;
-  }, [agendaPeriodo.length, pacotesBaixos.length, proximoAtendimento, receitaAvulsaPrevista, totaisFiltro.pendente]);
+  }, [agendaPeriodo.length, atendimentoDestaque, contextoAtendimento, todosPacotesBaixos.length, receitaAvulsaPrevista, totaisFiltro.pendente]);
 
   function definirPeriodoHoje() {
     setPeriodo({ inicio: hoje, fim: hoje });
@@ -249,9 +297,9 @@ function DashboardPage({ onNavigate }) {
     <section className="dashboard dashboard-real">
       <div className="dashboard-header dashboard-header-real">
         <div>
-          <span className="tag">Sistema Boralli V1</span>
+          <span className="tag">Visão geral da operação</span>
           <h1>Painel</h1>
-          <p>Resumo de {periodoDescricao} para acompanhar agenda, clientes, pacotes e financeiro.</p>
+          <p>Prioridades e resultados de {periodoDescricao} em um só lugar.</p>
 
           <div className="dashboard-filtros-periodo" aria-label="Filtro de período do painel">
             <label className="campo-periodo-dashboard">
@@ -273,33 +321,41 @@ function DashboardPage({ onNavigate }) {
             </label>
 
             <div className="atalhos-periodo-dashboard">
-              <button type="button" onClick={definirPeriodoHoje}>Hoje</button>
-              <button type="button" onClick={definirProximosDias}>7 dias</button>
-              <button type="button" onClick={definirMesAtual}>Mês atual</button>
+              <button className={painelDoDia && periodo.inicio === hoje ? "ativo" : ""} type="button" onClick={definirPeriodoHoje}>Hoje</button>
+              <button className={periodo.inicio === hoje && periodo.fim === adicionarDias(hoje, 6) ? "ativo" : ""} type="button" onClick={definirProximosDias}>7 dias</button>
+              <button className={periodo.inicio === obterInicioMes() && periodo.fim === obterFimMes() ? "ativo" : ""} type="button" onClick={definirMesAtual}>Mês atual</button>
             </div>
           </div>
+          {!periodoValido && <p className="aviso-dashboard erro">A data inicial não pode ser posterior à data final.</p>}
         </div>
 
         <div className="acoes-dashboard-topo">
-          <button className="botao-acao" onClick={() => onNavigate("agenda")}>Novo agendamento</button>
-          <button className="botao-acao-secundario" onClick={() => onNavigate("atendimento")}>Abrir atendimento</button>
+          <button className="botao-acao" onClick={() => onNavigate(SCREENS.AGENDA)}>Novo agendamento</button>
+          <button className="botao-acao-secundario" onClick={() => onNavigate(SCREENS.ATENDIMENTO)}>Abrir atendimento</button>
         </div>
       </div>
 
+      {carregando && <div className="aviso-dashboard carregando" role="status">Sincronizando os dados do painel…</div>}
+      {erros.length > 0 && (
+        <div className="aviso-dashboard erro" role="alert">
+          Algumas informações não puderam ser atualizadas. Verifique sua conexão e tente novamente.
+        </div>
+      )}
+
       <div className="dashboard-inteligente">
         <div className="painel-operacao-dashboard">
-          <span className="rotulo-operacao-dashboard">Agora</span>
-          <h2>{proximoAtendimento ? `${proximoAtendimento.hora} - ${proximoAtendimento.clienteNome}` : "Nenhum atendimento pendente"}</h2>
+          <span className={`rotulo-operacao-dashboard ${contextoAtendimento === "Atendimento atrasado" ? "alerta" : ""}`}>{contextoAtendimento}</span>
+          <h2>{atendimentoDestaque ? `${atendimentoDestaque.hora} - ${atendimentoDestaque.clienteNome}` : "Nenhum atendimento pendente"}</h2>
           <p>
-            {proximoAtendimento
-              ? `${proximoAtendimento.servicoNome} | ${pagamentoTexto(proximoAtendimento)}`
+            {atendimentoDestaque
+              ? `${atendimentoDestaque.servicoNome} | ${pagamentoTexto(atendimentoDestaque)}`
               : "Use o painel para acompanhar o dia e encontrar oportunidades de encaixe."}
           </p>
 
           <div className="metricas-operacao-dashboard">
             <div>
-              <strong>{proximosAtendimentos.length}</strong>
-              <span>em aberto</span>
+              <strong>{atendimentosAtrasados.length}</strong>
+              <span>atrasados</span>
             </div>
             <div>
               <strong>{finalizadosPeriodo}</strong>
@@ -349,7 +405,7 @@ function DashboardPage({ onNavigate }) {
         <div className="card card-dashboard card-kpi-dashboard">
           <span>Pacotes ativos</span>
           <strong>{pacotesAtivos.length}</strong>
-          <p>{pacotesBaixos.length} com saldo baixo</p>
+          <p>{todosPacotesBaixos.length} com saldo baixo</p>
         </div>
 
         <div className="card card-dashboard card-kpi-dashboard card-kpi-receita-dashboard">
@@ -386,7 +442,7 @@ function DashboardPage({ onNavigate }) {
         </div>
         <div>
           <span>Parcial em aberto</span>
-          <strong>{formatarMoeda(totaisFiltro.pendente)}</strong>
+          <strong>{formatarMoeda(pendenteParcial)}</strong>
         </div>
       </div>
 
@@ -397,7 +453,7 @@ function DashboardPage({ onNavigate }) {
               <h2>{painelDoDia ? "Atendimentos do dia" : "Atendimentos do período"}</h2>
               <p>Agenda organizada por data, horário e tipo de pagamento.</p>
             </div>
-            <button className="botao-acao-secundario" onClick={() => onNavigate("atendimento")}>Ver atendimento</button>
+            <button className="botao-acao-secundario" onClick={() => onNavigate(SCREENS.ATENDIMENTO)}>Ver atendimento</button>
           </div>
 
           <div className="lista-dashboard">
@@ -438,8 +494,8 @@ function DashboardPage({ onNavigate }) {
           </div>
 
           <div className="acoes-contextuais-dashboard">
-            <button className="botao-acao" onClick={() => onNavigate("agenda")}>Novo agendamento</button>
-            <button className="botao-acao-secundario" onClick={() => onNavigate("financeiro")}>Analisar financeiro</button>
+            <button className="botao-acao" onClick={() => onNavigate(SCREENS.AGENDA)}>Novo agendamento</button>
+            <button className="botao-acao-secundario" onClick={() => onNavigate(SCREENS.FINANCEIRO)}>Analisar financeiro</button>
           </div>
         </div>
       </div>
@@ -450,15 +506,15 @@ function DashboardPage({ onNavigate }) {
             <h2>Pacotes com atenção</h2>
             <p>Clientes com saldo baixo para acompanhar antes do próximo atendimento.</p>
           </div>
-          <button className="botao-acao-secundario" onClick={() => onNavigate("pacotes")}>Ver pacotes</button>
+          <button className="botao-acao-secundario" onClick={() => onNavigate(SCREENS.PACOTES_CLIENTES)}>Ver pacotes</button>
         </div>
 
         <div className="lista-dashboard lista-pacotes-dashboard">
-          {pacotesBaixos.length === 0 && (
+          {todosPacotesBaixos.length === 0 && (
             <div className="item-dashboard-vazio">Nenhum pacote com saldo baixo agora.</div>
           )}
 
-          {pacotesBaixos.map((pacote) => (
+          {pacotesBaixosExibidos.map((pacote) => (
             <div className="item-dashboard" key={pacote.id}>
               <div>
                 <strong>{pacote.clienteNome}</strong>
@@ -476,7 +532,7 @@ function DashboardPage({ onNavigate }) {
             <h2>Catálogo</h2>
             <p>{servicosAtivos.length} serviços ativos cadastrados para agenda e pacotes.</p>
           </div>
-          <button className="botao-acao-secundario" onClick={() => onNavigate("servicos")}>Ver serviços</button>
+          <button className="botao-acao-secundario" onClick={() => onNavigate(SCREENS.SERVICOS)}>Ver serviços</button>
         </div>
       </div>
     </section>

@@ -14,6 +14,13 @@ const MARCA_PADRAO = {
 
 const GRUPOS_MENU = MENU_GROUPS;
 
+function criarEstadoGrupos(telaAtual) {
+  return GRUPOS_MENU.reduce((acc, grupo) => ({
+    ...acc,
+    [grupo.id]: grupo.itens.some((item) => item.id === telaAtual),
+  }), {});
+}
+
 function Menu({ telaAtual, setTelaAtual }) {
   const [marcaEmpresa, setMarcaEmpresa] = useState(MARCA_PADRAO);
   const { agendamentos } = useAgendamentos();
@@ -52,9 +59,7 @@ function Menu({ telaAtual, setTelaAtual }) {
       .join("");
   }, [marcaEmpresa.nomeFantasia]);
 
-  const [gruposAbertos, setGruposAbertos] = useState(() =>
-    GRUPOS_MENU.reduce((acc, grupo) => ({ ...acc, [grupo.id]: false }), {})
-  );
+  const [gruposAbertos, setGruposAbertos] = useState(() => criarEstadoGrupos(telaAtual));
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -100,7 +105,7 @@ function Menu({ telaAtual, setTelaAtual }) {
 
       <nav className="menu-nav">
         {GRUPOS_MENU.map((grupo) => {
-          const aberto = gruposAbertos[grupo.id];
+          const aberto = gruposAbertos[grupo.id] || grupo.itens.some((item) => item.id === telaAtual);
 
           return (
             <section className="menu-grupo" key={grupo.id}>

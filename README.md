@@ -1,16 +1,27 @@
-# React + Vite
+# Sistema Boralli
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sistema de gestão de agenda, atendimentos, clientes, pacotes e financeiro.
 
-Currently, two official plugins are available:
+## Desenvolvimento
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+## Verificações
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm test
+npm run lint
+npm run build
+```
 
-## Expanding the ESLint configuration
+## Segurança dos dados
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+As melhorias de navegação são mantidas no navegador e não alteram os registros
+operacionais armazenados no Firebase. A última tela acessada é validada antes de
+ser restaurada; telas antigas ou desconhecidas direcionam para o Painel.
+
+Consulte [`docs/analise-usabilidade.md`](docs/analise-usabilidade.md) para o
+levantamento de redundâncias e o plano seguro de evolução do sistema.

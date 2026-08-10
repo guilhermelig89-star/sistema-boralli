@@ -53,6 +53,16 @@ function MovimentosTable({ movimentos, carregando }) {
               {formatarOrigem(movimento.origem)}
               {movimento.categoria && <small>Categoria: {movimento.categoria}</small>}
               {movimento.descricao && <small>{movimento.descricao}</small>}
+              {movimento.comprovante?.url && (
+                <a
+                  className="link-comprovante"
+                  href={movimento.comprovante.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Ver comprovante
+                </a>
+              )}
               {Number(movimento.descontoValor || 0) > 0 && <small>Desconto: {formatarMoeda(movimento.descontoValor)}</small>}
               {pendente > 0 && <small>Pendente: {formatarMoeda(pendente)}</small>}
             </span>

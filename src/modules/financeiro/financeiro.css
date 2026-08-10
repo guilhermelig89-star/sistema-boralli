@@ -368,6 +368,28 @@
   grid-column: 1 / -1;
 }
 
+.campo-comprovante-despesa {
+  grid-column: 1 / -1;
+}
+
+.campo-comprovante-despesa input[type="file"] {
+  padding: 8px;
+  background: #fff;
+}
+
+.campo-comprovante-despesa small {
+  color: #7b6b5d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.link-comprovante {
+  color: #725119;
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
 .rodape-despesa-form {
   display: flex;
   align-items: center;

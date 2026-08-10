@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  criarMovimentoFinanceiro,
+  criarDespesaComComprovante,
   observarMovimentosFinanceiros,
   registrarRecebimentoPendencia,
 } from "../repositories/financeiroRepository";
@@ -66,7 +66,8 @@ export function useFinanceiro(filtros) {
     setErro(null);
 
     try {
-      await criarMovimentoFinanceiro(prepararDespesaManual(dados));
+      const { comprovante, ...camposDespesa } = dados;
+      await criarDespesaComComprovante(prepararDespesaManual(camposDespesa), comprovante);
     } catch (erroFirebase) {
       console.error("Erro ao salvar despesa", erroFirebase);
       setErro("Não foi possível salvar a despesa.");

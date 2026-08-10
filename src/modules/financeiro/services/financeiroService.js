@@ -141,6 +141,7 @@ export function aplicarFiltrosFinanceiros(movimentos, filtros) {
     const correspondePesquisa =
       !termo ||
       movimento.clienteNome?.toLowerCase().includes(termo) ||
+      movimento.fornecedor?.toLowerCase().includes(termo) ||
       movimento.descricao?.toLowerCase().includes(termo) ||
       movimento.servicoNome?.toLowerCase().includes(termo) ||
       movimento.categoria?.toLowerCase().includes(termo) ||
@@ -304,6 +305,7 @@ export function prepararDespesaManual(dados) {
     data: dados.data || dataHoje(),
     valor,
     categoria: texto(dados.categoria, "Outros"),
+    fornecedor: texto(dados.fornecedor),
     formaPagamento: texto(dados.formaPagamento, "Não informado"),
     descricao: texto(dados.descricao, "Despesa manual"),
   };

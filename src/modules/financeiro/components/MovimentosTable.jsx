@@ -52,6 +52,7 @@ function MovimentosTable({ movimentos, carregando }) {
             <span>
               {formatarOrigem(movimento.origem)}
               {movimento.categoria && <small>Categoria: {movimento.categoria}</small>}
+              {movimento.fornecedor && <small>Fornecedor: {movimento.fornecedor}</small>}
               {movimento.descricao && <small>{movimento.descricao}</small>}
               {movimento.comprovante?.url && (
                 <a

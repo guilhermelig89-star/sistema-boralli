@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 const formasPagamento = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito", "Transferência", "Outro"];
+const tiposComprovanteAceitos = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 function obterHoje() {
   const data = new Date();
@@ -19,6 +20,7 @@ function criarDespesaInicial(categoriaInicial) {
     valor: "",
     formaPagamento: "Pix",
     status: "pago",
+    comprovante: null,
   };
 }
 
@@ -26,6 +28,7 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
   const categoriaInicial = categorias[0]?.nome || "Material";
   const [despesa, setDespesa] = useState(() => criarDespesaInicial(categoriaInicial));
   const [mensagem, setMensagem] = useState("");
+  const [chaveArquivo, setChaveArquivo] = useState(0);
 
   function alterarCampo(campo, valor) {
     setDespesa((atual) => ({ ...atual, [campo]: valor }));
@@ -35,9 +38,20 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
     evento.preventDefault();
     setMensagem("");
 
+    if (despesa.comprovante?.size > 10 * 1024 * 1024) {
+      setMensagem("O comprovante deve ter no máximo 10 MB.");
+      return;
+    }
+
+    if (despesa.comprovante && !tiposComprovanteAceitos.includes(despesa.comprovante.type)) {
+      setMensagem("Envie o comprovante em PDF, JPG, PNG ou WEBP.");
+      return;
+    }
+
     try {
       await onSalvar(despesa);
       setDespesa(criarDespesaInicial(categoriaInicial));
+      setChaveArquivo((chave) => chave + 1);
       setMensagem("Despesa lançada com sucesso.");
     } catch (erro) {
       setMensagem(erro.message || "Não foi possível lançar a despesa.");
@@ -104,6 +118,17 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
             value={despesa.descricao}
             onChange={(e) => alterarCampo("descricao", e.target.value)}
           />
+        </label>
+
+        <label className="campo-comprovante-despesa">
+          <span>Comprovante de pagamento (opcional)</span>
+          <input
+            key={chaveArquivo}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
+            onChange={(e) => alterarCampo("comprovante", e.target.files?.[0] || null)}
+          />
+          <small>Envie o comprovante do Pix em PDF, JPG, PNG ou WEBP (até 10 MB).</small>
         </label>
       </div>
 

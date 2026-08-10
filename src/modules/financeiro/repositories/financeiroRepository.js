@@ -9,8 +9,9 @@ import {
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
-import { db } from "../../../shared/firebase/firebaseConfig";
+import { db, storage } from "../../../shared/firebase/firebaseConfig";
 
 const movimentosRef = collection(db, "movimentosFinanceiros");
 
@@ -39,6 +40,37 @@ export async function criarMovimentoFinanceiro(dados) {
     criadoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp(),
   });
+}
+
+function nomeArquivoSeguro(nome) {
+  return nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
+}
+
+export async function criarDespesaComComprovante(dados, arquivo) {
+  if (!arquivo) return criarMovimentoFinanceiro(dados);
+
+  const identificador = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const caminho = `comprovantes-despesas/${dados.data}/${identificador}-${nomeArquivoSeguro(arquivo.name)}`;
+  const comprovanteRef = ref(storage, caminho);
+
+  await uploadBytes(comprovanteRef, arquivo, { contentType: arquivo.type });
+
+  try {
+    const comprovanteUrl = await getDownloadURL(comprovanteRef);
+    return await criarMovimentoFinanceiro({
+      ...dados,
+      comprovante: {
+        nome: arquivo.name,
+        tipo: arquivo.type,
+        tamanho: arquivo.size,
+        caminho,
+        url: comprovanteUrl,
+      },
+    });
+  } catch (erro) {
+    await deleteObject(comprovanteRef).catch(() => {});
+    throw erro;
+  }
 }
 
 export async function atualizarMovimentoFinanceiro(id, dados) {

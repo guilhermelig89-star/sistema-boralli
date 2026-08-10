@@ -18,3 +18,17 @@ test("permite pesquisar um movimento pelo fornecedor", () => {
 
   assert.deepEqual(aplicarFiltrosFinanceiros(movimentos, filtros), movimentos);
 });
+
+test("ordena os movimentos da data mais recente para a mais antiga", () => {
+  const movimentos = [
+    { id: "1", data: "2026-08-10", origem: "despesa_manual" },
+    { id: "2", data: "2026-08-07", origem: "despesa_manual" },
+    { id: "3", data: "2026-08-10", origem: "despesa_manual" },
+    { id: "4", data: "2026-08-01", origem: "despesa_manual" },
+  ];
+
+  const resultado = aplicarFiltrosFinanceiros(movimentos, { pesquisa: "", origem: "todos" });
+
+  assert.deepEqual(resultado.map((movimento) => movimento.id), ["3", "1", "2", "4"]);
+  assert.deepEqual(movimentos.map((movimento) => movimento.id), ["1", "2", "3", "4"]);
+});

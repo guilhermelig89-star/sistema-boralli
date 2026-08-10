@@ -44,6 +44,8 @@ function criarFiltrosIniciais() {
 function FinanceiroPage() {
   const [filtros, setFiltros] = useState(criarFiltrosIniciais);
   const [abaDespesa, setAbaDespesa] = useState(null);
+  const [secaoAtiva, setSecaoAtiva] = useState("visao-geral");
+  const [filtrosVisiveis, setFiltrosVisiveis] = useState(false);
   const abasDespesaRef = useRef(null);
   const [movimentosVisiveis, setMovimentosVisiveis] = useState(false);
   const { clientesAtivos } = useClientes();
@@ -105,81 +107,108 @@ function FinanceiroPage() {
       </div>
 
       <div className="cliente-layout financeiro-layout">
-        <div className="lista-clientes financeiro-filtros-bloco">
-          <h2>Período e filtros</h2>
-          <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
-        </div>
-
-        <PendenciasFinanceiras
-          movimentos={movimentos}
-          carregando={carregando}
-          salvando={salvandoFinanceiro}
-          onRegistrarPagamento={registrarPagamentoPendente}
-        />
-
-        <div className="financeiro-configuracao-abas">
-          <div className="financeiro-abas-topo">
+        <section className="financeiro-controles" aria-label="Navegação e filtros financeiros">
+          <div className="financeiro-periodo-resumo">
             <div>
-              <h2>Despesas</h2>
-              <p>Lance custos e organize as categorias usadas no DRE.</p>
+              <span>Período em análise</span>
+              <strong>{filtros.dataInicio.split("-").reverse().join("/")} — {filtros.dataFim.split("-").reverse().join("/")}</strong>
             </div>
-
-            <div className="abas-financeiro" role="tablist" aria-label="Opções de despesas" ref={abasDespesaRef}>
-              <button
-                type="button"
-                className={abaDespesa === "lancar" ? "ativo" : ""}
-                onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "lancar" ? null : "lancar"))}
-              >
-                Lançar despesa
-              </button>
-              <button
-                type="button"
-                className={abaDespesa === "categorias" ? "ativo" : ""}
-                onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "categorias" ? null : "categorias"))}
-              >
-                Categorias
-              </button>
-            </div>
-          </div>
-
-          {abaDespesa === "lancar" && (
-            <DespesaForm categorias={categoriasDespesa} onSalvar={salvarDespesa} salvando={salvandoFinanceiro} />
-          )}
-
-          {abaDespesa === "categorias" && (
-            <CategoriasDespesa
-              categorias={categoriasDespesa}
-              carregando={carregandoCategorias}
-              salvando={salvandoCategoria}
-              erro={erroCategorias}
-              onSalvar={salvarCategoria}
-              onRemover={removerCategoria}
-            />
-          )}
-        </div>
-
-        <FinanceiroResumo totaisFiltro={totaisFiltro} totaisMes={totaisMes} />
-        <FinanceiroDre dre={dreFiltro} />
-
-        <div className="lista-clientes">
-          <div className="financeiro-movimentos-topo">
-            <h2>Movimentos financeiros</h2>
             <button
               type="button"
-              className="botao-principal"
-              onClick={() => setMovimentosVisiveis((visivel) => !visivel)}
-              aria-expanded={movimentosVisiveis}
+              className="botao-filtros-financeiro"
+              onClick={() => setFiltrosVisiveis((visivel) => !visivel)}
+              aria-expanded={filtrosVisiveis}
             >
-              {movimentosVisiveis ? "Ocultar movimentos financeiros" : "Ver movimentos financeiros"}
+              {filtrosVisiveis ? "Fechar filtros" : "Filtrar período"}
             </button>
           </div>
-          {movimentosVisiveis && (
-            <>
-              {erro && <p>{erro}</p>}
-              <MovimentosTable movimentos={movimentosFiltrados} carregando={carregando} />
-            </>
+
+          {filtrosVisiveis && (
+            <div className="financeiro-filtros-bloco">
+              <FinanceiroFiltros filtros={filtros} clientes={clientesAtivos} onAlterar={alterarFiltro} />
+            </div>
           )}
-        </div>
+
+          <div className="financeiro-navegacao" role="tablist" aria-label="Seções do financeiro">
+            {[
+              ["visao-geral", "Visão geral"],
+              ["a-receber", "A receber"],
+              ["despesas", "Despesas"],
+              ["movimentos", "Movimentos"],
+            ].map(([id, rotulo]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={secaoAtiva === id}
+                className={secaoAtiva === id ? "ativo" : ""}
+                onClick={() => setSecaoAtiva(id)}
+              >
+                {rotulo}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {secaoAtiva === "visao-geral" && (
+          <div className="financeiro-secao" role="tabpanel">
+            <div className="financeiro-secao-cabecalho">
+              <div>
+                <span className="financeiro-sobretitulo">PAINEL DO PERÍODO</span>
+                <h2>Visão geral</h2>
+                <p>Indicadores essenciais e detalhamento do resultado em um só lugar.</p>
+              </div>
+            </div>
+            <FinanceiroResumo totaisFiltro={totaisFiltro} totaisMes={totaisMes} />
+            <FinanceiroDre dre={dreFiltro} />
+          </div>
+        )}
+
+        {secaoAtiva === "a-receber" && (
+          <PendenciasFinanceiras
+            movimentos={movimentos}
+            carregando={carregando}
+            salvando={salvandoFinanceiro}
+            onRegistrarPagamento={registrarPagamentoPendente}
+          />
+        )}
+
+        {secaoAtiva === "despesas" && (
+          <div className="financeiro-configuracao-abas" role="tabpanel">
+            <div className="financeiro-abas-topo">
+              <div>
+                <span className="financeiro-sobretitulo">GESTÃO DE SAÍDAS</span>
+                <h2>Despesas</h2>
+                <p>Lance custos e organize as categorias usadas no DRE.</p>
+              </div>
+
+              <div className="abas-financeiro" role="tablist" aria-label="Opções de despesas" ref={abasDespesaRef}>
+                <button type="button" className={abaDespesa === "lancar" ? "ativo" : ""} onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "lancar" ? null : "lancar"))}>Lançar despesa</button>
+                <button type="button" className={abaDespesa === "categorias" ? "ativo" : ""} onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "categorias" ? null : "categorias"))}>Categorias</button>
+              </div>
+            </div>
+
+            {!abaDespesa && <p className="financeiro-acao-vazia">Escolha uma ação acima para lançar uma despesa ou gerenciar categorias.</p>}
+            {abaDespesa === "lancar" && <DespesaForm categorias={categoriasDespesa} onSalvar={salvarDespesa} salvando={salvandoFinanceiro} />}
+            {abaDespesa === "categorias" && <CategoriasDespesa categorias={categoriasDespesa} carregando={carregandoCategorias} salvando={salvandoCategoria} erro={erroCategorias} onSalvar={salvarCategoria} onRemover={removerCategoria} />}
+          </div>
+        )}
+
+        {secaoAtiva === "movimentos" && (
+          <div className="lista-clientes" role="tabpanel">
+            <div className="financeiro-movimentos-topo">
+              <div>
+                <span className="financeiro-sobretitulo">HISTÓRICO</span>
+                <h2>Movimentos financeiros</h2>
+              </div>
+              <button type="button" className="botao-principal" onClick={() => setMovimentosVisiveis((visivel) => !visivel)} aria-expanded={movimentosVisiveis}>
+                {movimentosVisiveis ? "Recolher lista" : "Carregar movimentos"}
+              </button>
+            </div>
+            {!movimentosVisiveis && <p className="financeiro-acao-vazia">A lista fica recolhida para manter a página leve. Carregue quando precisar consultar os lançamentos.</p>}
+            {movimentosVisiveis && <>{erro && <p>{erro}</p>}<MovimentosTable movimentos={movimentosFiltrados} carregando={carregando} /></>}
+          </div>
+        )}
       </div>
     </div>
   );

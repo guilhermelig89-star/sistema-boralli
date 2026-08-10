@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
-import { lerComprovante, validarComprovante } from "../services/leituraComprovanteService";
-import { aplicarSugestoes } from "../services/sugestoesComprovante";
+import { useState } from "react";
+import { validarComprovante } from "../services/leituraComprovanteService";
 
 const formasPagamento = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito", "Transferência", "Outro"];
 function obterHoje() {
@@ -15,6 +14,7 @@ function obterHoje() {
 function criarDespesaInicial(categoriaInicial) {
   return {
     data: obterHoje(),
+    fornecedor: "",
     descricao: "",
     categoria: categoriaInicial || "Material",
     valor: "",
@@ -29,20 +29,13 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
   const [despesa, setDespesa] = useState(() => criarDespesaInicial(categoriaInicial));
   const [mensagem, setMensagem] = useState("");
   const [chaveArquivo, setChaveArquivo] = useState(0);
-  const [lendoComprovante, setLendoComprovante] = useState(false);
-  const [camposSugeridos, setCamposSugeridos] = useState([]);
-  const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
-  const camposEditados = useRef(new Set());
 
   function alterarCampo(campo, valor) {
-    camposEditados.current.add(campo);
-    setCamposSugeridos((atuais) => atuais.filter((item) => item !== campo));
     setDespesa((atual) => ({ ...atual, [campo]: valor }));
   }
 
-  async function selecionarComprovante(arquivo) {
+  function selecionarComprovante(arquivo) {
     setMensagem("");
-    setAguardandoConfirmacao(false);
     if (!arquivo) {
       setDespesa((atual) => ({ ...atual, comprovante: null }));
       return;
@@ -51,21 +44,9 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
     try {
       validarComprovante(arquivo);
       setDespesa((atual) => ({ ...atual, comprovante: arquivo }));
-      setLendoComprovante(true);
-      const leitura = await lerComprovante(arquivo);
-      setDespesa((atual) => {
-        const resultado = aplicarSugestoes(atual, leitura, camposEditados.current, categorias);
-        setCamposSugeridos(resultado.camposSugeridos);
-        return resultado.despesa;
-      });
-      setAguardandoConfirmacao(true);
-      setMensagem(Object.keys(leitura || {}).length
-        ? "Sugestões extraídas. Confira os dados antes do lançamento."
-        : "Nenhum dado foi reconhecido. Preencha manualmente e confira antes do lançamento.");
     } catch (erro) {
+      setDespesa((atual) => ({ ...atual, comprovante: null }));
       setMensagem(erro.message);
-    } finally {
-      setLendoComprovante(false);
     }
   }
 
@@ -78,9 +59,6 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
       await onSalvar(despesa);
       setDespesa(criarDespesaInicial(categoriaInicial));
       setChaveArquivo((chave) => chave + 1);
-      camposEditados.current.clear();
-      setCamposSugeridos([]);
-      setAguardandoConfirmacao(false);
       setMensagem("Despesa lançada com sucesso.");
     } catch (erro) {
       setMensagem(erro.message || "Não foi possível lançar a despesa.");
@@ -97,13 +75,13 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
       </div>
 
       <div className="campos-despesa-form">
-        <label className={camposSugeridos.includes("data") ? "campo-sugerido" : ""}>
-          <span>Data {camposSugeridos.includes("data") && <em>Sugestão do comprovante</em>}</span>
+        <label>
+          <span>Data</span>
           <input type="date" value={despesa.data} onChange={(e) => alterarCampo("data", e.target.value)} />
         </label>
 
-        <label className={camposSugeridos.includes("categoria") ? "campo-sugerido" : ""}>
-          <span>Categoria {camposSugeridos.includes("categoria") && <em>Sugestão do comprovante</em>}</span>
+        <label>
+          <span>Categoria</span>
           <select value={despesa.categoria} onChange={(e) => alterarCampo("categoria", e.target.value)}>
             {categorias.map((categoria) => (
               <option key={categoria.id || categoria.nome} value={categoria.nome}>{categoria.nome}</option>
@@ -111,8 +89,8 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
           </select>
         </label>
 
-        <label className={camposSugeridos.includes("valor") ? "campo-sugerido" : ""}>
-          <span>Valor {camposSugeridos.includes("valor") && <em>Sugestão do comprovante</em>}</span>
+        <label>
+          <span>Valor</span>
           <input
             type="number"
             min="0"
@@ -123,8 +101,8 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
           />
         </label>
 
-        <label className={camposSugeridos.includes("formaPagamento") ? "campo-sugerido" : ""}>
-          <span>Forma de pagamento {camposSugeridos.includes("formaPagamento") && <em>Sugestão do comprovante</em>}</span>
+        <label>
+          <span>Forma de pagamento</span>
           <select value={despesa.formaPagamento} onChange={(e) => alterarCampo("formaPagamento", e.target.value)}>
             {formasPagamento.map((forma) => (
               <option key={forma} value={forma}>{forma}</option>
@@ -140,8 +118,17 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
           </select>
         </label>
 
-        <label className={`campo-descricao-despesa ${camposSugeridos.includes("descricao") ? "campo-sugerido" : ""}`}>
-          <span>Descrição {camposSugeridos.includes("descricao") && <em>Sugestão do comprovante</em>}</span>
+        <label>
+          <span>Fornecedor</span>
+          <input
+            placeholder="Ex.: Distribuidora Bella"
+            value={despesa.fornecedor}
+            onChange={(e) => alterarCampo("fornecedor", e.target.value)}
+          />
+        </label>
+
+        <label className="campo-descricao-despesa">
+          <span>Descrição</span>
           <input
             placeholder="Ex.: esmaltes, gasolina, taxa da maquininha..."
             value={despesa.descricao}
@@ -155,22 +142,14 @@ function DespesaForm({ categorias = [], onSalvar, salvando }) {
             key={chaveArquivo}
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
-            disabled={lendoComprovante}
             onChange={(e) => selecionarComprovante(e.target.files?.[0] || null)}
           />
-          <small>Envie o comprovante do Pix em PDF, JPG, PNG ou WEBP (até 10 MB).</small>
+          <small>O arquivo será apenas anexado, sem leitura automática. PDF, JPG, PNG ou WEBP (até 10 MB).</small>
         </label>
       </div>
 
-      {lendoComprovante && <div className="aviso-leitura-comprovante" role="status">Lendo o comprovante e buscando sugestões…</div>}
-      {aguardandoConfirmacao && (
-        <div className="aviso-confirmacao-comprovante" role="alert">
-          <strong>Confira antes de lançar.</strong> Os dados extraídos são sugestões e precisam ser conferidos antes do lançamento.
-        </div>
-      )}
-
       <div className="rodape-despesa-form">
-        <button className="botao-acao" type="submit" disabled={salvando || lendoComprovante}>
+        <button className="botao-acao" type="submit" disabled={salvando}>
           {salvando ? "Salvando..." : "Salvar despesa"}
         </button>
         {mensagem && <span>{mensagem}</span>}

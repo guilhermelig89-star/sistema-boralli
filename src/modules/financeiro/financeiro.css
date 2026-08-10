@@ -186,6 +186,31 @@
   font-weight: 800;
 }
 
+.despesa-form .campo-sugerido input,
+.despesa-form .campo-sugerido select {
+  border-color: #c99f45;
+  background: #fffaf0;
+}
+
+.despesa-form .campo-sugerido em {
+  margin-left: 6px;
+  color: #8a6418;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.aviso-leitura-comprovante,
+.aviso-confirmacao-comprovante {
+  margin-top: 14px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #624a20;
+  background: #fff8e7;
+  font-size: 13px;
+}
+
+.aviso-confirmacao-comprovante strong { display: block; margin-bottom: 3px; }
+
 .pendencias-financeiras {
   display: flex;
   flex-direction: column;

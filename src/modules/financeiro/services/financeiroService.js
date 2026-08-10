@@ -155,6 +155,12 @@ export function aplicarFiltrosFinanceiros(movimentos, filtros) {
       correspondeStatus &&
       correspondePesquisa
     );
+  }).sort((a, b) => {
+    const comparacaoData = obterDataMovimento(b).localeCompare(obterDataMovimento(a));
+
+    if (comparacaoData !== 0) return comparacaoData;
+
+    return String(b.id || "").localeCompare(String(a.id || ""));
   });
 }
 

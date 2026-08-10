@@ -1,15 +1,21 @@
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
 import { initializeApp } from "firebase-admin/app";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
+import { defineString } from "firebase-functions/params";
 import { extrairCampos } from "./normalizacaoComprovante.js";
 
 initializeApp();
 
 const TIPOS_ACEITOS = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const LIMITE_BYTES = 10 * 1024 * 1024;
+const localizacaoDocumentAi = defineString("DOCUMENT_AI_LOCATION", { default: "us" });
+const processadorDocumentAi = defineString("DOCUMENT_AI_PROCESSOR_ID");
 
-export const lerComprovante = onCall({ timeoutSeconds: 60, memory: "512MiB" }, async (requisicao) => {
-  if (!requisicao.auth) throw new HttpsError("unauthenticated", "Faça login para ler o comprovante.");
+export const lerComprovante = onCall({
+  timeoutSeconds: 60,
+  memory: "512MiB",
+  params: [localizacaoDocumentAi, processadorDocumentAi],
+}, async (requisicao) => {
   const { conteudo, tipo } = requisicao.data || {};
   if (!TIPOS_ACEITOS.has(tipo)) throw new HttpsError("invalid-argument", "Formato não suportado.");
   if (typeof conteudo !== "string") throw new HttpsError("invalid-argument", "Arquivo ausente.");
@@ -18,8 +24,8 @@ export const lerComprovante = onCall({ timeoutSeconds: 60, memory: "512MiB" }, a
   if (!bytes.length || bytes.length > LIMITE_BYTES) throw new HttpsError("invalid-argument", "O arquivo deve ter até 10 MB.");
 
   const projeto = process.env.GCLOUD_PROJECT;
-  const localizacao = process.env.DOCUMENT_AI_LOCATION || "us";
-  const processador = process.env.DOCUMENT_AI_PROCESSOR_ID;
+  const localizacao = localizacaoDocumentAi.value();
+  const processador = processadorDocumentAi.value();
   if (!processador) throw new HttpsError("failed-precondition", "Serviço de OCR não configurado.");
 
   try {

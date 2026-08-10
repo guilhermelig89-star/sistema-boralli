@@ -46,7 +46,7 @@ function FinanceiroPage() {
   const [abaDespesa, setAbaDespesa] = useState(null);
   const [secaoAtiva, setSecaoAtiva] = useState("visao-geral");
   const [filtrosVisiveis, setFiltrosVisiveis] = useState(false);
-  const abasDespesaRef = useRef(null);
+  const painelDespesaRef = useRef(null);
   const [movimentosVisiveis, setMovimentosVisiveis] = useState(false);
   const { clientesAtivos } = useClientes();
   const {
@@ -73,7 +73,7 @@ function FinanceiroPage() {
 
   useEffect(() => {
     function fecharAbasAoClicarFora(evento) {
-      if (!abasDespesaRef.current?.contains(evento.target)) {
+      if (!painelDespesaRef.current?.contains(evento.target)) {
         setAbaDespesa(null);
       }
     }
@@ -174,7 +174,7 @@ function FinanceiroPage() {
         )}
 
         {secaoAtiva === "despesas" && (
-          <div className="financeiro-configuracao-abas" role="tabpanel">
+          <div className="financeiro-configuracao-abas" role="tabpanel" ref={painelDespesaRef}>
             <div className="financeiro-abas-topo">
               <div>
                 <span className="financeiro-sobretitulo">GESTÃO DE SAÍDAS</span>
@@ -182,7 +182,7 @@ function FinanceiroPage() {
                 <p>Lance custos e organize as categorias usadas no DRE.</p>
               </div>
 
-              <div className="abas-financeiro" role="tablist" aria-label="Opções de despesas" ref={abasDespesaRef}>
+              <div className="abas-financeiro" role="tablist" aria-label="Opções de despesas">
                 <button type="button" className={abaDespesa === "lancar" ? "ativo" : ""} onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "lancar" ? null : "lancar"))}>Lançar despesa</button>
                 <button type="button" className={abaDespesa === "categorias" ? "ativo" : ""} onClick={() => setAbaDespesa((abaAtual) => (abaAtual === "categorias" ? null : "categorias"))}>Categorias</button>
               </div>

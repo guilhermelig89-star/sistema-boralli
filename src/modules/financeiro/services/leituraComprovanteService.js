@@ -24,6 +24,12 @@ export function validarComprovante(arquivo) {
 export function mensagemErroLeitura(erro) {
   const codigo = erro?.code || "";
   if (codigo.includes("deadline-exceeded")) return "A leitura demorou demais. Tente novamente.";
+  if (codigo.includes("failed-precondition")) {
+    return "A leitura automática ainda não foi configurada. Você pode preencher e salvar manualmente.";
+  }
+  if (codigo.includes("not-found")) {
+    return "A leitura automática ainda não foi publicada. Você pode preencher e salvar manualmente.";
+  }
   if (codigo.includes("unavailable") || codigo.includes("internal")) {
     return "O serviço de leitura está indisponível. Você ainda pode preencher e salvar manualmente.";
   }

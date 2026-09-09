@@ -7,7 +7,6 @@ import { useServicos } from "../servicos/hooks/useServicos";
 import "./agenda.css";
 import AgendaConfiguracao from "./components/AgendaConfiguracao";
 import AgendaFiltros from "./components/AgendaFiltros";
-import AgendaResumo from "./components/AgendaResumo";
 import AgendamentoForm from "./components/AgendamentoForm";
 import AgendamentosTable from "./components/AgendamentosTable";
 import AgendamentoEditModal from "./components/AgendamentoEditModal";
@@ -319,14 +318,32 @@ function AgendaPage() {
           <button
             type="button"
             className={abaAtual === "agenda" ? "ativo" : ""}
-            onClick={() => setAbaAtual((atual) => (atual === "agenda" ? null : "agenda"))}
+            role="tab"
+            aria-selected={abaAtual === "agenda"}
+            onClick={() => setAbaAtual("agenda")}
           >
             Agenda
           </button>
           <button
             type="button"
+            className={abaAtual === "tarefas" ? "ativo" : ""}
+            role="tab"
+            aria-selected={abaAtual === "tarefas"}
+            onClick={() => setAbaAtual("tarefas")}
+          >
+            Tarefas
+            {pendencias.length > 0 && (
+              <span className="badge-tarefas" aria-label={`${pendencias.length} pendência${pendencias.length === 1 ? "" : "s"}`}>
+                {pendencias.length}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
             className={abaAtual === "configuracoes" ? "ativo" : ""}
-            onClick={() => setAbaAtual((atual) => (atual === "configuracoes" ? null : "configuracoes"))}
+            role="tab"
+            aria-selected={abaAtual === "configuracoes"}
+            onClick={() => setAbaAtual("configuracoes")}
           >
             Configurações
           </button>
@@ -336,24 +353,6 @@ function AgendaPage() {
       <div className="cliente-layout">
         {abaAtual === "agenda" && (
           <>
-            <AgendaResumo agendamentos={agendamentos} />
-            <div className="lista-clientes pendencias-bloco">
-              <div className="topo-pendencias">
-                <h2>Pendências</h2>
-                <span>{pendencias.length}</span>
-              </div>
-              {pendencias.length === 0 && <p>Nenhuma pendência no momento.</p>}
-              {pendencias.map((item) => (
-                <div className="linha-pendencia" key={item.id}>
-                  <div>
-                    <strong>{item.clienteNome}</strong>
-                    <p>{item.data} {item.hora} • {item.servicoNome} • {item.status === "em_atendimento" ? "Atendimento aberto" : "Agendamento vencido"}</p>
-                  </div>
-                  <button className="botao-editar" onClick={() => abrirModalPendencia(item)}>Resolver</button>
-                </div>
-              ))}
-            </div>
-
             <AgendamentoForm
               clientes={clientesAtivos}
               servicos={servicosAtivos}
@@ -388,6 +387,28 @@ function AgendaPage() {
               />
             </div>
           </>
+        )}
+
+        {abaAtual === "tarefas" && (
+          <div className="lista-clientes pendencias-bloco">
+            <div className="topo-pendencias">
+              <div>
+                <h2>Tarefas pendentes</h2>
+                <p>Resolva atendimentos abertos ou agendamentos vencidos.</p>
+              </div>
+              <span>{pendencias.length}</span>
+            </div>
+            {pendencias.length === 0 && <p className="tarefas-vazias">Nenhuma tarefa pendente no momento.</p>}
+            {pendencias.map((item) => (
+              <div className="linha-pendencia" key={item.id}>
+                <div>
+                  <strong>{item.clienteNome}</strong>
+                  <p>{item.data} {item.hora} • {item.servicoNome} • {item.status === "em_atendimento" ? "Atendimento aberto" : "Agendamento vencido"}</p>
+                </div>
+                <button className="botao-editar" onClick={() => abrirModalPendencia(item)}>Resolver</button>
+              </div>
+            ))}
+          </div>
         )}
 
         {abaAtual === "configuracoes" && (

@@ -29,6 +29,21 @@
   color: #1f1714;
 }
 
+.badge-tarefas {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 7px;
+  border-radius: 999px;
+  background: #b42318;
+  color: #fff;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 1;
+}
+
 .cabecalho-lista-agenda {
   display: flex;
   align-items: flex-start;
@@ -412,6 +427,17 @@
   align-items: center;
 }
 
+.topo-pendencias h2,
+.topo-pendencias p {
+  margin: 0;
+}
+
+.topo-pendencias p {
+  margin-top: 5px;
+  color: #7b6b5d;
+  font-size: 13px;
+}
+
 .topo-pendencias span {
   min-width: 30px;
   text-align: center;
@@ -437,6 +463,11 @@
   font-size: 13px;
 }
 
+.tarefas-vazias {
+  margin: 18px 0 0;
+  color: #7b6b5d;
+}
+
 @media (max-width: 1100px) {
   .linha-config {
     grid-template-columns: 1fr;
@@ -451,7 +482,7 @@
 
   .abas-agenda {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     width: 100%;
   }
 

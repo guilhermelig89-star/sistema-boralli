@@ -35,7 +35,7 @@ test("ignora registros curtos, inclusive registros antigos sem a nova marcação
   assert.deepEqual(historico.map((item) => item.tempoRealMinutos), [55]);
 });
 
-test("ignora ajuste salvo com duração curta e mantém o padrão do serviço", () => {
+test("mantém o padrão do serviço mesmo quando existe ajuste inteligente salvo", () => {
   const sugestao = calcularSugestaoDuracao({
     clienteId: "cliente-1",
     servico,
@@ -44,10 +44,31 @@ test("ignora ajuste salvo com duração curta e mantém o padrão do serviço", 
       tipo: "cliente_servico",
       clienteId: "cliente-1",
       servicoId: "servico-1",
-      duracaoMinutos: 1,
+      duracaoMinutos: 90,
     }],
   });
 
   assert.equal(sugestao.duracaoMinutos, 60);
   assert.equal(sugestao.origem, "padrao");
+});
+
+test("mantém o padrão do serviço mesmo com histórico suficiente para análise", () => {
+  const agendamentos = Array.from({ length: 10 }, (_, indice) => ({
+    id: `agendamento-${indice}`,
+    clienteId: "cliente-1",
+    servicoId: "servico-1",
+    status: "finalizado",
+    tempoRealCalculado: true,
+    tempoRealMinutos: 90,
+  }));
+
+  const sugestao = calcularSugestaoDuracao({
+    clienteId: "cliente-1",
+    servico,
+    agendamentos,
+  });
+
+  assert.equal(sugestao.duracaoMinutos, 60);
+  assert.equal(sugestao.origem, "padrao");
+  assert.equal(sugestao.quantidadeBase, 0);
 });

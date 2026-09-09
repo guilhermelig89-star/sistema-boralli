@@ -174,7 +174,7 @@ function AgendamentoForm({
           {servicoSelecionado && (
             <div className="sugestao-tempo-agendamento">
               <div>
-                <span>Duração inteligente</span>
+                <span>Duração padrão do serviço</span>
                 <strong>{sugestaoDuracao.duracaoMinutos} min</strong>
               </div>
               <p>{sugestaoDuracao.mensagem}</p>

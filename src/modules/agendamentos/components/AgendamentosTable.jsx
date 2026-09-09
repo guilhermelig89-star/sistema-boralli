@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 function statusClasse(status) {
   if (status === "finalizado") return "badge-tipo badge-servico";
   if (status === "cancelado") return "badge-tipo badge-alerta";
@@ -35,6 +37,29 @@ function formatarData(data) {
 }
 
 function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, onCancelar, onEditar, onCorrigirConsumoPacote }) {
+  const [menuAberto, setMenuAberto] = useState(null);
+  useEffect(() => {
+    function fecharMenuAoClicarFora(evento) {
+      if (!evento.target.closest(".menu-acoes-agendamento")) setMenuAberto(null);
+    }
+
+    function fecharMenuComEscape(evento) {
+      if (evento.key === "Escape") setMenuAberto(null);
+    }
+
+    document.addEventListener("pointerdown", fecharMenuAoClicarFora);
+    document.addEventListener("keydown", fecharMenuComEscape);
+    return () => {
+      document.removeEventListener("pointerdown", fecharMenuAoClicarFora);
+      document.removeEventListener("keydown", fecharMenuComEscape);
+    };
+  }, []);
+
+  function executarAcao(acao) {
+    setMenuAberto(null);
+    acao();
+  }
+
   return (
     <div className="tabela-clientes">
       <div className="linha-agendamento cabecalho">
@@ -89,15 +114,24 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                 <div className="acoes-agendamento">
                 <span className={statusClasse(agendamento.status)}>{statusTexto(agendamento.status)}</span>
 
-                <details className="menu-acoes-agendamento">
-                  <summary aria-label={`Abrir ações de ${agendamento.clienteNome}`} title="Mostrar ações">•••</summary>
+                <div className="menu-acoes-agendamento">
+                  <button
+                    type="button"
+                    className="botao-abrir-acoes"
+                    aria-expanded={menuAberto === agendamento.id}
+                    aria-label={`Abrir ações de ${agendamento.clienteNome}`}
+                    onClick={() => setMenuAberto((atual) => atual === agendamento.id ? null : agendamento.id)}
+                  >
+                    Ações
+                  </button>
+                  {menuAberto === agendamento.id && (
                   <div className="menu-acoes-conteudo">
-                  <button className="botao-menu-acao" onClick={() => onEditar(agendamento)}>Editar</button>
+                  <button className="botao-menu-acao" onClick={() => executarAcao(() => onEditar(agendamento))}>Editar</button>
 
                 {!encerrado && !emAtendimento && (
                   <button
                     className="botao-menu-acao"
-                    onClick={() => onIniciar(agendamento.id)}
+                    onClick={() => executarAcao(() => onIniciar(agendamento.id))}
                   >
                     Iniciar
                   </button>
@@ -108,7 +142,7 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                     className="botao-menu-acao"
                     onClick={() => {
                       const confirmar = confirm("Finalizar este atendimento?");
-                      if (confirmar) onFinalizar(agendamento.id);
+                      if (confirmar) executarAcao(() => onFinalizar(agendamento.id));
                     }}
                   >
                     Finalizar
@@ -120,7 +154,7 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                     className="botao-menu-acao perigo"
                     onClick={() => {
                       const confirmar = confirm("Cancelar este agendamento?");
-                      if (confirmar) onCancelar(agendamento.id);
+                      if (confirmar) executarAcao(() => onCancelar(agendamento.id));
                     }}
                   >
                     Cancelar
@@ -129,13 +163,14 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                 {podeCorrigirConsumoPacote && (
                   <button
                     className="botao-menu-acao"
-                    onClick={() => onCorrigirConsumoPacote?.(agendamento)}
+                    onClick={() => executarAcao(() => onCorrigirConsumoPacote?.(agendamento))}
                   >
                     Corrigir consumo do pacote
                   </button>
                 )}
                   </div>
-                </details>
+                  )}
+                </div>
                 </div>
               </div>
             </div>

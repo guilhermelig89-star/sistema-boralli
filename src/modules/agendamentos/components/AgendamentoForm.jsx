@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { sugerirHorariosInteligentes } from "../services/agendamentosService";
 import { calcularSugestaoDuracao } from "../services/tempoAtendimentoService";
@@ -28,7 +28,18 @@ function AgendamentoForm({
   onSalvar,
 }) {
   const [formulario, setFormulario] = useState(agendamentoInicial);
-  const [formularioAberto, setFormularioAberto] = useState(true);
+  const [formularioAberto, setFormularioAberto] = useState(false);
+
+  useEffect(() => {
+    if (!formularioAberto) return undefined;
+
+    function fecharComEscape(evento) {
+      if (evento.key === "Escape") setFormularioAberto(false);
+    }
+
+    document.addEventListener("keydown", fecharComEscape);
+    return () => document.removeEventListener("keydown", fecharComEscape);
+  }, [formularioAberto]);
 
   const clienteSelecionado = useMemo(
     () => clientes.find((cliente) => cliente.id === formulario.clienteId),
@@ -121,20 +132,31 @@ function AgendamentoForm({
   }
 
   return (
-    <form className="form-cliente" onSubmit={salvar} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-      <div className="cabecalho-form-agendamento">
-        <h2>Novo agendamento</h2>
+    <>
+      <div className="novo-agendamento-acao">
         <button
           type="button"
-          className="botao-toggle-agendamento"
-          onClick={() => setFormularioAberto((aberto) => !aberto)}
+          className="botao-principal"
+          onClick={() => setFormularioAberto(true)}
         >
-          {formularioAberto ? "Recolher" : "Novo agendamento"}
+          Novo agendamento
         </button>
       </div>
 
       {formularioAberto && (
-        <>
+        <div className="modal-tempo-backdrop" role="presentation" onMouseDown={() => setFormularioAberto(false)}>
+          <section
+            className="modal-tempo modal-agendamento"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-novo-agendamento"
+            onMouseDown={(evento) => evento.stopPropagation()}
+          >
+            <div className="modal-tempo-topo">
+              <h2 id="titulo-novo-agendamento">Novo agendamento</h2>
+              <button type="button" onClick={() => setFormularioAberto(false)}>Fechar</button>
+            </div>
+            <form className="form-cliente form-novo-agendamento" onSubmit={salvar}>
           <select value={formulario.clienteId} onChange={(e) => alterarCampo("clienteId", e.target.value)}>
             <option value="">Selecione o cliente</option>
             {clientes.map((cliente) => (
@@ -265,10 +287,12 @@ function AgendamentoForm({
             onChange={(e) => alterarCampo("observacoes", e.target.value)}
           />
 
-          <button type="submit">Salvar agendamento</button>
-        </>
+              <button type="submit">Salvar agendamento</button>
+            </form>
+          </section>
+        </div>
       )}
-    </form>
+    </>
   );
 }
 

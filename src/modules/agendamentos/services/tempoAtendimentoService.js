@@ -19,6 +19,12 @@ function arredondarMinutos(valor) {
   return Math.max(1, Math.round(numero(valor, 1)));
 }
 
+export const TEMPO_MINIMO_CONFIAVEL_MINUTOS = 15;
+
+export function tempoPodeAlimentarSugestoes(tempoRealMinutos) {
+  return numero(tempoRealMinutos) >= TEMPO_MINIMO_CONFIAVEL_MINUTOS;
+}
+
 function mediaMinutos(registros) {
   if (!registros.length) return 0;
   const total = registros.reduce((soma, item) => soma + numero(item.tempoRealMinutos), 0);
@@ -103,6 +109,7 @@ export function calcularTempoFinalizacao(agendamento, dataFinalizacao = new Date
   const tempoRealMinutos = tempoRealCalculado
     ? arredondarMinutos((fim.getTime() - inicio.getTime()) / 60000)
     : tempoPrevistoMinutos;
+  const tempoValidoParaSugestao = tempoRealCalculado && tempoPodeAlimentarSugestoes(tempoRealMinutos);
   const diferencaMinutos = tempoRealMinutos - tempoPrevistoMinutos;
   const diferencaPercentual = tempoPrevistoMinutos > 0
     ? (diferencaMinutos / tempoPrevistoMinutos) * 100
@@ -114,6 +121,7 @@ export function calcularTempoFinalizacao(agendamento, dataFinalizacao = new Date
     tempoPrevistoMinutos,
     tempoRealMinutos,
     tempoRealCalculado,
+    tempoValidoParaSugestao,
     diferencaMinutos,
     diferencaPercentual: Math.round(diferencaPercentual),
     diferencaPercentualAbs: Math.round(diferencaPercentualAbs),
@@ -134,7 +142,8 @@ export function obterHistoricoTempoServico(agendamentos, servicoId) {
         item.servicoId === servicoId &&
         item.status !== "cancelado" &&
         item.tempoRealCalculado === true &&
-        numero(item.tempoRealMinutos) > 0
+        item.tempoValidoParaSugestao !== false &&
+        tempoPodeAlimentarSugestoes(item.tempoRealMinutos)
     )
   );
 }
@@ -163,7 +172,7 @@ export function calcularSugestaoDuracao({ clienteId, servico, agendamentos = [],
       item.tipo === "cliente_servico" &&
       item.clienteId === clienteId &&
       item.servicoId === servico.id &&
-      numero(item.duracaoMinutos) > 0
+      tempoPodeAlimentarSugestoes(item.duracaoMinutos)
   );
 
   if (ajusteManual) {

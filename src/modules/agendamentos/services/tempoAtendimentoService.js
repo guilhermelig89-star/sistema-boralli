@@ -25,12 +25,6 @@ export function tempoPodeAlimentarSugestoes(tempoRealMinutos) {
   return numero(tempoRealMinutos) >= TEMPO_MINIMO_CONFIAVEL_MINUTOS;
 }
 
-function mediaMinutos(registros) {
-  if (!registros.length) return 0;
-  const total = registros.reduce((soma, item) => soma + numero(item.tempoRealMinutos), 0);
-  return arredondarMinutos(total / registros.length);
-}
-
 function obterMediana(valores) {
   if (!valores.length) return 0;
   const ordenados = [...valores].sort((a, b) => a - b);
@@ -154,65 +148,13 @@ export function obterHistoricoTempoClienteServico(agendamentos, clienteId, servi
   );
 }
 
-export function calcularSugestaoDuracao({ clienteId, servico, agendamentos = [], sugestoesTempo = [] }) {
+export function calcularSugestaoDuracao({ servico }) {
   const duracaoPadrao = arredondarMinutos(servico?.duracaoMinutos || 60);
-
-  if (!servico?.id) {
-    return {
-      duracaoMinutos: duracaoPadrao,
-      origem: "padrao",
-      quantidadeBase: 0,
-      mensagem: `Duração sugerida: ${duracaoPadrao} min, usando duração padrão do serviço.`,
-    };
-  }
-
-  const ajusteManual = sugestoesTempo.find(
-    (item) =>
-      item.ativo !== false &&
-      item.tipo === "cliente_servico" &&
-      item.clienteId === clienteId &&
-      item.servicoId === servico.id &&
-      tempoPodeAlimentarSugestoes(item.duracaoMinutos)
-  );
-
-  if (ajusteManual) {
-    const duracao = arredondarMinutos(ajusteManual.duracaoMinutos);
-    return {
-      duracaoMinutos: duracao,
-      origem: "ajuste_cliente_servico",
-      quantidadeBase: numero(ajusteManual.quantidadeBase, 0),
-      mensagem: `Duração sugerida: ${duracao} min, baseada em ajuste confirmado para esta cliente e serviço.`,
-    };
-  }
-
-  const historicoCliente = obterHistoricoTempoClienteServico(agendamentos, clienteId, servico.id);
-
-  if (clienteId && historicoCliente.length >= 4) {
-    const duracao = mediaMinutos(historicoCliente);
-    return {
-      duracaoMinutos: duracao,
-      origem: "media_cliente_servico",
-      quantidadeBase: historicoCliente.length,
-      mensagem: `Duração sugerida: ${duracao} min, baseada em ${historicoCliente.length} atendimentos anteriores desta cliente.`,
-    };
-  }
-
-  const historicoServico = obterHistoricoTempoServico(agendamentos, servico.id);
-
-  if (historicoServico.length >= 10) {
-    const duracao = mediaMinutos(historicoServico);
-    return {
-      duracaoMinutos: duracao,
-      origem: "media_geral_servico",
-      quantidadeBase: historicoServico.length,
-      mensagem: `Duração sugerida: ${duracao} min, baseada na média geral de ${historicoServico.length} atendimentos deste serviço.`,
-    };
-  }
 
   return {
     duracaoMinutos: duracaoPadrao,
     origem: "padrao",
     quantidadeBase: 0,
-    mensagem: `Duração sugerida: ${duracaoPadrao} min, usando duração padrão do serviço, pois ainda não há histórico suficiente.`,
+    mensagem: `Duração sugerida: ${duracaoPadrao} min, usando a duração padrão predefinida do serviço.`,
   };
 }

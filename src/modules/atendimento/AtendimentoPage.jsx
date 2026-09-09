@@ -159,11 +159,6 @@ function AtendimentoPage() {
   );
 
   const proximoAtendimento = proximosAtendimentos[0] || null;
-  const totalAtendimentosValidos = atendimentosHoje.filter((item) => item.status !== "cancelado").length;
-  const percentualConcluido = totalAtendimentosValidos > 0
-    ? Math.round((atendimentosFinalizados.length / totalAtendimentosValidos) * 100)
-    : 0;
-
   const pacoteFechamento = useMemo(
     () => (atendimentoFechamento?.pacoteClienteId ? pacotesPorId.get(atendimentoFechamento.pacoteClienteId) || null : null),
     [atendimentoFechamento, pacotesPorId]
@@ -381,26 +376,29 @@ function AtendimentoPage() {
       <article className={emAtendimento ? "card-atendimento em-andamento" : "card-atendimento"} key={agendamento.id}>
         <div className="hora-atendimento">
           <strong>{agendamento.hora}</strong>
-          <span>{agendamento.servicoDuracaoMinutos || 60} min</span>
         </div>
 
         <div className="dados-atendimento">
           <div className="topo-card-atendimento">
             <div>
               <h3>{agendamento.clienteNome}</h3>
-              <p>{agendamento.servicoNome}</p>
+              <p>{agendamento.servicoNome} <span aria-hidden="true">·</span> {agendamento.servicoDuracaoMinutos || 60} min</p>
             </div>
             <span className={statusClasse(agendamento.status)}>{statusTexto(agendamento.status)}</span>
           </div>
 
-          <div className="detalhes-atendimento">
-            <span>{pagamentoTexto(agendamento)}</span>
-            {agendamento.observacoes && <span>Obs: {agendamento.observacoes}</span>}
-          </div>
-
-          {renderizarTempoAtendimento(agendamento)}
-          {renderizarEnderecoAtendimento(cliente)}
-          {renderizarResumoPacote(agendamento, pacote)}
+          <details className="detalhes-expansiveis-atendimento">
+            <summary>Ver detalhes</summary>
+            <div className="conteudo-detalhes-atendimento">
+              <div className="detalhes-atendimento">
+                <span>{pagamentoTexto(agendamento)}</span>
+                {agendamento.observacoes && <span>Obs: {agendamento.observacoes}</span>}
+              </div>
+              {renderizarTempoAtendimento(agendamento)}
+              {renderizarEnderecoAtendimento(cliente)}
+              {renderizarResumoPacote(agendamento, pacote)}
+            </div>
+          </details>
 
           {!encerrado && (
             <div className="acoes-atendimento">
@@ -439,28 +437,27 @@ function AtendimentoPage() {
   }
 
   return (
-    <div>
+    <div className="pagina-atendimento">
       <div className="topo-clientes topo-atendimento">
         <div>
-          <h1>Atendimento</h1>
-          <p>Agenda de hoje para acompanhar, iniciar e finalizar os atendimentos.</p>
+          <span className="rotulo-pagina-atendimento">Rotina do salão</span>
+          <h1>Atendimentos de hoje</h1>
+          <p>Acompanhe sua agenda e cuide de cada cliente.</p>
         </div>
         <span className="data-atendimento">{formatarData(hoje)}</span>
       </div>
 
       <section className="painel-pendencias-atendimento" aria-labelledby="titulo-pendencias-atendimento">
         <div className="chamada-pendencias-atendimento">
-          <div>
-            <span className="rotulo-pendencias-atendimento">Fila de hoje</span>
+          <div className="proximo-atendimento-resumo">
+            <span className="rotulo-pendencias-atendimento">{proximoAtendimento ? "Próximo atendimento" : "Agenda em dia"}</span>
             <h2 id="titulo-pendencias-atendimento">
-              {proximosAtendimentos.length === 1
-                ? "1 atendimento pendente"
-                : `${proximosAtendimentos.length} atendimentos pendentes`}
+              {proximoAtendimento ? proximoAtendimento.clienteNome : "Tudo pronto por aqui"}
             </h2>
             <p>
               {proximoAtendimento
-                ? `Próxima cliente: ${proximoAtendimento.clienteNome}, às ${proximoAtendimento.hora}.`
-                : "Tudo em dia por aqui. Não há clientes aguardando atendimento."}
+                ? `${proximoAtendimento.hora} · ${proximoAtendimento.servicoNome}`
+                : "Não há outros atendimentos aguardando início."}
             </p>
           </div>
           {proximoAtendimento && (
@@ -474,52 +471,33 @@ function AtendimentoPage() {
           )}
         </div>
 
-        <div className="indicadores-atendimento" aria-label="Resumo dos atendimentos de hoje">
-          <div className="indicador-atendimento indicador-pendente">
-            <span>Pendentes</span>
-            <strong>{proximosAtendimentos.length}</strong>
-            <small>Aguardando início</small>
-          </div>
-          <div className="indicador-atendimento indicador-andamento">
-            <span>Em andamento</span>
-            <strong>{atendimentosEmAndamento.length}</strong>
-            <small>Com atendimento ativo</small>
-          </div>
-          <div className="indicador-atendimento indicador-finalizado">
-            <span>Finalizados</span>
-            <strong>{atendimentosFinalizados.length}</strong>
-            <small>{percentualConcluido}% da agenda concluída</small>
-          </div>
-        </div>
-
-        <div className="progresso-agenda-atendimento">
-          <div style={{ width: `${percentualConcluido}%` }} />
+        <div className="resumo-dia-atendimento" aria-label="Resumo dos atendimentos de hoje">
+          <span><strong>{proximosAtendimentos.length}</strong> a atender</span>
+          <span><strong>{atendimentosEmAndamento.length}</strong> em andamento</span>
+          <span><strong>{atendimentosFinalizados.length}</strong> concluídos</span>
         </div>
       </section>
 
       <div className="cliente-layout atendimento-layout">
         {erro && <p>{erro}</p>}
 
-        <section className="lista-clientes bloco-atendimento">
+        {atendimentosEmAndamento.length > 0 && <section className="lista-clientes bloco-atendimento bloco-atendimento-ativo">
           <div className="cabecalho-atendimento">
             <div>
               <h2>Em andamento</h2>
-              <p>Atendimentos iniciados e ainda não finalizados.</p>
+              <p>Em atendimento agora.</p>
             </div>
           </div>
 
           {carregando && <p>Carregando atendimentos...</p>}
-          {!carregando && atendimentosEmAndamento.length === 0 && (
-            <div className="estado-vazio-atendimento">Nenhum atendimento em andamento agora.</div>
-          )}
           {!carregando && atendimentosEmAndamento.map(renderizarCardAtendimento)}
-        </section>
+        </section>}
 
         <section className="lista-clientes bloco-atendimento">
           <div className="cabecalho-atendimento">
             <div>
-              <h2>Próximos atendimentos</h2>
-              <p>Use esta lista durante o dia para iniciar, finalizar ou cancelar atendimentos.</p>
+              <h2>Agenda</h2>
+              <p>Próximos horários de hoje.</p>
             </div>
           </div>
 

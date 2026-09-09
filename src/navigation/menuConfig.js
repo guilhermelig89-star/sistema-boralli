@@ -6,7 +6,7 @@ export const MENU_GROUPS = [
     nome: "Atendimento",
     itens: [
       { id: SCREENS.AGENDA, nome: "Agenda" },
-      { id: SCREENS.ATENDIMENTO, nome: "Modo Atendimento" },
+      { id: SCREENS.ATENDIMENTO, nome: "Atendimentos" },
     ],
   },
   {

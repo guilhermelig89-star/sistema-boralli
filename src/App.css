@@ -396,7 +396,7 @@ body {
 
 .filtros-agenda {
   display: grid;
-  grid-template-columns: 180px 160px minmax(220px, 1fr) auto;
+  grid-template-columns: 170px 170px 160px minmax(200px, 1fr) auto;
   gap: 12px;
   margin: 14px 0 18px;
 }

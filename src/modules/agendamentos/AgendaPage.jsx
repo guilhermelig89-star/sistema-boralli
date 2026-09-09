@@ -14,13 +14,23 @@ import AlertaTempoAtendimento from "./components/AlertaTempoAtendimento";
 import { useAgendaConfiguracao } from "./hooks/useAgendaConfiguracao";
 import { useAgendamentos } from "./hooks/useAgendamentos";
 import { useSugestoesTempoAtendimento } from "./hooks/useSugestoesTempoAtendimento";
+import { gerarHorariosDisponiveis } from "./services/agendamentosService";
 import { filtrarPendenciasAgendamentos } from "./services/pendenciasAgendamentosService";
 
 const filtrosIniciais = {
   data: "",
   status: "ativos",
   pesquisa: "",
+  visualizacao: "agendamentos",
+  duracao: "60",
 };
+
+function dataLocalISO(data = new Date()) {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
 
 function deveMostrarAlertaTempo(resultado) {
   return Boolean(resultado?.tempoRealCalculado && resultado?.alertaTempoExigeAtencao);
@@ -111,9 +121,29 @@ function AgendaPage() {
     });
   }, [agendamentos, filtros]);
 
+  const horariosDisponiveis = useMemo(() => {
+    if (filtros.visualizacao !== "disponiveis" || !filtros.data) return [];
+
+    return gerarHorariosDisponiveis({
+      data: filtros.data,
+      duracaoMinutos: Number(filtros.duracao),
+      configuracaoAgenda: { horarios, excecoes },
+      agendamentosExistentes: agendamentos,
+    });
+  }, [agendamentos, excecoes, filtros.data, filtros.duracao, filtros.visualizacao, horarios]);
+
   function alterarFiltro(campo, valor) {
     if (campo === "limpar") {
       setFiltros(filtrosIniciais);
+      return;
+    }
+
+    if (campo === "visualizacao" && valor === "disponiveis") {
+      setFiltros((atuais) => ({
+        ...atuais,
+        visualizacao: valor,
+        data: atuais.data || dataLocalISO(),
+      }));
       return;
     }
 
@@ -372,19 +402,45 @@ function AgendaPage() {
                   <h2>Agenda</h2>
                   <p>Visualize os próximos horários e acompanhe cada atendimento.</p>
                 </div>
-                <strong>{agendamentosFiltrados.length} horário{agendamentosFiltrados.length === 1 ? "" : "s"}</strong>
+                <strong>
+                  {filtros.visualizacao === "disponiveis" ? horariosDisponiveis.length : agendamentosFiltrados.length}
+                  {" horário"}
+                  {(filtros.visualizacao === "disponiveis" ? horariosDisponiveis.length : agendamentosFiltrados.length) === 1 ? "" : "s"}
+                </strong>
               </div>
               <AgendaFiltros filtros={filtros} onAlterar={alterarFiltro} />
               {erro && <p>{erro}</p>}
-              <AgendamentosTable
-                agendamentos={agendamentosFiltrados}
-                carregando={carregando}
-                onIniciar={iniciar}
-                onFinalizar={finalizar}
-                onCancelar={cancelar}
-                onEditar={setAgendamentoEmEdicao}
-                onCorrigirConsumoPacote={corrigirConsumoPacoteFinalizado}
-              />
+              {filtros.visualizacao === "disponiveis" ? (
+                <section className="horarios-disponiveis" aria-live="polite">
+                  <div className="cabecalho-horarios-disponiveis">
+                    <div>
+                      <h3>Horários vagos</h3>
+                      <p>Encaixes de {filtros.duracao} minutos em intervalos de 15 minutos.</p>
+                    </div>
+                    <span>{filtros.data.split("-").reverse().join("/")}</span>
+                  </div>
+                  {horariosDisponiveis.length > 0 ? (
+                    <div className="grade-horarios-disponiveis">
+                      {horariosDisponiveis.map((hora) => <span key={hora}>{hora}</span>)}
+                    </div>
+                  ) : (
+                    <div className="agenda-vazia">
+                      <strong>Nenhum horário vago nesta data.</strong>
+                      <span>Tente outra data ou uma duração menor.</span>
+                    </div>
+                  )}
+                </section>
+              ) : (
+                <AgendamentosTable
+                  agendamentos={agendamentosFiltrados}
+                  carregando={carregando}
+                  onIniciar={iniciar}
+                  onFinalizar={finalizar}
+                  onCancelar={cancelar}
+                  onEditar={setAgendamentoEmEdicao}
+                  onCorrigirConsumoPacote={corrigirConsumoPacoteFinalizado}
+                />
+              )}
             </div>
           </>
         )}

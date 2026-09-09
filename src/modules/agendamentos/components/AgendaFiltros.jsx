@@ -35,7 +35,16 @@ function AgendaFiltros({ filtros, onAlterar }) {
         </button>
       </div>
 
-      <div className="filtros-agenda">
+      <div className={`filtros-agenda ${filtros.visualizacao === "disponiveis" ? "filtros-horarios-vagos" : ""}`}>
+        <select
+          aria-label="Escolher visualização da agenda"
+          value={filtros.visualizacao}
+          onChange={(e) => onAlterar("visualizacao", e.target.value)}
+        >
+          <option value="agendamentos">Agendamentos</option>
+          <option value="disponiveis">Horários vagos</option>
+        </select>
+
         <input
           type="date"
           aria-label="Filtrar por data"
@@ -43,20 +52,32 @@ function AgendaFiltros({ filtros, onAlterar }) {
           onChange={(e) => onAlterar("data", e.target.value)}
         />
 
-        <select aria-label="Filtrar por status" value={filtros.status} onChange={(e) => onAlterar("status", e.target.value)}>
-          <option value="ativos">Ativos</option>
-          <option value="todos">Todos</option>
-          <option value="agendado">Agendados</option>
-          <option value="finalizado">Finalizados</option>
-          <option value="cancelado">Cancelados</option>
-        </select>
+        {filtros.visualizacao === "disponiveis" ? (
+          <select aria-label="Duração do encaixe" value={filtros.duracao} onChange={(e) => onAlterar("duracao", e.target.value)}>
+            <option value="30">30 minutos</option>
+            <option value="45">45 minutos</option>
+            <option value="60">1 hora</option>
+            <option value="90">1 hora e 30 min</option>
+            <option value="120">2 horas</option>
+          </select>
+        ) : (
+          <select aria-label="Filtrar por status" value={filtros.status} onChange={(e) => onAlterar("status", e.target.value)}>
+            <option value="ativos">Ativos</option>
+            <option value="todos">Todos</option>
+            <option value="agendado">Agendados</option>
+            <option value="finalizado">Finalizados</option>
+            <option value="cancelado">Cancelados</option>
+          </select>
+        )}
 
-        <input
-          aria-label="Pesquisar cliente ou serviço"
-          placeholder="Pesquisar cliente ou serviço..."
-          value={filtros.pesquisa}
-          onChange={(e) => onAlterar("pesquisa", e.target.value)}
-        />
+        {filtros.visualizacao === "agendamentos" && (
+          <input
+            aria-label="Pesquisar cliente ou serviço"
+            placeholder="Pesquisar cliente ou serviço..."
+            value={filtros.pesquisa}
+            onChange={(e) => onAlterar("pesquisa", e.target.value)}
+          />
+        )}
 
         <button type="button" onClick={() => onAlterar("limpar", "")}>Limpar filtros</button>
       </div>

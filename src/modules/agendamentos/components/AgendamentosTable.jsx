@@ -42,7 +42,7 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
         <span>Cliente</span>
         <span>Serviço</span>
         <span>Pagamento</span>
-        <span>Ações</span>
+        <span>Status e ações</span>
       </div>
 
       {carregando && (
@@ -74,7 +74,7 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
               <div className={`linha-agendamento linha-status-${agendamento.status}`}>
                 <div className="horario-agendamento">
                   <strong>{agendamento.hora || "--:--"}</strong>
-                  <small>{agendamento.duracaoMinutos ? `${agendamento.duracaoMinutos} min` : "Horário marcado"}</small>
+                  <small>{agendamento.servicoDuracaoMinutos ? `${agendamento.servicoDuracaoMinutos} min` : "Horário marcado"}</small>
                 </div>
                 <span>{agendamento.clienteNome}</span>
                 <span>{agendamento.servicoNome}</span>
@@ -86,14 +86,17 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                       currency: "BRL",
                     })}`}
                 </span>
-                <div className="acoes-cliente">
+                <div className="acoes-agendamento">
                 <span className={statusClasse(agendamento.status)}>{statusTexto(agendamento.status)}</span>
 
-                <button className="botao-editar" onClick={() => onEditar(agendamento)}>Editar</button>
+                <details className="menu-acoes-agendamento">
+                  <summary aria-label={`Abrir ações de ${agendamento.clienteNome}`} title="Mostrar ações">•••</summary>
+                  <div className="menu-acoes-conteudo">
+                  <button className="botao-menu-acao" onClick={() => onEditar(agendamento)}>Editar</button>
 
                 {!encerrado && !emAtendimento && (
                   <button
-                    className="botao-editar"
+                    className="botao-menu-acao"
                     onClick={() => onIniciar(agendamento.id)}
                   >
                     Iniciar
@@ -102,7 +105,7 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
 
                 {!encerrado && emAtendimento && (
                   <button
-                    className="botao-editar"
+                    className="botao-menu-acao"
                     onClick={() => {
                       const confirmar = confirm("Finalizar este atendimento?");
                       if (confirmar) onFinalizar(agendamento.id);
@@ -114,7 +117,7 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
 
                 {!encerrado && (
                   <button
-                    className="botao-desativar"
+                    className="botao-menu-acao perigo"
                     onClick={() => {
                       const confirmar = confirm("Cancelar este agendamento?");
                       if (confirmar) onCancelar(agendamento.id);
@@ -125,12 +128,14 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                 )}
                 {podeCorrigirConsumoPacote && (
                   <button
-                    className="botao-editar"
+                    className="botao-menu-acao"
                     onClick={() => onCorrigirConsumoPacote?.(agendamento)}
                   >
                     Corrigir consumo do pacote
                   </button>
                 )}
+                  </div>
+                </details>
                 </div>
               </div>
             </div>

@@ -9,6 +9,18 @@ import {
 
 const servico = { id: "servico-1", duracaoMinutos: 60 };
 
+test("usa o tempo padrão do serviço ao finalizar sem iniciar o atendimento", () => {
+  const resultado = calcularTempoFinalizacao(
+    { servicoDuracaoMinutos: 45 },
+    new Date("2026-09-09T10:00:00.000Z")
+  );
+
+  assert.equal(resultado.tempoPrevistoMinutos, 45);
+  assert.equal(resultado.tempoRealMinutos, 45);
+  assert.equal(resultado.tempoRealCalculado, false);
+  assert.equal(resultado.tempoValidoParaSugestao, false);
+});
+
 test("não usa finalização feita menos de 15 minutos após o início na inteligência", () => {
   const resultado = calcularTempoFinalizacao(
     {

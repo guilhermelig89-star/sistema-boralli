@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import AlertaTempoAtendimento from "../agendamentos/components/AlertaTempoAtendimento";
 import { useAgendamentos } from "../agendamentos/hooks/useAgendamentos";
 import { useSugestoesTempoAtendimento } from "../agendamentos/hooks/useSugestoesTempoAtendimento";
+import { agendamentoEstaAtrasado } from "../agendamentos/services/pendenciasAgendamentosService";
 import { useClientes } from "../clientes/hooks/useClientes";
 import { calcularSaldoItemPacote } from "../pacotes/domain/pacotesDomain";
 import { usePacotesClientes } from "../pacotes/hooks/usePacotesClientes";
@@ -182,7 +183,7 @@ function AtendimentoPage() {
   }
 
   function finalizar(agendamento) {
-    if (agendamento.status !== "em_atendimento") {
+    if (agendamento.status !== "em_atendimento" && !agendamentoEstaAtrasado(agendamento)) {
       alert("Inicie o atendimento antes de finalizar para calcular o tempo real corretamente.");
       return;
     }
@@ -371,6 +372,7 @@ function AtendimentoPage() {
     const pacote = obterPacoteAgendamento(agendamento);
     const encerrado = agendamento.status === "finalizado" || agendamento.status === "cancelado";
     const emAtendimento = agendamento.status === "em_atendimento";
+    const atrasado = agendamentoEstaAtrasado(agendamento);
 
     return (
       <article className={emAtendimento ? "card-atendimento em-andamento" : "card-atendimento"} key={agendamento.id}>
@@ -402,9 +404,14 @@ function AtendimentoPage() {
 
           {!encerrado && (
             <div className="acoes-atendimento">
-              {!emAtendimento && (
+              {!emAtendimento && !atrasado && (
                 <button type="button" className="botao-secundario" onClick={() => iniciar(agendamento)}>
                   Iniciar atendimento
+                </button>
+              )}
+              {atrasado && (
+                <button type="button" className="botao-principal-atendimento" onClick={() => finalizar(agendamento)}>
+                  Finalizar atendimento (tempo padrão)
                 </button>
               )}
               {emAtendimento && (

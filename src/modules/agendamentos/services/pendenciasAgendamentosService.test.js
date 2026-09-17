@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { filtrarPendenciasAgendamentos } from "./pendenciasAgendamentosService.js";
+import {
+  agendamentoEstaAtrasado,
+  filtrarPendenciasAgendamentos,
+} from "./pendenciasAgendamentosService.js";
 
 const AGORA = new Date("2026-07-20T15:00:00");
 
@@ -12,6 +15,21 @@ test("identifica agendamento vencido como pendência", () => {
   ], AGORA);
 
   assert.deepEqual(pendencias.map((item) => item.id), ["vencido"]);
+});
+
+test("permite identificar somente agendamentos atrasados ainda não iniciados", () => {
+  assert.equal(agendamentoEstaAtrasado(
+    { data: "2026-07-20", hora: "14:00", status: "agendado" },
+    AGORA
+  ), true);
+  assert.equal(agendamentoEstaAtrasado(
+    { data: "2026-07-20", hora: "16:00", status: "agendado" },
+    AGORA
+  ), false);
+  assert.equal(agendamentoEstaAtrasado(
+    { data: "2026-07-20", hora: "14:00", status: "em_atendimento" },
+    AGORA
+  ), false);
 });
 
 test("identifica atendimento iniciado há pelo menos seis horas", () => {

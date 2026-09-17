@@ -15,7 +15,10 @@ import { useAgendaConfiguracao } from "./hooks/useAgendaConfiguracao";
 import { useAgendamentos } from "./hooks/useAgendamentos";
 import { useSugestoesTempoAtendimento } from "./hooks/useSugestoesTempoAtendimento";
 import { gerarHorariosDisponiveis } from "./services/agendamentosService";
-import { filtrarPendenciasAgendamentos } from "./services/pendenciasAgendamentosService";
+import {
+  agendamentoEstaAtrasado,
+  filtrarPendenciasAgendamentos,
+} from "./services/pendenciasAgendamentosService";
 
 const filtrosIniciais = {
   data: "",
@@ -203,7 +206,7 @@ function AgendaPage() {
       return;
     }
 
-    if (agendamento.status !== "em_atendimento") {
+    if (agendamento.status !== "em_atendimento" && !agendamentoEstaAtrasado(agendamento)) {
       alert("Inicie o atendimento antes de finalizar para calcular o tempo real corretamente.");
       return;
     }

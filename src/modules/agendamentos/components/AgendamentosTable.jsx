@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { agendamentoEstaAtrasado } from "../services/pendenciasAgendamentosService";
+
 function statusClasse(status) {
   if (status === "finalizado") return "badge-tipo badge-servico";
   if (status === "cancelado") return "badge-tipo badge-alerta";
@@ -86,6 +88,7 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
         agendamentos.map((agendamento, indice) => {
           const encerrado = agendamento.status === "finalizado" || agendamento.status === "cancelado";
           const emAtendimento = agendamento.status === "em_atendimento";
+          const atrasado = agendamentoEstaAtrasado(agendamento);
           const podeCorrigirConsumoPacote =
             agendamento.status === "finalizado" &&
             Boolean(agendamento.pacoteClienteId) &&
@@ -128,12 +131,21 @@ function AgendamentosTable({ agendamentos, carregando, onIniciar, onFinalizar, o
                   <div className="menu-acoes-conteudo">
                   <button className="botao-menu-acao" onClick={() => executarAcao(() => onEditar(agendamento))}>Editar</button>
 
-                {!encerrado && !emAtendimento && (
+                {!encerrado && !emAtendimento && !atrasado && (
                   <button
                     className="botao-menu-acao"
                     onClick={() => executarAcao(() => onIniciar(agendamento.id))}
                   >
                     Iniciar
+                  </button>
+                )}
+
+                {!encerrado && atrasado && (
+                  <button
+                    className="botao-menu-acao"
+                    onClick={() => executarAcao(() => onFinalizar(agendamento.id))}
+                  >
+                    Finalizar (tempo padrão)
                   </button>
                 )}
 
